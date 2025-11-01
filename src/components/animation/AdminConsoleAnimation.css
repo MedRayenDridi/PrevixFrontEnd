@@ -1,0 +1,193 @@
+.admin-loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #000000 0%, #07315c 50%, #1c91af 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+  overflow: hidden;
+}
+
+.admin-console-core {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.console-screen {
+  width: 500px;
+  height: 300px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid rgba(28, 145, 175, 0.6);
+  border-radius: 8px;
+  padding: 20px;
+  font-family: 'Courier New', monospace;
+  color: rgba(28, 145, 175, 0.9);
+  box-shadow:
+    0 0 20px rgba(28, 145, 175, 0.4),
+    inset 0 0 20px rgba(0, 0, 0, 0.8);
+  position: relative;
+  overflow: hidden;
+}
+
+.console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(28, 145, 175, 0.3);
+}
+
+.console-title {
+  font-size: 14px;
+  font-weight: bold;
+  color: rgba(28, 145, 175, 1);
+}
+
+.console-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #00ff00;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #00ff00;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+
+.console-output {
+  height: 200px;
+  overflow-y: auto;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.console-line {
+  margin-bottom: 8px;
+  animation: lineFade 0.5s ease-out;
+}
+
+.console-cursor {
+  color: rgba(28, 145, 175, 1);
+  animation: cursorBlink 1s infinite;
+}
+
+.console-glow {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: linear-gradient(45deg, transparent, rgba(28, 145, 175, 0.2), transparent);
+  border-radius: 12px;
+  z-index: -1;
+  animation: consoleGlow 3s ease-in-out infinite;
+}
+
+.admin-loader-text {
+  text-align: center;
+  color: white;
+  z-index: 10;
+}
+
+.admin-loader-text h3 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #1c91af, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(28, 145, 175, 0.5);
+}
+
+.admin-loader-text p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+  font-weight: 300;
+}
+
+@keyframes statusPulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 6px #00ff00;
+  }
+  50% {
+    opacity: 0.6;
+    box-shadow: 0 0 12px #00ff00;
+  }
+}
+
+@keyframes cursorBlink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+@keyframes lineFade {
+  0% {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes consoleGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .console-screen {
+    width: 90vw;
+    max-width: 400px;
+    height: 250px;
+    padding: 15px;
+  }
+
+  .console-output {
+    height: 160px;
+    font-size: 12px;
+  }
+
+  .console-title {
+    font-size: 12px;
+  }
+
+  .console-status {
+    font-size: 10px;
+  }
+
+  .admin-loader-text h3 {
+    font-size: 1.5rem;
+  }
+
+  .admin-loader-text p {
+    font-size: 0.9rem;
+  }
+}

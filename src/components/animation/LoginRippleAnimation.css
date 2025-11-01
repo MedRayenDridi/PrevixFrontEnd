@@ -1,0 +1,26 @@
+.login-ripple-container {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(28, 145, 175, 0.6) 0%, rgba(28, 145, 175, 0.2) 50%, transparent 100%);
+  transform: scale(0);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Enhanced glow effect for login buttons */
+.login-ripple-container:hover {
+  box-shadow: 0 0 20px rgba(28, 145, 175, 0.4);
+  transition: box-shadow 0.3s ease;
+}
+
+.login-ripple-container:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}

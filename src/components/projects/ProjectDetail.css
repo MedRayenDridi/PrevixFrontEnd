@@ -1,0 +1,307 @@
+.project-detail-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.project-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.project-title-section h1 {
+  color: #07315c;
+  margin: 0 0 10px 0;
+  font-size: 2rem;
+}
+
+.project-meta {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.status-active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.status-completed {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.status-on-hold {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.status-cancelled {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.project-type {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.project-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.project-tabs {
+  display: flex;
+  border-bottom: 1px solid rgba(7, 49, 92, 0.1);
+  margin-bottom: 20px;
+}
+
+.tab-button {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  color: #07315c;
+}
+
+.tab-button.active {
+  color: #1c91af;
+  border-bottom-color: #1c91af;
+}
+
+.tab-content {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(7, 49, 92, 0.1);
+}
+
+.overview-tab .project-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  background-color: rgba(7, 49, 92, 0.02);
+  padding: 20px;
+  border-radius: 6px;
+}
+
+.info-card h3 {
+  margin: 0 0 10px 0;
+  color: #07315c;
+  font-size: 1.1rem;
+}
+
+.info-card p {
+  margin: 0;
+  color: #07315c;
+}
+
+.progress-display {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 10px;
+  background-color: rgba(7, 49, 92, 0.1);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #1c91af;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-weight: 500;
+  color: #07315c;
+}
+
+.assigned-users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.user-tag {
+  background-color: #1c91af;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+}
+
+.assets-tab h3,
+.reports-tab h3 {
+  color: #07315c;
+  margin: 0 0 20px 0;
+}
+
+.assets-table-container {
+  overflow-x: auto;
+}
+
+.assets-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.assets-table th,
+.assets-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid rgba(7, 49, 92, 0.05);
+}
+
+.assets-table th {
+  background-color: rgba(7, 49, 92, 0.02);
+  font-weight: 600;
+  color: #07315c;
+}
+
+.assets-table tbody tr:hover {
+  background-color: rgba(7, 49, 92, 0.02);
+}
+
+.no-assets {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.report-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.report-card {
+  background-color: rgba(7, 49, 92, 0.02);
+  padding: 20px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.report-card h4 {
+  margin: 0 0 10px 0;
+  color: #07315c;
+}
+
+.report-card p {
+  margin: 0 0 15px 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.loading-spinner {
+  text-align: center;
+  padding: 40px;
+  color: #6b7280;
+}
+
+.error-message {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+}
+
+.btn-primary,
+.btn-secondary,
+.btn-danger {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #1c91af;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0e7c8f;
+}
+
+.btn-secondary {
+  background-color: rgba(7, 49, 92, 0.02);
+  color: #07315c;
+  border: 1px solid rgba(7, 49, 92, 0.1);
+}
+
+.btn-secondary:hover {
+  background-color: rgba(7, 49, 92, 0.05);
+}
+
+.btn-danger {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .project-detail-container {
+    padding: 10px;
+  }
+
+  .project-detail-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .project-actions {
+    justify-content: center;
+  }
+
+  .project-tabs {
+    flex-wrap: wrap;
+  }
+
+  .tab-button {
+    flex: 1;
+    text-align: center;
+  }
+
+  .overview-tab .project-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .report-options {
+    grid-template-columns: 1fr;
+  }
+}

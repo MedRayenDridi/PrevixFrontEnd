@@ -1,0 +1,13 @@
+name: Test GitHub Actions
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # utilise un runner GitHub hébergé
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Test simple
+        run: echo "✅ GitHub Actions fonctionne !"

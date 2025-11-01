@@ -1,0 +1,359 @@
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #050812 0%, #07315c 50%, #1c91af 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+.ai-brain {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin-bottom: 2rem;
+}
+
+.brain-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+  height: 120px;
+  border: 3px solid rgba(28, 145, 175, 0.3);
+  border-radius: 50%;
+  animation: brainRingPulse 2s ease-in-out infinite;
+}
+
+.brain-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  background: radial-gradient(circle, rgba(28, 145, 175, 0.9) 0%, rgba(7, 49, 92, 1) 100%);
+  border-radius: 50%;
+  box-shadow:
+    0 0 30px rgba(28, 145, 175, 0.8),
+    0 0 60px rgba(28, 145, 175, 0.4),
+    inset 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.brain-pulse {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 80px;
+  height: 80px;
+  border: 2px solid rgba(28, 145, 175, 0.6);
+  border-radius: 50%;
+  animation: brainPulse 2s ease-in-out infinite;
+}
+
+.brain-glow {
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(circle, rgba(28, 145, 175, 0.3) 0%, transparent 70%);
+  border-radius: 50%;
+  animation: brainGlow 3s ease-in-out infinite;
+}
+
+.neural-network {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.neuron {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(28, 145, 175, 0.8);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(28, 145, 175, 0.6);
+}
+
+.neuron-pulse {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(28, 145, 175, 0.5);
+  border-radius: 50%;
+  animation: neuronPulse 1.5s ease-in-out infinite;
+}
+
+.connection {
+  position: absolute;
+  width: 40px;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(28, 145, 175, 0.8), transparent);
+  transform-origin: left center;
+  animation: connectionFlow 2s ease-in-out infinite;
+}
+
+.connection:nth-child(1) { top: 30%; left: 20%; transform: rotate(45deg); }
+.connection:nth-child(2) { top: 40%; left: 60%; transform: rotate(-30deg); }
+.connection:nth-child(3) { top: 60%; left: 30%; transform: rotate(60deg); }
+.connection:nth-child(4) { top: 50%; left: 70%; transform: rotate(-45deg); }
+.connection:nth-child(5) { top: 70%; left: 40%; transform: rotate(30deg); }
+.connection:nth-child(6) { top: 20%; left: 50%; transform: rotate(-60deg); }
+.connection:nth-child(7) { top: 80%; left: 10%; transform: rotate(90deg); }
+.connection:nth-child(8) { top: 10%; left: 80%; transform: rotate(0deg); }
+
+.data-streams {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.data-stream {
+  position: absolute;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(28, 145, 175, 0.6), transparent);
+  animation: dataFlow 2s linear infinite;
+}
+
+.data-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: rgba(28, 145, 175, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(28, 145, 175, 0.8);
+  animation: particleMove 2s linear infinite;
+}
+
+.data-stream .data-particle:nth-child(1) { animation-delay: 0s; }
+.data-stream .data-particle:nth-child(2) { animation-delay: 0.7s; }
+.data-stream .data-particle:nth-child(3) { animation-delay: 1.4s; }
+
+.loading-progress {
+  width: 300px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #1c91af, #ffffff);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(28, 145, 175, 0.5);
+}
+
+.loading-text {
+  text-align: center;
+  color: white;
+}
+
+.loading-text h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, #1c91af, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 20px rgba(28, 145, 175, 0.5);
+}
+
+.loading-text p {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 0 1rem 0;
+  font-weight: 300;
+}
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading-dots span {
+  width: 8px;
+  height: 8px;
+  background: rgba(28, 145, 175, 0.8);
+  border-radius: 50%;
+  animation: dotPulse 1.4s ease-in-out infinite;
+}
+
+.loading-dots span:nth-child(1) { animation-delay: 0s; }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes brainPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.7;
+  }
+}
+
+@keyframes brainGlow {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes brainRingPulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+}
+
+@keyframes neuronPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.6;
+  }
+}
+
+@keyframes connectionFlow {
+  0% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+
+@keyframes dataFlow {
+  0% {
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes particleMove {
+  0% {
+    transform: translateY(-10px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(110vh);
+    opacity: 0;
+  }
+}
+
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    transform: scale(0.8);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .ai-brain {
+    width: 150px;
+    height: 150px;
+  }
+
+  .brain-ring {
+    width: 90px;
+    height: 90px;
+  }
+
+  .brain-core {
+    width: 45px;
+    height: 45px;
+  }
+
+  .brain-pulse {
+    width: 65px;
+    height: 65px;
+    top: -7px;
+    left: -7px;
+  }
+
+  .brain-glow {
+    width: 80px;
+    height: 80px;
+    top: -15px;
+    left: -15px;
+  }
+
+  .neuron {
+    width: 6px;
+    height: 6px;
+  }
+
+  .neuron-pulse {
+    width: 12px;
+    height: 12px;
+    top: -3px;
+    left: -3px;
+  }
+
+  .loading-progress {
+    width: 250px;
+  }
+
+  .loading-text h2 {
+    font-size: 2rem;
+  }
+
+  .loading-text p {
+    font-size: 0.9rem;
+  }
+}
