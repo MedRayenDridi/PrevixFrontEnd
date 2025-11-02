@@ -116,7 +116,7 @@ const LoadingScreen = ({ onComplete }) => {
 
       <div className="loading-text">
         <h2>Prev-IX</h2>
-        <p>Connecting to AI Network...</p>
+        <p>Loading application components...</p>
         <div className="loading-dots">
           <span></span>
           <span></span>
