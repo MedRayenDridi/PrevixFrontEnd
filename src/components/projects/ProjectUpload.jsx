@@ -16,6 +16,7 @@ const ProjectUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [uploadResults, setUploadResults] = useState(null);
 
   const allowedTypes = [
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
@@ -78,14 +79,20 @@ const ProjectUpload = () => {
   };
 
   const handleUpload = async () => {
-    if (files.length === 0) return;
+    if (files.length === 0) {
+      console.log('❌ No files to upload');
+      return;
+    }
+
+    console.log('🎯 Starting upload process');
+    console.log('   Project ID:', id);
+    console.log('   Files to upload:', files);
 
     setUploading(true);
     setUploadProgress(0);
     setUploadError(null);
 
     try {
-      // Simulate progress for better UX
       const progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           if (prev >= 90) {
@@ -96,25 +103,41 @@ const ProjectUpload = () => {
         });
       }, 200);
 
-      await projectService.uploadToProject(id, files);
+      console.log('📤 Calling uploadToProject...');
+      const results = await projectService.uploadToProject(id, files);
+
+      console.log('📥 Upload results received:', results);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
-      setUploadSuccess(true);
+      setUploadResults(results);
+      
+      if (results.errors.length > 0) {
+        console.warn('⚠️ Some files failed to upload:', results.errors);
+        setUploadError(`${results.errors.length} file(s) failed to upload`);
+      } else {
+        console.log('✅ All files uploaded successfully!');
+        setUploadSuccess(true);
+      }
 
-      // Reset after success
+      console.log('⏱️ Redirecting in 3 seconds...');
       setTimeout(() => {
         setFiles([]);
         setUploadSuccess(false);
         setUploadProgress(0);
+        setUploadResults(null);
         navigate(`/projects/${id}`);
-      }, 2000);
+      }, 3000);
 
     } catch (err) {
+      console.error('💥 Upload failed with error:', err);
+      console.error('   Error message:', err.message);
+      console.error('   Error response:', err.response);
       setUploadError(err.message || 'Upload failed');
       setUploadProgress(0);
     } finally {
       setUploading(false);
+      console.log('🏁 Upload process finished');
     }
   };
 
@@ -160,6 +183,57 @@ const ProjectUpload = () => {
       {uploadSuccess && (
         <div className="success-message">
           Files uploaded successfully! Redirecting...
+        </div>
+      )}
+
+      {uploadResults && (
+        <div className="upload-results">
+          {uploadResults.excel_files.length > 0 && (
+            <div className="result-section">
+              <h3>📊 Excel Files ({uploadResults.excel_files.length})</h3>
+              {uploadResults.excel_files.map((file, idx) => (
+                <div key={idx} className="result-item">
+                  <strong>{file.file_name}</strong>
+                  <p>{file.data.nombre_feuilles} sheet(s) processed</p>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {uploadResults.pdf_files.length > 0 && (
+            <div className="result-section">
+              <h3>📄 PDF Files ({uploadResults.pdf_files.length})</h3>
+              {uploadResults.pdf_files.map((file, idx) => (
+                <div key={idx} className="result-item">
+                  <strong>{file.file_name}</strong>
+                  <p>{file.data.nb_pages} page(s), {file.data.nb_images} image(s), {file.data.nb_tableaux} table(s)</p>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {uploadResults.other_files.length > 0 && (
+            <div className="result-section">
+              <h3>📁 Other Files ({uploadResults.other_files.length})</h3>
+              {uploadResults.other_files.map((file, idx) => (
+                <div key={idx} className="result-item">
+                  <strong>{file.file_name}</strong>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {uploadResults.errors.length > 0 && (
+            <div className="result-section error">
+              <h3>❌ Failed Uploads ({uploadResults.errors.length})</h3>
+              {uploadResults.errors.map((error, idx) => (
+                <div key={idx} className="result-item">
+                  <strong>{error.file_name}</strong>
+                  <p className="error-text">{error.error}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

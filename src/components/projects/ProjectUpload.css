@@ -274,3 +274,58 @@
     width: 100%;
   }
 }
+
+.upload-results {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(7, 49, 92, 0.1);
+  margin-bottom: 20px;
+}
+
+.result-section {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: rgba(7, 49, 92, 0.02);
+  border-radius: 6px;
+  border-left: 4px solid #1c91af;
+}
+
+.result-section.error {
+  border-left-color: #dc2626;
+  background-color: rgba(220, 38, 38, 0.05);
+}
+
+.result-section h3 {
+  color: #07315c;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.result-item {
+  padding: 10px;
+  margin-bottom: 8px;
+  background-color: white;
+  border-radius: 4px;
+  border: 1px solid rgba(7, 49, 92, 0.05);
+}
+
+.result-item:last-child {
+  margin-bottom: 0;
+}
+
+.result-item strong {
+  color: #07315c;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.result-item p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+.error-text {
+  color: #dc2626 !important;
+}
