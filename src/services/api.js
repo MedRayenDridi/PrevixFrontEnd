@@ -11,7 +11,7 @@ const api = axios.create({
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -23,7 +23,8 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user');
       window.location.href = '/login';
     }
     return Promise.reject(error);
@@ -41,23 +42,322 @@ export const authService = {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
     });
-    return response.data;
-  },
-  register: async ({ email, password, name, picture }) => {
-    const params = new URLSearchParams({ email, password, name });
-    if (picture) {
-      params.append('picture', picture);
+    
+    if (response.data.access_token) {
+      localStorage.setItem('access_token', response.data.access_token);
+      localStorage.setItem('token_type', response.data.token_type);
     }
-    const response = await api.post(`/auth/register?${params.toString()}`);
+    
     return response.data;
   },
+
+  register: async ({ email, password, full_name, role_identity = 'client_previx', org_id = 1 }) => {
+    const response = await api.post('/auth/register', {
+      email,
+      password,
+      full_name,
+      role_identity,
+      org_id,
+    });
+    return response.data;
+  },
+
   getProfile: async () => {
-    const response = await api.get('/profile');
+    const response = await api.get('/auth/users/me');
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
     return response.data;
   },
+
   updateProfile: async (data) => {
-    const response = await api.put('/profile', data);
+    const response = await api.put('/auth/users/me', data);
+    if (response.data) {
+      localStorage.setItem('user', JSON.stringify(response.data));
+    }
     return response.data;
+  },
+
+  getUserRoles: async () => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.user_roles || [];
+  },
+
+  hasRole: async (roleIdentity) => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    if (!user.user_roles) {
+      return false;
+    }
+    return user.user_roles.some(ur => ur.role?.role_identity === roleIdentity);
+  },
+
+  isAdmin: async () => {
+    return authService.hasRole('general_admin');
+  },
+
+  changePassword: async (current_password, new_password) => {
+    const response = await api.post('/auth/change-password', {
+      current_password,
+      new_password,
+    });
+    return response.data;
+  },
+
+  logout: () => {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('token_type');
+    localStorage.removeItem('user');
+    window.location.href = '/login';
+  },
+
+  getToken: () => {
+    return localStorage.getItem('access_token');
+  },
+
+  isAuthenticated: () => {
+    return !!localStorage.getItem('access_token');
+  },
+};
+
+export const projectService = {
+  getProjects: async () => {
+    try {
+      const response = await api.get('/projects/');
+      console.log('Raw response:', response.data);
+      
+      // Backend returns: { success, data: [...], total }
+      if (response.data && Array.isArray(response.data.data)) {
+        console.log('Returning data array:', response.data.data);
+        return response.data.data;
+      }
+      
+      // Fallback for other formats
+      if (Array.isArray(response.data)) {
+        return response.data;
+      }
+      
+      console.warn('Unexpected response format:', response.data);
+      return [];
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      throw error;
+    }
+  },
+
+  getProject: async (projectId) => {
+    try {
+      const response = await api.get(`/projects/${projectId}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`Error fetching project ${projectId}:`, error);
+      throw error;
+    }
+  },
+
+  createProject: async (projectData) => {
+    try {
+      const response = await api.post('/projects/', projectData);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error creating project:', error);
+      throw error;
+    }
+  },
+
+  updateProject: async (projectId, projectData) => {
+    try {
+      const response = await api.put(`/projects/${projectId}`, projectData);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`Error updating project ${projectId}:`, error);
+      throw error;
+    }
+  },
+
+  deleteProject: async (projectId) => {
+    try {
+      const response = await api.delete(`/projects/${projectId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting project ${projectId}:`, error);
+      throw error;
+    }
+  },
+
+  getAssets: async (projectId) => {
+    try {
+      const response = await api.get(`/assets?project_id=${projectId}`);
+      return Array.isArray(response.data) ? response.data : response.data.data || [];
+    } catch (error) {
+      console.error(`Error fetching assets for project ${projectId}:`, error);
+      throw error;
+    }
+  },
+
+  getAsset: async (assetId) => {
+    try {
+      const response = await api.get(`/assets/${assetId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching asset ${assetId}:`, error);
+      throw error;
+    }
+  },
+
+  createAsset: async (assetData) => {
+    try {
+      const response = await api.post('/assets', assetData);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating asset:', error);
+      throw error;
+    }
+  },
+
+  updateAsset: async (assetId, assetData) => {
+    try {
+      const response = await api.put(`/assets/${assetId}`, assetData);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating asset ${assetId}:`, error);
+      throw error;
+    }
+  },
+
+  deleteAsset: async (assetId) => {
+    try {
+      const response = await api.delete(`/assets/${assetId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting asset ${assetId}:`, error);
+      throw error;
+    }
+  },
+
+  getReport: async (projectId, format = 'pdf') => {
+    try {
+      const response = await api.get(`/report/${projectId}?format=${format}`, {
+        responseType: 'blob',
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching report for project ${projectId}:`, error);
+      throw error;
+    }
+  },
+};
+
+export const organizationService = {
+  getOrganizations: async () => {
+    try {
+      const response = await api.get('/organizations/');
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+      throw error;
+    }
+  },
+
+  getOrganization: async (orgId) => {
+    try {
+      const response = await api.get(`/organizations/${orgId}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`Error fetching organization ${orgId}:`, error);
+      throw error;
+    }
+  },
+
+  createOrganization: async (orgData) => {
+    try {
+      const response = await api.post('/organizations/', orgData);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error creating organization:', error);
+      throw error;
+    }
+  },
+
+  updateOrganization: async (orgId, orgData) => {
+    try {
+      const response = await api.put(`/organizations/${orgId}`, orgData);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`Error updating organization ${orgId}:`, error);
+      throw error;
+    }
+  },
+
+  deleteOrganization: async (orgId) => {
+    try {
+      const response = await api.delete(`/organizations/${orgId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting organization ${orgId}:`, error);
+      throw error;
+    }
+  },
+};
+
+export const userService = {
+  getUsers: async () => {
+    try {
+      const response = await api.get('/users');
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
+  },
+
+  getUser: async (userId) => {
+    try {
+      const response = await api.get(`/users/${userId}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`Error fetching user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  getAllUsers: async () => {
+    try {
+      const response = await api.get('/admin/users/');
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      throw error;
+    }
+  },
+
+  updateUser: async (userId, userData) => {
+    try {
+      const response = await api.put(`/users/${userId}`, userData);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`Error updating user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  deleteUser: async (userId) => {
+    try {
+      const response = await api.delete(`/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting user ${userId}:`, error);
+      throw error;
+    }
+  },
+
+  getUserByEmail: async (email) => {
+    try {
+      const response = await api.get(`/users/email/${email}`);
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error(`Error fetching user by email ${email}:`, error);
+      throw error;
+    }
   },
 };
 
@@ -67,36 +367,63 @@ export const assetService = {
     files.forEach((file) => {
       formData.append('files', file);
     });
-    const response = await api.post('/upload', formData, {
+    const response = await api.post('/assets/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     });
     return response.data;
   },
-  getAssets: async (fileId) => {
-    const response = await api.get(`/assets/${fileId}`);
-    return response.data;
+};
+export const adminService = {
+  // Get all users (admin only)
+  getUsers: async () => {
+    try {
+      const response = await api.get('/admin/users/');
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
   },
-  getReport: async (fileId, format = 'pdf') => {
-    const response = await api.get(`/report/${fileId}?format=${format}`, {
-      responseType: 'blob',
-    });
-    return response.data;
+
+  // Get all organizations (admin only)
+  getOrganizations: async () => {
+    try {
+      const response = await api.get('/admin/organizations/');
+      return response.data.data || response.data;
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+      throw error;
+    }
+  },
+
+  // Assign role to user
+  assignRole: async (userId, roleId, orgId) => {
+    try {
+      const response = await api.post('/admin/assign-role', {
+        user_id: userId,
+        role_id: roleId,
+        org_id: orgId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error assigning role:', error);
+      throw error;
+    }
+  },
+
+  // Remove role from user
+  removeRole: async (userRoleId) => {
+    try {
+      const response = await api.delete(`/admin/user-roles/${userRoleId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error removing role:', error);
+      throw error;
+    }
   },
 };
 
-export const adminService = {
-  getUsers: async () => {
-    const response = await api.get('/admin/users');
-    // Handle both formats: { users: [...] } or [...]
-    return response.data.users || response.data;
-  },
-  getClients: async () => {
-    const response = await api.get('/admin/clients');
-    // Extract the clients array from the response object
-    return response.data.clients || response.data;
-  },
-};
 
 export { api };

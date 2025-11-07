@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { projectService } from '../services/projectService';
 import { useAuth } from './AuthContext';
 
@@ -11,123 +11,192 @@ export const ProjectProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const { user } = useAuth();
 
-  // Filter projects based on user role
-  const getFilteredProjects = (allProjects) => {
-    if (!user) return [];
-
-    switch (user.role) {
-      case 'admin':
-        return allProjects; // Admin sees all projects
-      case 'collaborator':
-        return allProjects.filter(project =>
-          project.assigned_to.includes(user.email) ||
-          project.created_by === user.email
-        );
-      case 'client':
-        return allProjects.filter(project =>
-          project.client === user.email ||
-          project.created_by === user.email
-        );
-      default:
-        return [];
-    }
-  };
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await projectService.getProjects();
-      const filteredProjects = getFilteredProjects(data);
-      setProjects(filteredProjects);
+      
+      const projectsArray = await projectService.getProjects();
+      
+      console.log('ProjectContext - Fetched:', projectsArray);
+      console.log('Is Array?', Array.isArray(projectsArray));
+      console.log('Count:', projectsArray?.length);
+      
+      setProjects(Array.isArray(projectsArray) ? projectsArray : []);
     } catch (err) {
-      setError(err.message || 'Failed to fetch projects');
+      console.error('Error fetching projects:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to fetch projects');
+      setProjects([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const createProject = async (projectData) => {
+  const createProject = useCallback(async (projectData) => {
     try {
       setLoading(true);
       setError(null);
       const newProject = await projectService.createProject(projectData);
-      setProjects(prev => [...prev, newProject]);
+      setProjects((prev) => [...prev, newProject]);
       return newProject;
     } catch (err) {
-      setError(err.message || 'Failed to create project');
+      console.error('Error creating project:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to create project');
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateProject = async (projectId, updateData) => {
+  const updateProject = useCallback(async (projectId, updateData) => {
     try {
       setLoading(true);
       setError(null);
       const updatedProject = await projectService.updateProject(projectId, updateData);
-      setProjects(prev =>
-        prev.map(project =>
-          project.id === projectId ? updatedProject : project
+      setProjects((prev) =>
+        prev.map((project) =>
+          project.project_id === projectId ? updatedProject : project
         )
       );
-      if (currentProject && currentProject.id === projectId) {
+      if (currentProject && currentProject.project_id === projectId) {
         setCurrentProject(updatedProject);
       }
       return updatedProject;
     } catch (err) {
-      setError(err.message || 'Failed to update project');
+      console.error('Error updating project:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to update project');
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentProject]);
 
-  const deleteProject = async (projectId) => {
+  const deleteProject = useCallback(async (projectId) => {
     try {
       setLoading(true);
       setError(null);
       await projectService.deleteProject(projectId);
-      setProjects(prev => prev.filter(project => project.id !== projectId));
-      if (currentProject && currentProject.id === projectId) {
+      setProjects((prev) =>
+        prev.filter((project) => project.project_id !== projectId)
+      );
+      if (currentProject && currentProject.project_id === projectId) {
         setCurrentProject(null);
       }
     } catch (err) {
-      setError(err.message || 'Failed to delete project');
+      console.error('Error deleting project:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to delete project');
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentProject]);
 
-  const fetchProjectAssets = async (projectId) => {
+  const getProject = useCallback(async (projectId) => {
     try {
       setLoading(true);
       setError(null);
-      const assets = await projectService.getProjectAssets(projectId);
-      return assets;
+      const project = await projectService.getProject(projectId);
+      setCurrentProject(project);
+      return project;
     } catch (err) {
-      setError(err.message || 'Failed to fetch project assets');
+      console.error('Error fetching project:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to fetch project');
       throw err;
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const clearError = () => {
+  const fetchProjectAssets = useCallback(async (projectId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const assetsData = await projectService.getAssets(projectId);
+      return Array.isArray(assetsData) ? assetsData : [];
+    } catch (err) {
+      console.error('Error fetching project assets:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to fetch project assets');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const createAsset = useCallback(async (projectId, assetData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const newAsset = await projectService.createAsset({
+        ...assetData,
+        project_id: projectId,
+      });
+      return newAsset;
+    } catch (err) {
+      console.error('Error creating asset:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to create asset');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const updateAsset = useCallback(async (assetId, assetData) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const updatedAsset = await projectService.updateAsset(assetId, assetData);
+      return updatedAsset;
+    } catch (err) {
+      console.error('Error updating asset:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to update asset');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const deleteAsset = useCallback(async (assetId) => {
+    try {
+      setLoading(true);
+      setError(null);
+      await projectService.deleteAsset(assetId);
+    } catch (err) {
+      console.error('Error deleting asset:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to delete asset');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const getProjectReport = useCallback(async (projectId, format = 'pdf') => {
+    try {
+      setLoading(true);
+      setError(null);
+      const report = await projectService.getReport(projectId, format);
+      return report;
+    } catch (err) {
+      console.error('Error fetching report:', err);
+      setError(err.response?.data?.detail || err.message || 'Failed to fetch report');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const clearError = useCallback(() => {
     setError(null);
-  };
+  }, []);
 
-  // Fetch projects when user changes
+  // Fetch projects only when user changes
   useEffect(() => {
-    if (user) {
+    if (user && user.user_id) {
       fetchProjects();
     } else {
       setProjects([]);
       setCurrentProject(null);
     }
-  }, [user]);
+  }, [user?.user_id, fetchProjects]);
 
   const value = {
     projects,
@@ -139,7 +208,12 @@ export const ProjectProvider = ({ children }) => {
     createProject,
     updateProject,
     deleteProject,
+    getProject,
     fetchProjectAssets,
+    createAsset,
+    updateAsset,
+    deleteAsset,
+    getProjectReport,
     clearError,
   };
 

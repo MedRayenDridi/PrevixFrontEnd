@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProject } from '../../context/ProjectContext';
 import { useAuth } from '../../context/AuthContext';
 import { projectService } from '../../services/projectService';
+import AssetDisplay from '../assets/AssetDisplay';
 import './ProjectDetail.css';
 
 const ProjectDetail = () => {
@@ -12,9 +13,6 @@ const ProjectDetail = () => {
   const { currentProject, setCurrentProject, loading, error, deleteProject } = useProject();
 
   const [activeTab, setActiveTab] = useState('overview');
-  const [assets, setAssets] = useState([]);
-  const [assetsLoading, setAssetsLoading] = useState(false);
-  const [assetsError, setAssetsError] = useState(null);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -31,24 +29,7 @@ const ProjectDetail = () => {
     }
   }, [id, setCurrentProject]);
 
-  const fetchAssets = async () => {
-    if (activeTab === 'assets') {
-      setAssetsLoading(true);
-      setAssetsError(null);
-      try {
-        const response = await projectService.getProjectAssets(id);
-        setAssets(response.assets || []);
-      } catch (err) {
-        setAssetsError(err.message || 'Failed to fetch assets');
-      } finally {
-        setAssetsLoading(false);
-      }
-    }
-  };
 
-  useEffect(() => {
-    fetchAssets();
-  }, [activeTab]);
 
   const handleEdit = () => {
     navigate(`/projects/${id}/edit`);
@@ -244,45 +225,7 @@ const ProjectDetail = () => {
         )}
 
         {activeTab === 'assets' && (
-          <div className="assets-tab">
-            <h3>Project Assets</h3>
-            {assetsLoading ? (
-              <div className="loading-spinner">Loading assets...</div>
-            ) : assetsError ? (
-              <div className="error-message">{assetsError}</div>
-            ) : assets.length > 0 ? (
-              <div className="assets-table-container">
-                <table className="assets-table">
-                  <thead>
-                    <tr>
-                      <th>Reference</th>
-                      <th>Description</th>
-                      <th>Surface Area</th>
-                      <th>New Value</th>
-                      <th>Depreciated Value</th>
-                      <th>Depreciation</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {assets.map((asset, index) => (
-                      <tr key={index}>
-                        <td>{asset.reference}</td>
-                        <td>{asset.description}</td>
-                        <td>{asset.superficie_calculee?.toLocaleString()}</td>
-                        <td>{asset.valeur_neuf?.toLocaleString()}</td>
-                        <td>{asset.valeur_depreciee?.toLocaleString()}</td>
-                        <td>{asset.depreciation?.toLocaleString()}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="no-assets">
-                <p>No assets found for this project.</p>
-              </div>
-            )}
-          </div>
+          <AssetDisplay projectId={id} />
         )}
 
         {activeTab === 'reports' && (

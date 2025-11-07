@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../../context/ProjectContext';
 import { useAuth } from '../../context/AuthContext';
-import { PROJECT_STATUSES, PROJECT_TYPES } from '../../types/projectTypes';
 import ProjectsMatrixAnimation from '../animation/ProjectsMatrixAnimation';
 import './ProjectList.css';
 
@@ -37,31 +36,29 @@ const ListIcon = () => (
   </svg>
 );
 
-
-
-
-
 const PlusIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
   </svg>
 );
 
+const PROJECT_STATUSES = ['active', 'archived', 'completed'];
+const PROJECT_TYPES = ['IFRS', 'Assurance', 'Risk_Survey', 'Other'];
+
 const ProjectList = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { projects, loading, error, fetchProjects, deleteProject } = useProject();
   const [filteredProjects, setFilteredProjects] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [viewMode, setViewMode] = useState('table'); // 'table' or 'cards'
+  const [viewMode, setViewMode] = useState('table');
   const [selectedProjects, setSelectedProjects] = useState([]);
-
 
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [fetchProjects]);
 
   useEffect(() => {
     let filtered = projects;
@@ -69,7 +66,7 @@ const ProjectList = () => {
     if (searchTerm) {
       filtered = filtered.filter(project =>
         project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
 
@@ -78,7 +75,7 @@ const ProjectList = () => {
     }
 
     if (typeFilter) {
-      filtered = filtered.filter(project => project.type === typeFilter);
+      filtered = filtered.filter(project => project.type_project === typeFilter);
     }
 
     setFilteredProjects(filtered);
@@ -107,17 +104,20 @@ const ProjectList = () => {
   };
 
   const canEdit = (project) => {
-    if (user.role === 'admin') return true;
-    if (user.role === 'collaborator') return project.assigned_to.includes(user.id);
-    return false;
+    return isAdmin() || project.created_by === user?.user_id;
   };
 
-  const canDelete = () => {
-    return user.role === 'admin';
+  const canDelete = (project) => {
+    return isAdmin() || project.created_by === user?.user_id;
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString();
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('fr-FR');
+  };
+
+  const formatProgress = (progress) => {
+    return `${progress || 0}%`;
   };
 
   const handleSelectProject = (projectId) => {
@@ -146,48 +146,58 @@ const ProjectList = () => {
     setTypeFilter('');
   };
 
+  const getStatusLabel = (status) => {
+    const labels = {
+      'active': 'Actif',
+      'archived': 'Archivé',
+      'completed': 'Complété',
+    };
+    return labels[status] || status;
+  };
+
+  const getTypeLabel = (type) => {
+    const labels = {
+      'IFRS': 'IFRS',
+      'Assurance': 'Assurance',
+      'Risk_Survey': 'Enquête de Risque',
+      'Other': 'Autre',
+    };
+    return labels[type] || type;
+  };
+
   const renderProjectCard = (project) => (
-    <div key={project.id} className="project-card">
+    <div key={project.project_id} className="project-card">
       <div className="project-card-header">
         <div className="project-card-checkbox">
           <input
             type="checkbox"
-            checked={selectedProjects.includes(project.id)}
-            onChange={() => handleSelectProject(project.id)}
+            checked={selectedProjects.includes(project.project_id)}
+            onChange={() => handleSelectProject(project.project_id)}
           />
         </div>
         <div className="project-card-status">
           <span className={`status-badge status-${project.status}`}>
-            {project.status}
+            {getStatusLabel(project.status)}
           </span>
         </div>
       </div>
 
       <div className="project-card-content">
         <h3 className="project-card-title">{project.name}</h3>
-        <p className="project-card-description">{project.description}</p>
+        <p className="project-card-description">{project.description || 'Pas de description'}</p>
 
         <div className="project-card-meta">
           <div className="project-card-meta-item">
-            <span className="meta-label">Type :</span>
-            <span className="meta-value">{project.type}</span>
+            <span className="meta-label">Type:</span>
+            <span className="meta-value">{getTypeLabel(project.type_project)}</span>
           </div>
           <div className="project-card-meta-item">
-            <span className="meta-label">Échéance :</span>
-            <span className="meta-value">{formatDate(project.due_date)}</span>
+            <span className="meta-label">Progrès:</span>
+            <span className="meta-value">{formatProgress(project.progress)}</span>
           </div>
-        </div>
-
-        <div className="project-card-progress">
-          <div className="progress-info">
-            <span className="progress-label">Progrès</span>
-            <span className="progress-value">{project.progress}%</span>
-          </div>
-          <div className="progress-bar">
-            <div
-              className="progress-fill"
-              style={{ width: `${project.progress}%` }}
-            ></div>
+          <div className="project-card-meta-item">
+            <span className="meta-label">Créé:</span>
+            <span className="meta-value">{formatDate(project.created_at)}</span>
           </div>
         </div>
       </div>
@@ -195,25 +205,25 @@ const ProjectList = () => {
       <div className="project-card-actions">
         <button
           className="btn-icon btn-view"
-          onClick={() => handleView(project.id)}
-          title="View Project"
+          onClick={() => handleView(project.project_id)}
+          title="Voir le projet"
         >
           <ViewIcon />
         </button>
         {canEdit(project) && (
           <button
             className="btn-icon btn-edit"
-            onClick={() => handleEdit(project.id)}
-            title="Edit Project"
+            onClick={() => handleEdit(project.project_id)}
+            title="Modifier le projet"
           >
             <EditIcon />
           </button>
         )}
-        {canDelete() && (
+        {canDelete(project) && (
           <button
             className="btn-icon btn-delete"
-            onClick={() => handleDelete(project.id)}
-            title="Delete Project"
+            onClick={() => handleDelete(project.project_id)}
+            title="Supprimer le projet"
           >
             <DeleteIcon />
           </button>
@@ -229,14 +239,13 @@ const ProjectList = () => {
   if (error) {
     return (
       <div className="project-list-container">
-        <div className="error-message">Error: {error}</div>
+        <div className="error-message">Erreur: {error}</div>
       </div>
     );
   }
 
   return (
     <div className="project-list-container">
-      {/* Header with View Toggle */}
       <div className="project-list-header">
         <div className="header-left">
           <h1>Projets</h1>
@@ -244,21 +253,21 @@ const ProjectList = () => {
             <button
               className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
               onClick={() => setViewMode('table')}
-              title="Table View"
+              title="Vue Tableau"
             >
               <ListIcon />
             </button>
             <button
               className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
               onClick={() => setViewMode('cards')}
-              title="Card View"
+              title="Vue Cartes"
             >
               <GridIcon />
             </button>
           </div>
         </div>
         <div className="header-right">
-          {selectedProjects.length > 0 && canDelete() && (
+          {selectedProjects.length > 0 && isAdmin() && (
             <button className="btn-danger" onClick={handleBulkDelete}>
               Supprimer la Sélection ({selectedProjects.length})
             </button>
@@ -270,7 +279,6 @@ const ProjectList = () => {
         </div>
       </div>
 
-      {/* Enhanced Filters */}
       <div className="project-filters">
         <div className="filter-group search-group">
           <div className="search-input-wrapper">
@@ -286,14 +294,14 @@ const ProjectList = () => {
 
         <div className="filter-group">
           <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
             className="filter-select"
           >
-            <option value="">Tous les Statuts</option>
-            {PROJECT_STATUSES.map(status => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+            <option value="">Tous les Types</option>
+            {PROJECT_TYPES.map(type => (
+              <option key={type} value={type}>
+                {getTypeLabel(type)}
               </option>
             ))}
           </select>
@@ -301,13 +309,15 @@ const ProjectList = () => {
 
         <div className="filter-group">
           <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="filter-select"
           >
-            <option value="">Tous les Types</option>
-            {PROJECT_TYPES.map(type => (
-              <option key={type} value={type}>{type}</option>
+            <option value="">Tous les Statuts</option>
+            {PROJECT_STATUSES.map(status => (
+              <option key={status} value={status}>
+                {getStatusLabel(status)}
+              </option>
             ))}
           </select>
         </div>
@@ -321,32 +331,30 @@ const ProjectList = () => {
         </div>
       </div>
 
-      {/* Active Filters Display */}
       {(searchTerm || statusFilter || typeFilter) && (
         <div className="active-filters">
-          <span className="filters-label">Filtres actifs :</span>
+          <span className="filters-label">Filtres actifs:</span>
           {searchTerm && (
             <span className="filter-tag">
               Recherche: "{searchTerm}"
               <button onClick={() => setSearchTerm('')}>×</button>
             </span>
           )}
-          {statusFilter && (
-            <span className="filter-tag">
-              Statut: {statusFilter}
-              <button onClick={() => setStatusFilter('')}>×</button>
-            </span>
-          )}
           {typeFilter && (
             <span className="filter-tag">
-              Type: {typeFilter}
+              Type: {getTypeLabel(typeFilter)}
               <button onClick={() => setTypeFilter('')}>×</button>
+            </span>
+          )}
+          {statusFilter && (
+            <span className="filter-tag">
+              Statut: {getStatusLabel(statusFilter)}
+              <button onClick={() => setStatusFilter('')}>×</button>
             </span>
           )}
         </div>
       )}
 
-      {/* Content Area */}
       {viewMode === 'table' ? (
         <div className="project-table-container">
           <table className="project-table">
@@ -360,73 +368,69 @@ const ProjectList = () => {
                       if (selectedProjects.length === filteredProjects.length) {
                         setSelectedProjects([]);
                       } else {
-                        setSelectedProjects(filteredProjects.map(p => p.id));
+                        setSelectedProjects(filteredProjects.map(p => p.project_id));
                       }
                     }}
                   />
                 </th>
                 <th>Nom</th>
                 <th>Type</th>
+                <th>Description</th>
                 <th>Progrès</th>
-                <th>Date d'échéance</th>
+                <th>Échéance</th>
                 <th>Statut</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProjects.map(project => (
-                <tr key={project.id} className={selectedProjects.includes(project.id) ? 'selected' : ''}>
+                <tr key={project.project_id} className={selectedProjects.includes(project.project_id) ? 'selected' : ''}>
                   <td>
                     <input
                       type="checkbox"
-                      checked={selectedProjects.includes(project.id)}
-                      onChange={() => handleSelectProject(project.id)}
+                      checked={selectedProjects.includes(project.project_id)}
+                      onChange={() => handleSelectProject(project.project_id)}
                     />
                   </td>
                   <td>
                     <div className="project-name-cell">
                       <strong>{project.name}</strong>
-                      <small>{project.description}</small>
                     </div>
                   </td>
-                  <td>{project.type}</td>
+                  <td>{getTypeLabel(project.type_project)}</td>
+                  <td>{project.description || '-'}</td>
                   <td>
-                    <div className="progress-cell">
-                      <div className="progress-bar">
-                        <div
-                          className="progress-fill"
-                          style={{ width: `${Number(project.progress) || 0}%` }}
-                        ></div>
-                      </div>
-                      <span className="progress-text">{project.progress}%</span>
+                    <div className="progress-bar">
+                      <div className="progress-fill" style={{ width: `${project.progress || 0}%` }}></div>
+                      <span className="progress-text">{formatProgress(project.progress)}</span>
                     </div>
                   </td>
                   <td>{formatDate(project.due_date)}</td>
                   <td>
                     <span className={`status-badge status-${project.status}`}>
-                      {project.status}
+                      {getStatusLabel(project.status)}
                     </span>
                   </td>
                   <td>
                     <div className="action-buttons">
                       <button
                         className="btn-secondary btn-small"
-                        onClick={() => handleView(project.id)}
+                        onClick={() => handleView(project.project_id)}
                       >
                         Voir
                       </button>
                       {canEdit(project) && (
                         <button
                           className="btn-secondary btn-small"
-                          onClick={() => handleEdit(project.id)}
+                          onClick={() => handleEdit(project.project_id)}
                         >
                           Modifier
                         </button>
                       )}
-                      {canDelete() && (
+                      {canDelete(project) && (
                         <button
                           className="btn-danger btn-small"
-                          onClick={() => handleDelete(project.id)}
+                          onClick={() => handleDelete(project.project_id)}
                         >
                           Supprimer
                         </button>

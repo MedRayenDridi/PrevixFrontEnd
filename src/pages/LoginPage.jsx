@@ -1,20 +1,26 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import LoginRippleAnimation from "../components/animation/LoginRippleAnimation";
-import "./LoginPage.css";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import LoginRippleAnimation from '../components/animation/LoginRippleAnimation';
+import './LoginPage.css';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isVisible, setIsVisible] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
 
   useEffect(() => {
+    // Redirect if already authenticated
+    if (isAuthenticated) {
+      navigate('/dashboard');
+      return;
+    }
+
     setIsVisible(true);
 
     const handleMouseMove = (e) => {
@@ -23,19 +29,19 @@ export default function LoginPage() {
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setError("");
+    setError('');
     setLoading(true);
 
     try {
       await login(email, password);
-      navigate("/dashboard");
+      navigate('/dashboard');
     } catch (error) {
-      console.error("Login error:", error);
-      setError(error.message || "Une erreur s'est produite lors de la connexion");
+      console.error('Login error:', error);
+      setError(error.message || 'Une erreur s\'est produite lors de la connexion');
     } finally {
       setLoading(false);
     }
@@ -67,9 +73,7 @@ export default function LoginPage() {
         {/* Left Side - Login Form */}
         <div className="content-left">
           <div className={`content-panel ${isVisible ? 'fade-in' : ''}`}>
-            <h1 className="main-headline">
-              Connectez-vous à Prev-IX
-            </h1>
+            <h1 className="main-headline">Connectez-vous à Prev-IX</h1>
             <p className="main-subtitle">
               Accédez à votre espace personnel pour gérer vos actifs avec notre technologie avancée.
             </p>
@@ -109,11 +113,7 @@ export default function LoginPage() {
               )}
 
               <LoginRippleAnimation onClick={handleLogin}>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="submit-button"
-                >
+                <button type="submit" disabled={loading} className="submit-button">
                   {loading ? (
                     <span className="flex items-center justify-center space-x-2">
                       <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
@@ -123,7 +123,7 @@ export default function LoginPage() {
                       <span>Connexion en cours...</span>
                     </span>
                   ) : (
-                    "Se connecter"
+                    'Se connecter'
                   )}
                 </button>
               </LoginRippleAnimation>
@@ -131,17 +131,11 @@ export default function LoginPage() {
 
             <div className="nav-links">
               <div className="flex items-center justify-center space-x-4">
-                <button
-                  onClick={() => navigate("/register")}
-                  className="nav-link"
-                >
+                <button onClick={() => navigate('/register')} className="nav-link">
                   Créer un compte
                 </button>
                 <span className="text-gray-400">•</span>
-                <button
-                  onClick={() => navigate("/")}
-                  className="nav-link"
-                >
+                <button onClick={() => navigate('/')} className="nav-link">
                   Retour à l'accueil
                 </button>
               </div>
@@ -152,19 +146,16 @@ export default function LoginPage() {
         {/* Right Side - Illustration */}
         <div className="content-right">
           <div className="illustration-container">
-            {/* Avatar Image */}
             <div className="avatar-container">
               <img src="/avatar.png" alt="Avatar" className="homepage-avatar" />
             </div>
 
-            {/* Floating shapes */}
             <div className="floating-shape shape-1"></div>
             <div className="floating-shape shape-2"></div>
             <div className="floating-shape shape-3"></div>
             <div className="floating-shape shape-4"></div>
             <div className="floating-shape shape-5"></div>
 
-            {/* Abstract human figures */}
             <div className="abstract-figure figure-1">
               <div className="figure-head"></div>
               <div className="figure-body"></div>
@@ -174,12 +165,10 @@ export default function LoginPage() {
               <div className="figure-body"></div>
             </div>
 
-            {/* Geometric shapes and UI elements */}
             <div className="geometric-shape chart-1"></div>
             <div className="geometric-shape panel-1"></div>
             <div className="geometric-shape ui-element-1"></div>
 
-            {/* Parallax cursor effect */}
             <div
               className="cursor-glow"
               style={{

@@ -1,190 +1,639 @@
+/* ========================================
+   ROOT & VARIABLES
+   ======================================== */
+:root {
+  --color-primary: #1c91af;
+  --color-primary-dark: #0e7c8f;
+  --color-primary-light: #85d0d9;
+  --color-dark: #07315c;
+  --color-error: #ef4444;
+  --color-error-dark: #dc2626;
+  --color-border: #e2e8f0;
+  --color-bg-light: #f8fafc;
+  --color-text-secondary: #64748b;
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 2.5rem;
+  --radius-sm: 10px;
+  --radius-md: 1rem;
+  --radius-lg: 1.5rem;
+}
+
+/* ========================================
+   PROJECT FORM CONTAINER
+   ======================================== */
 .project-form-container {
   min-height: 100vh;
-  padding: 2rem;
+  padding: clamp(1rem, 4vw, 3rem) clamp(0.75rem, 3vw, 2rem);
   width: 100%;
-  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 25%, #f3f4f6 50%, #e5e7eb 75%, #ffffff 100%);
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 25%, #e2e8f0 50%, #cbd5e1 75%, #f8fafc 100%);
+  background-attachment: fixed;
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   position: relative;
   overflow-x: hidden;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
+/* ========================================
+   HEADER
+   ======================================== */
 .project-form-header {
-  margin-bottom: 20px;
+  margin-bottom: clamp(1.5rem, 5vw, 2.5rem);
+  padding: 0 clamp(0.5rem, 2vw, 1rem);
 }
 
 .project-form-header h1 {
-  color: #07315c;
+  color: var(--color-dark);
   margin: 0;
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-primary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  word-break: break-word;
 }
 
+/* ========================================
+   FORM
+   ======================================== */
 .project-form {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.98));
-  border-radius: 2.5rem;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0.95) 100%);
+  border-radius: var(--radius-lg);
   box-shadow:
-    0 20px 60px rgba(7, 49, 92, 0.12),
-    0 0 0 1px rgba(7, 49, 92, 0.05),
-    inset 0 0 80px rgba(255, 255, 255, 0.5);
-  padding: 2rem 3rem;
-  max-width: 1200px;
+    0 25px 50px -12px rgba(7, 49, 92, 0.15),
+    0 0 0 1px rgba(7, 49, 92, 0.08),
+    inset 0 1px 3px rgba(255, 255, 255, 0.7);
+  padding: clamp(1.25rem, 5vw, 2.5rem) clamp(1rem, 4vw, 3rem);
+  max-width: 1000px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
   backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* ========================================
+   FORM GROUP & ROWS
+   ======================================== */
 .form-group {
-  margin-bottom: 15px;
+  margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
+  position: relative;
 }
 
 .form-row {
-  display: flex;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(1rem, 3vw, 1.5rem);
+  margin-bottom: 0;
 }
 
 .form-row .form-group {
-  flex: 1;
+  margin-bottom: 0;
 }
 
+/* ========================================
+   LABELS & INPUTS
+   ======================================== */
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: clamp(6px, 1vw, 10px);
   font-weight: 600;
-  color: #07315c;
-  font-size: 14px;
+  color: var(--color-dark);
+  font-size: clamp(12px, 1.2vw, 14px);
+  letter-spacing: 0.3px;
+  text-transform: capitalize;
+}
+
+.form-group label::after {
+  content: '';
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 12px 16px;
-  border: 1px solid rgba(7, 49, 92, 0.1);
-  border-radius: 8px;
-  font-size: 14px;
-  background-color: rgba(255, 255, 255, 0.9);
-  color: #07315c;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  padding: clamp(10px, 2vw, 12px) clamp(12px, 2vw, 16px);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: clamp(13px, 1.1vw, 14px);
+  font-family: inherit;
+  background-color: rgba(248, 250, 252, 0.5);
+  color: var(--color-dark);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  box-sizing: border-box;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: #94a3b8;
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+  border-color: #cbd5e1;
+  background-color: rgba(248, 250, 252, 0.8);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #1c91af;
-  box-shadow: 0 0 0 2px rgba(28, 145, 175, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 
+    0 0 0 3px rgba(28, 145, 175, 0.1),
+    0 0 0 1px rgba(28, 145, 175, 0.2);
+  background-color: #ffffff;
 }
 
+/* ========================================
+   TEXTAREA
+   ======================================== */
 .form-group textarea {
   resize: vertical;
-  min-height: 80px;
+  min-height: clamp(100px, 20vh, 150px);
+  line-height: 1.6;
+  font-family: inherit;
+}
+
+/* ========================================
+   SELECT
+   ======================================== */
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231c91af' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right clamp(8px, 2vw, 12px) center;
+  padding-right: clamp(28px, 5vw, 36px);
 }
 
 .form-group select[multiple] {
   height: 120px;
+  background-image: none;
+  padding-right: 16px;
 }
 
+/* ========================================
+   ERROR & HELP STATES
+   ======================================== */
 .form-group input.error,
 .form-group select.error,
 .form-group textarea.error {
-  border-color: #dc2626;
+  border-color: var(--color-error);
+  background-color: rgba(239, 68, 68, 0.02);
+}
+
+.form-group input.error:focus,
+.form-group select.error:focus,
+.form-group textarea.error:focus {
+  box-shadow: 
+    0 0 0 3px rgba(239, 68, 68, 0.1),
+    0 0 0 1px rgba(239, 68, 68, 0.2);
 }
 
 .error-text {
-  color: #dc2626;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
+  color: var(--color-error);
+  font-size: clamp(11px, 1vw, 12px);
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  word-break: break-word;
+}
+
+.error-text::before {
+  content: '⚠';
+  font-size: clamp(12px, 1.5vw, 14px);
+  flex-shrink: 0;
 }
 
 .form-help {
-  color: #6b7280;
-  font-size: 12px;
-  margin-top: 4px;
+  color: var(--color-text-secondary);
+  font-size: clamp(11px, 1vw, 12px);
+  margin-top: 6px;
   display: block;
+  font-style: italic;
 }
 
+/* ========================================
+   ERROR MESSAGE
+   ======================================== */
+.error-message {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+  color: var(--color-error-dark);
+  padding: clamp(10px, 2vw, 14px) clamp(12px, 2vw, 16px);
+  border-radius: var(--radius-sm);
+  margin-bottom: clamp(1.5rem, 3vw, 24px);
+  border-left: 4px solid var(--color-error);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(12px, 1.1vw, 14px);
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-message::before {
+  content: '✕';
+  font-size: clamp(16px, 2vw, 18px);
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   FORM ACTIONS
+   ======================================== */
 .form-actions {
   display: flex;
-  gap: 15px;
+  flex-wrap: wrap;
+  gap: clamp(8px, 2vw, 12px);
   justify-content: flex-end;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(7, 49, 92, 0.1);
+  margin-top: clamp(1.5rem, 4vw, 2rem);
+  padding-top: clamp(1rem, 2vw, 1.5rem);
+  border-top: 1px solid rgba(7, 49, 92, 0.08);
 }
 
+/* ========================================
+   BUTTONS
+   ======================================== */
 .btn-primary,
 .btn-secondary {
-  padding: 10px 20px;
+  padding: clamp(9px, 2vw, 11px) clamp(16px, 3vw, 24px);
   border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: var(--radius-sm);
+  font-size: clamp(12px, 1.1vw, 14px);
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: clamp(120px, 20vw, 140px);
+  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .btn-primary {
-  background-color: #1c91af;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
+  box-shadow: 0 4px 15px rgba(28, 145, 175, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #0e7c8f;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(28, 145, 175, 0.4);
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, #085d74 100%);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
-  background-color: #6b7280;
+  background: linear-gradient(135deg, #cbd5e1 0%, #a1aec9 100%);
   cursor: not-allowed;
+  opacity: 0.7;
 }
 
 .btn-secondary {
-  background-color: rgba(7, 49, 92, 0.02);
-  color: #07315c;
-  border: 1px solid rgba(7, 49, 92, 0.1);
+  background: rgba(7, 49, 92, 0.03);
+  color: var(--color-dark);
+  border: 1.5px solid rgba(7, 49, 92, 0.15);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: rgba(7, 49, 92, 0.05);
+  background: rgba(7, 49, 92, 0.08);
+  border-color: rgba(7, 49, 92, 0.25);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-secondary:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
-.error-message {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .project-form-container {
-    padding: 10px;
-  }
-
+/* ========================================
+   TABLET RESPONSIVE (768px - 1024px)
+   ======================================== */
+@media (min-width: 769px) and (max-width: 1024px) {
   .project-form {
-    padding: 20px;
+    padding: 1.75rem 2rem;
   }
 
   .form-row {
-    flex-direction: column;
-    gap: 0;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-row .form-group:nth-last-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    min-width: 130px;
+  }
+}
+
+/* ========================================
+   MOBILE LANDSCAPE & SMALL TABLET
+   ======================================== */
+@media (max-width: 768px) {
+  .project-form-container {
+    padding: clamp(1rem, 2vh, 1.5rem) clamp(0.75rem, 2vw, 1rem);
+  }
+
+  .project-form-header h1 {
+    font-size: clamp(1.5rem, 5vw, 2rem);
+  }
+
+  .project-form {
+    padding: clamp(1rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem);
+    border-radius: 1rem;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
 
   .form-actions {
-    flex-direction: column;
+    flex-direction: column-reverse;
+    gap: 10px;
   }
 
   .btn-primary,
   .btn-secondary {
     width: 100%;
+    min-width: unset;
+    padding: 12px 16px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px; /* Prevents iOS zoom */
+  }
+
+  .form-group textarea {
+    min-height: 100px;
+  }
+}
+
+/* ========================================
+   SMALL MOBILE (480px - 600px)
+   ======================================== */
+@media (max-width: 600px) {
+  .project-form-container {
+    padding: 1rem 0.75rem;
+    min-height: 100vh;
+  }
+
+  .project-form-header {
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .project-form-header h1 {
+    font-size: clamp(1.375rem, 4vw, 1.75rem);
+    letter-spacing: -0.3px;
+  }
+
+  .project-form {
+    padding: 1rem 1rem;
+    border-radius: 0.875rem;
+    box-shadow: 0 10px 30px rgba(7, 49, 92, 0.1);
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-group label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px;
+    padding: 11px 12px;
+    border-radius: 8px;
+  }
+
+  .form-group textarea {
+    min-height: 90px;
+  }
+
+  .error-text {
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .error-text::before {
+    font-size: 12px;
+  }
+
+  .error-message {
+    padding: 10px 12px;
+    gap: 8px;
+    font-size: 12px;
+    margin-bottom: 1rem;
+  }
+
+  .form-actions {
+    gap: 8px;
+    margin-top: 1.5rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 11px 12px;
+    font-size: 13px;
+    min-width: unset;
+  }
+}
+
+/* ========================================
+   EXTRA SMALL MOBILE (< 480px)
+   ======================================== */
+@media (max-width: 480px) {
+  .project-form-container {
+    padding: 0.75rem 0.5rem;
+  }
+
+  .project-form-header {
+    margin-bottom: 1.25rem;
+    padding: 0;
+  }
+
+  .project-form-header h1 {
+    font-size: clamp(1.25rem, 3.5vw, 1.5rem);
+    line-height: 1.1;
+  }
+
+  .project-form {
+    padding: 0.875rem 0.75rem;
+    border-radius: 0.75rem;
+    max-width: 100%;
+  }
+
+  .form-group {
+    margin-bottom: 1rem;
+  }
+
+  .form-group label {
+    font-size: 11.5px;
+    margin-bottom: 5px;
+    font-weight: 600;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    font-size: 16px; /* Critical for iOS */
+    padding: 10px 11px;
+    border-radius: 7px;
+  }
+
+  .form-group textarea {
+    min-height: 80px;
+  }
+
+  .form-row {
+    gap: 1rem;
+  }
+
+  .error-text {
+    font-size: 10.5px;
+  }
+
+  .error-message {
+    padding: 9px 10px;
+    gap: 6px;
+    font-size: 11px;
+    margin-bottom: 0.875rem;
+  }
+
+  .form-actions {
+    gap: 6px;
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 10px 10px;
+    font-size: 12px;
+    border-radius: 8px;
+  }
+}
+
+/* ========================================
+   LANDSCAPE MODE (Mobile in Landscape)
+   ======================================== */
+@media (max-height: 600px) and (orientation: landscape) {
+  .project-form-container {
+    min-height: auto;
+    padding: 0.75rem;
+  }
+
+  .project-form-header {
+    margin-bottom: 1rem;
+  }
+
+  .project-form {
+    padding: 1rem;
+  }
+
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+
+  .form-group textarea {
+    min-height: 60px;
+  }
+
+  .form-actions {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+  }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.project-form {
+  animation: slideIn 0.4s ease-out;
+}
+
+.error-text {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* ========================================
+   HIGH DPI / RETINA SCREENS
+   ======================================== */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .project-form {
+    box-shadow:
+      0 25px 50px -12px rgba(7, 49, 92, 0.15),
+      0 0 0 1px rgba(7, 49, 92, 0.08),
+      inset 0 1px 3px rgba(255, 255, 255, 0.7);
+  }
+
+  .btn-primary {
+    box-shadow: 0 4px 15px rgba(28, 145, 175, 0.4);
+  }
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+  .project-form-container {
+    background: white;
+    padding: 0;
+  }
+
+  .project-form {
+    box-shadow: none;
+    border: 1px solid #ddd;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    display: none;
   }
 }

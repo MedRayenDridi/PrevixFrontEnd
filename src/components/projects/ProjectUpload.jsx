@@ -1,13 +1,13 @@
 import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProject } from '../../context/ProjectContext';
-import { projectService } from '../../services/projectService';
+import { projectService } from '../../services/api';
 import './ProjectUpload.css';
 
 const ProjectUpload = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { loading, error } = useProject();
+  const { loading, error, clearError } = useProject();
   const fileInputRef = useRef(null);
 
   const [files, setFiles] = useState([]);
@@ -60,11 +60,11 @@ const ProjectUpload = () => {
   const handleFiles = (fileList) => {
     const validFiles = fileList.filter(file => {
       if (!allowedTypes.includes(file.type)) {
-        alert(`File type not allowed: ${file.name}`);
+        alert(`Type de fichier non autorisé: ${file.name}`);
         return false;
       }
       if (file.size > maxFileSize) {
-        alert(`File too large: ${file.name} (max 10MB)`);
+        alert(`Fichier trop volumineux: ${file.name} (max 10MB)`);
         return false;
       }
       return true;
@@ -80,17 +80,18 @@ const ProjectUpload = () => {
 
   const handleUpload = async () => {
     if (files.length === 0) {
-      console.log('❌ No files to upload');
+      console.log('❌ Aucun fichier à télécharger');
       return;
     }
 
-    console.log('🎯 Starting upload process');
-    console.log('   Project ID:', id);
-    console.log('   Files to upload:', files);
+    console.log('🎯 Démarrage du processus de téléchargement');
+    console.log('   ID du projet:', id);
+    console.log('   Fichiers à télécharger:', files);
 
     setUploading(true);
     setUploadProgress(0);
     setUploadError(null);
+    clearError();
 
     try {
       const progressInterval = setInterval(() => {
@@ -103,24 +104,24 @@ const ProjectUpload = () => {
         });
       }, 200);
 
-      console.log('📤 Calling uploadToProject...');
+      console.log('📤 Appel de uploadToProject...');
       const results = await projectService.uploadToProject(id, files);
 
-      console.log('📥 Upload results received:', results);
+      console.log('📥 Résultats de téléchargement reçus:', results);
 
       clearInterval(progressInterval);
       setUploadProgress(100);
       setUploadResults(results);
-      
-      if (results.errors.length > 0) {
-        console.warn('⚠️ Some files failed to upload:', results.errors);
-        setUploadError(`${results.errors.length} file(s) failed to upload`);
+
+      if (results.errors && results.errors.length > 0) {
+        console.warn('⚠️ Certains fichiers ont échoué:', results.errors);
+        setUploadError(`${results.errors.length} fichier(s) n'ont pas pu être téléchargé(s)`);
       } else {
-        console.log('✅ All files uploaded successfully!');
+        console.log('✅ Tous les fichiers ont été téléchargés avec succès!');
         setUploadSuccess(true);
       }
 
-      console.log('⏱️ Redirecting in 3 seconds...');
+      console.log('⏱️ Redirection dans 3 secondes...');
       setTimeout(() => {
         setFiles([]);
         setUploadSuccess(false);
@@ -130,14 +131,14 @@ const ProjectUpload = () => {
       }, 3000);
 
     } catch (err) {
-      console.error('💥 Upload failed with error:', err);
-      console.error('   Error message:', err.message);
-      console.error('   Error response:', err.response);
-      setUploadError(err.message || 'Upload failed');
+      console.error('💥 Le téléchargement a échoué:', err);
+      console.error('   Message d\'erreur:', err.message);
+      console.error('   Réponse d\'erreur:', err.response?.data);
+      setUploadError(err.response?.data?.detail || err.message || 'Le téléchargement a échoué');
       setUploadProgress(0);
     } finally {
       setUploading(false);
-      console.log('🏁 Upload process finished');
+      console.log('🏁 Processus de téléchargement terminé');
     }
   };
 
@@ -157,15 +158,15 @@ const ProjectUpload = () => {
     } else if (fileType.includes('image')) {
       return '🖼️';
     } else {
-      return '📄';
+      return '📁';
     }
   };
 
   return (
     <div className="project-upload-container">
       <div className="upload-header">
-        <h1>Upload Files to Project</h1>
-        <p>Upload Excel, PDF, images, and text files to process project assets.</p>
+        <h1>Télécharger des Fichiers</h1>
+        <p>Téléchargez des fichiers Excel, PDF, des images et des fichiers texte pour traiter les actifs du projet.</p>
       </div>
 
       {error && (
@@ -182,50 +183,51 @@ const ProjectUpload = () => {
 
       {uploadSuccess && (
         <div className="success-message">
-          Files uploaded successfully! Redirecting...
+          Fichiers téléchargés avec succès ! Redirection en cours...
         </div>
       )}
 
       {uploadResults && (
         <div className="upload-results">
-          {uploadResults.excel_files.length > 0 && (
+          {uploadResults.excel_files && uploadResults.excel_files.length > 0 && (
             <div className="result-section">
-              <h3>📊 Excel Files ({uploadResults.excel_files.length})</h3>
+              <h3>📊 Fichiers Excel ({uploadResults.excel_files.length})</h3>
               {uploadResults.excel_files.map((file, idx) => (
                 <div key={idx} className="result-item">
                   <strong>{file.file_name}</strong>
-                  <p>{file.data.nombre_feuilles} sheet(s) processed</p>
+                  <p>Fichier traité avec succès</p>
                 </div>
               ))}
             </div>
           )}
-          
-          {uploadResults.pdf_files.length > 0 && (
+
+          {uploadResults.pdf_files && uploadResults.pdf_files.length > 0 && (
             <div className="result-section">
-              <h3>📄 PDF Files ({uploadResults.pdf_files.length})</h3>
+              <h3>📄 Fichiers PDF ({uploadResults.pdf_files.length})</h3>
               {uploadResults.pdf_files.map((file, idx) => (
                 <div key={idx} className="result-item">
                   <strong>{file.file_name}</strong>
-                  <p>{file.data.nb_pages} page(s), {file.data.nb_images} image(s), {file.data.nb_tableaux} table(s)</p>
+                  <p>Fichier traité avec succès</p>
                 </div>
               ))}
             </div>
           )}
-          
-          {uploadResults.other_files.length > 0 && (
+
+          {uploadResults.other_files && uploadResults.other_files.length > 0 && (
             <div className="result-section">
-              <h3>📁 Other Files ({uploadResults.other_files.length})</h3>
+              <h3>📁 Autres Fichiers ({uploadResults.other_files.length})</h3>
               {uploadResults.other_files.map((file, idx) => (
                 <div key={idx} className="result-item">
                   <strong>{file.file_name}</strong>
+                  <p>Fichier téléchargé avec succès</p>
                 </div>
               ))}
             </div>
           )}
-          
-          {uploadResults.errors.length > 0 && (
+
+          {uploadResults.errors && uploadResults.errors.length > 0 && (
             <div className="result-section error">
-              <h3>❌ Failed Uploads ({uploadResults.errors.length})</h3>
+              <h3>❌ Téléchargements Échoués ({uploadResults.errors.length})</h3>
               {uploadResults.errors.map((error, idx) => (
                 <div key={idx} className="result-item">
                   <strong>{error.file_name}</strong>
@@ -248,9 +250,9 @@ const ProjectUpload = () => {
         >
           <div className="drop-zone-content">
             <div className="upload-icon">📁</div>
-            <h3>Drop files here or click to browse</h3>
-            <p>Supported formats: Excel (.xlsx, .xls), PDF, Images (JPG, PNG, GIF), Text files</p>
-            <p className="file-limit">Maximum file size: 10MB per file</p>
+            <h3>Déposez les fichiers ici ou cliquez pour parcourir</h3>
+            <p>Formats supportés: Excel (.xlsx, .xls), PDF, Images (JPG, PNG, GIF), Fichiers texte</p>
+            <p className="file-limit">Taille maximale: 10MB par fichier</p>
           </div>
         </div>
 
@@ -266,7 +268,7 @@ const ProjectUpload = () => {
 
       {files.length > 0 && (
         <div className="file-list">
-          <h3>Selected Files ({files.length})</h3>
+          <h3>Fichiers Sélectionnés ({files.length})</h3>
           <div className="file-items">
             {files.map((file, index) => (
               <div key={index} className="file-item">
@@ -281,6 +283,7 @@ const ProjectUpload = () => {
                   className="remove-file-btn"
                   onClick={() => removeFile(index)}
                   disabled={uploading}
+                  type="button"
                 >
                   ✕
                 </button>
@@ -296,7 +299,7 @@ const ProjectUpload = () => {
                   style={{ width: `${uploadProgress}%` }}
                 ></div>
               </div>
-              <span className="progress-text">Uploading... {uploadProgress}%</span>
+              <span className="progress-text">Téléchargement en cours... {uploadProgress}%</span>
             </div>
           )}
 
@@ -305,15 +308,17 @@ const ProjectUpload = () => {
               className="btn-secondary"
               onClick={() => setFiles([])}
               disabled={uploading}
+              type="button"
             >
-              Clear All
+              Effacer Tout
             </button>
             <button
               className="btn-primary"
               onClick={handleUpload}
               disabled={uploading || files.length === 0}
+              type="button"
             >
-              {uploading ? 'Uploading...' : `Upload ${files.length} File${files.length > 1 ? 's' : ''}`}
+              {uploading ? 'Téléchargement...' : `Télécharger ${files.length} Fichier${files.length > 1 ? 's' : ''}`}
             </button>
           </div>
         </div>
@@ -324,8 +329,9 @@ const ProjectUpload = () => {
           className="btn-secondary"
           onClick={() => navigate(`/projects/${id}`)}
           disabled={uploading}
+          type="button"
         >
-          Back to Project
+          Retour au Projet
         </button>
       </div>
     </div>

@@ -1,172 +1,263 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { gsap } from 'gsap';
-import './Layout.css'; // Import the CSS file
+import { useAuth } from '../../context/AuthContext';
+import './Layout.css';
 
-// ... (Icon components remain the same) ...
+// Icon components
 const MenuIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-    </svg>
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
+  </svg>
 );
 
 const DashboardIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/>
-    </svg>
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
+  </svg>
 );
 
 const PersonIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-    </svg>
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+  </svg>
 );
 
 const GroupIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-    </svg>
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+  </svg>
 );
 
 const FolderIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
-    </svg>
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+  </svg>
 );
 
 const LogoutIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
-    </svg>
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
+  </svg>
 );
 
-// We don't need Visibility icons for the left sidebar toggle
-const VisibilityIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-    </svg>
+const SettingsIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.62l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.09-.47 0-.59.22L2.74 8.87c-.12.21-.08.48.12.62l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.62l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.48-.12-.62l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
+  </svg>
 );
-
-const VisibilityOffIcon = () => (
-    <svg viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>
-    </svg>
-);
-
 
 export const Layout = ({ children }) => {
-    // Renaming state for clarity: sidebarOpen handles the state for both mobile and desktop
-    const navigate = useNavigate();
-    const location = useLocation();
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const mainContentRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout, isAdmin, isStaff, isClient } = useAuth();
+  const mainContentRef = useRef(null);
 
-    const [sidebarOpen, setSidebarOpen] = useState(true); // Always start open
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
 
-    // Add fade-in animation on route change
-    useEffect(() => {
-        if (mainContentRef.current) {
-            gsap.fromTo(mainContentRef.current, {
-                opacity: 0,
-                y: 20
-            }, {
-                opacity: 1,
-                y: 0,
-                duration: 0.3,
-                ease: 'power2.out'
-            });
+  // Add fade-in animation on route change
+  useEffect(() => {
+    if (mainContentRef.current) {
+      gsap.fromTo(
+        mainContentRef.current,
+        {
+          opacity: 0,
+          y: 20,
+        },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.3,
+          ease: 'power2.out',
         }
-    }, [location.pathname]);
+      );
+    }
+  }, [location.pathname]);
 
-    const menuItems = [
-        { text: 'Tableau de Bord', icon: <DashboardIcon />, path: '/dashboard' },
-        { text: 'Projets', icon: <FolderIcon />, path: '/projects' },
-        { text: 'Profil', icon: <PersonIcon />, path: '/profile' },
-        ...(user.role === 'admin'
-            ? [{ text: 'Admin', icon: <GroupIcon />, path: '/admin' }]
-            : []),
-    ];
+  // Build menu items based on user roles
+  // Build menu items based on user roles
+const getMenuItems = () => {
+  const baseItems = [
+    { text: 'Tableau de Bord', icon: <DashboardIcon />, path: '/dashboard' },
+  ];
 
-    // This single function now toggles the sidebar's visibility
-    const handleDrawerToggle = () => {
-        setSidebarOpen(!sidebarOpen);
-    };
+  // Add Projects for everyone (admins, staff, and clients)
+  baseItems.push({ text: 'Projets', icon: <FolderIcon />, path: '/projects' });
 
-    const handleLogout = () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        navigate('/login');
-    };
+  // Add Users management for admin only
+  if (isAdmin()) {
+    baseItems.push({ text: 'Utilisateurs', icon: <GroupIcon />, path: '/admin' });
+  }
 
-    const handleNavigate = (path) => {
-        navigate(path);
-        // Only close the sidebar on navigation if it's open (mostly relevant for mobile)
-        setSidebarOpen(false);
-    };
+  // Profile is available to everyone
+  baseItems.push({ text: 'Profil', icon: <PersonIcon />, path: '/profile' });
 
-    return (
-        <div className="layout-container">
-            {/* Background Elements */}
-            <div className="layout-floating-shapes">
-                <div className="layout-floating-shape layout-shape-1"></div>
-                <div className="layout-floating-shape layout-shape-2"></div>
-                <div className="layout-floating-shape layout-shape-3"></div>
+  // Settings for admin only
+  if (isAdmin()) {
+    baseItems.push({ text: 'Paramètres', icon: <SettingsIcon />, path: '/settings' });
+  }
+
+  return baseItems;
+};
+
+
+  const menuItems = getMenuItems();
+
+  const handleDrawerToggle = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    // Close sidebar on mobile after navigation
+    if (window.innerWidth < 768) {
+      setSidebarOpen(false);
+    }
+  };
+
+  // Get user display name
+  const userDisplayName = user?.full_name || user?.email || 'User';
+  const userRole = user?.user_roles?.[0]?.role?.role_identity || 'client_previx';
+
+  return (
+    <div className="layout-container">
+      {/* Background Elements */}
+      <div className="layout-floating-shapes">
+        <div className="layout-floating-shape layout-shape-1"></div>
+        <div className="layout-floating-shape layout-shape-2"></div>
+        <div className="layout-floating-shape layout-shape-3"></div>
+      </div>
+      <div className="layout-grid-overlay"></div>
+
+      {/* AppBar */}
+      <header className={`layout-appbar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <div className="layout-appbar-content">
+          <button
+            className="layout-menu-button"
+            onClick={handleDrawerToggle}
+            aria-label="Toggle sidebar"
+          >
+            <MenuIcon />
+          </button>
+          <h1 className="layout-app-title">Prev-IX</h1>
+
+          {/* User Menu */}
+          <div className="layout-user-menu">
+            <button
+              className="layout-user-button"
+              onClick={() => setUserMenuOpen(!userMenuOpen)}
+              title={userDisplayName}
+            >
+              <div className="layout-user-avatar">
+                {userDisplayName.charAt(0).toUpperCase()}
+              </div>
+              <div className="layout-user-info">
+                <div className="layout-user-name">{userDisplayName}</div>
+                <div className="layout-user-role">
+                  {userRole === 'general_admin' && 'Administrateur'}
+                  {userRole === 'user_previx' && 'Collaborateur'}
+                  {userRole === 'client_previx' && 'Client'}
+                </div>
+              </div>
+            </button>
+
+            {/* User Menu Dropdown */}
+            <div className={`layout-user-dropdown ${userMenuOpen ? 'open' : ''}`}>
+              <div 
+                className="layout-user-dropdown-item" 
+                onClick={() => {
+                  navigate('/profile');
+                  setUserMenuOpen(false);
+                }}
+              >
+                <PersonIcon />
+                <span>Mon Profil</span>
+              </div>
+              {isAdmin() && (
+                <div 
+                  className="layout-user-dropdown-item" 
+                  onClick={() => {
+                    navigate('/settings');
+                    setUserMenuOpen(false);
+                  }}
+                >
+                  <SettingsIcon />
+                  <span>Paramètres</span>
+                </div>
+              )}
+              <div className="layout-user-dropdown-divider"></div>
+              <div
+                className="layout-user-dropdown-item logout"
+                onClick={() => {
+                  handleLogout();
+                  setUserMenuOpen(false);
+                }}
+              >
+                <LogoutIcon />
+                <span>Déconnexion</span>
+              </div>
             </div>
-            <div className="layout-grid-overlay"></div>
-
-            {/* AppBar - FIXED: Use sidebarOpen to adjust position */}
-            <header className={`layout-appbar ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-                <div className="layout-appbar-content">
-                    <button
-                        className="layout-menu-button"
-                        onClick={handleDrawerToggle}
-                        aria-label="Toggle sidebar"
-                    >
-                        <MenuIcon />
-                    </button>
-                    <h1 className="layout-app-title">Outil d'Évaluation d'Actifs</h1>
-                </div>
-            </header>
-
-            {/* Mobile Drawer Overlay - FIXED: Use sidebarOpen */}
-            <div
-                className={`layout-drawer-overlay ${sidebarOpen ? 'active' : ''}`}
-                onClick={handleDrawerToggle}
-            ></div>
-
-            {/* Drawer / Sidebar - FIXED: Use sidebarOpen for 'open' class */}
-            <nav className={`layout-drawer ${sidebarOpen ? 'open' : ''}`}>
-                <div className="layout-drawer-header">
-                    <div className="layout-drawer-logo">PrevIx</div>
-                </div>
-
-                <ul className="layout-menu-list">
-                    {menuItems.map((item) => (
-                        <li
-                            key={item.text}
-                            className={`layout-menu-item ${location.pathname === item.path ? 'active' : ''}`}
-                            onClick={() => handleNavigate(item.path)}
-                        >
-                            <span className="layout-menu-icon">{item.icon}</span>
-                            <span className="layout-menu-text">{item.text}</span>
-                        </li>
-                    ))}
-                    <li
-                        className="layout-menu-item logout"
-                        onClick={handleLogout}
-                    >
-                        <span className="layout-menu-icon">
-                            <LogoutIcon />
-                        </span>
-                        <span className="layout-menu-text">Déconnexion</span>
-                    </li>
-                </ul>
-            </nav>
-
-            {/* Main Content - FIXED: Use sidebarOpen to adjust margin-left */}
-            <main ref={mainContentRef} className={`layout-main ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
-                {children}
-            </main>
+          </div>
         </div>
-    );
+      </header>
+
+      {/* Mobile Drawer Overlay */}
+      <div
+        className={`layout-drawer-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={handleDrawerToggle}
+      ></div>
+
+      {/* Drawer / Sidebar */}
+      <nav className={`layout-drawer ${sidebarOpen ? 'open' : ''}`}>
+        <div className="layout-drawer-header">
+          <div className="layout-drawer-logo">Prev-IX</div>
+          <div className="layout-drawer-version">v1.0</div>
+        </div>
+
+        <ul className="layout-menu-list">
+          {menuItems.map((item) => (
+            <li
+              key={item.text}
+              className={`layout-menu-item ${location.pathname === item.path ? 'active' : ''}`}
+              onClick={() => handleNavigate(item.path)}
+            >
+              <span className="layout-menu-icon">{item.icon}</span>
+              <span className="layout-menu-text">{item.text}</span>
+            </li>
+          ))}
+        </ul>
+
+        {/* Sidebar Footer with User Info */}
+        <div className="layout-drawer-footer">
+          <div className="layout-drawer-user-info">
+            <div className="layout-drawer-user-avatar">
+              {userDisplayName.charAt(0).toUpperCase()}
+            </div>
+            <div className="layout-drawer-user-details">
+              <div className="layout-drawer-user-name">{userDisplayName}</div>
+              <div className="layout-drawer-user-email">{user?.email}</div>
+            </div>
+          </div>
+          <button
+            className="layout-drawer-logout-button"
+            onClick={handleLogout}
+            title="Déconnexion"
+          >
+            <LogoutIcon />
+          </button>
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main ref={mainContentRef} className={`layout-main ${sidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        {children}
+      </main>
+    </div>
+  );
 };
