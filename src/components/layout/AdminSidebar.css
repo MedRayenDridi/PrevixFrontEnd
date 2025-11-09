@@ -1,0 +1,415 @@
+/* ========================================
+   MODERN CLEAN ADMIN SIDEBAR - HOVER TO EXPAND
+   Navy Blue Theme (#123a63)
+   ======================================== */
+
+.admin-sidebar-modern {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 70px;
+  background: linear-gradient(180deg, #123a63 0%, #0d2c4e 100%);
+  box-shadow: 4px 0 24px rgba(18, 58, 99, 0.3);
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.admin-sidebar-modern.expanded {
+  width: 240px;
+  cursor: default;
+}
+
+.admin-sidebar-modern.pinned {
+  box-shadow: 4px 0 24px rgba(18, 58, 99, 0.3),
+              inset -2px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Hover glow effect */
+.admin-sidebar-modern:not(.expanded):hover {
+  box-shadow: 4px 0 32px rgba(18, 58, 99, 0.5),
+              inset -1px 0 0 rgba(255, 255, 255, 0.15);
+}
+
+/* ========================================
+   LOGO SECTION
+   ======================================== */
+
+.sidebar-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 15px 30px 15px;
+  margin-bottom: 10px;
+  pointer-events: none;
+}
+
+.sidebar-logo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+}
+
+.admin-sidebar-modern:hover .sidebar-logo-icon {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-logo-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.sidebar-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-20px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-title.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.sidebar-title.hidden {
+  opacity: 0;
+  transform: translateX(-20px);
+}
+
+/* ========================================
+   PIN INDICATOR
+   ======================================== */
+
+.sidebar-pin-indicator {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 20px;
+  height: 20px;
+  color: rgba(255, 255, 255, 0.6);
+  animation: pinPulse 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.sidebar-pin-indicator svg {
+  width: 20px;
+  height: 20px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes pinPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* ========================================
+   MENU ITEMS - WHITE ACTIVE STATE
+   ======================================== */
+
+.sidebar-menu-modern {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.sidebar-item-modern {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  margin: 0 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255, 255, 255, 0.8);
+  min-height: 48px;
+  pointer-events: auto;
+}
+
+.sidebar-item-modern:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: translateX(2px);
+}
+
+/* Active tab with white background and navy blue icons/text */
+.sidebar-item-modern.active {
+  background: white;
+  color: #123a63;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2),
+              0 0 20px rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+}
+
+.sidebar-item-modern.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 28px;
+  background: linear-gradient(180deg, #123a63 0%, #0d2c4e 100%);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 12px rgba(18, 58, 99, 0.5);
+}
+
+/* Make active tab icons and text navy blue */
+.sidebar-item-modern.active .item-icon-modern {
+  color: #123a63;
+}
+
+.sidebar-item-modern.active .item-text-modern {
+  color: #123a63;
+  font-weight: 600;
+}
+
+/* Subtle hover effect on active tab */
+.sidebar-item-modern.active:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateX(2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25),
+              0 0 25px rgba(255, 255, 255, 0.4);
+}
+
+.item-icon-modern {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.item-icon-modern svg {
+  width: 24px;
+  height: 24px;
+}
+
+.item-text-modern {
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.item-text-modern.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.item-text-modern.hidden {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+/* ========================================
+   FOOTER WITH USER INFO
+   ======================================== */
+
+.sidebar-footer-modern {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px 10px 10px 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 10px;
+  pointer-events: none;
+}
+
+.footer-user-modern {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.user-avatar-modern {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.user-info-modern {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-info-modern.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.user-info-modern.hidden {
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
+.user-name-modern {
+  font-size: 13px;
+  font-weight: 600;
+  color: white;
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.user-email-modern {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout-btn-modern {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.2);
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+
+.logout-btn-modern:hover {
+  background: rgba(239, 68, 68, 0.3);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.logout-btn-modern svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ========================================
+   MOBILE OVERLAY
+   ======================================== */
+
+.admin-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 1150;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.admin-sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .admin-sidebar-modern {
+    left: -240px;
+    width: 240px;
+    cursor: default;
+  }
+  
+  .admin-sidebar-modern.mobile-open {
+    left: 0;
+  }
+  
+  .admin-sidebar-modern.mobile-open .sidebar-title,
+  .admin-sidebar-modern.mobile-open .item-text-modern,
+  .admin-sidebar-modern.mobile-open .user-info-modern {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  /* Disable hover effect on mobile */
+  .admin-sidebar-modern {
+    pointer-events: auto;
+  }
+  
+  .sidebar-menu-modern,
+  .sidebar-footer-modern {
+    pointer-events: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-sidebar-modern {
+    width: 100%;
+    left: -100%;
+  }
+}
+
+/* ========================================
+   ACCESSIBILITY
+   ======================================== */
+
+.admin-sidebar-modern:focus-within {
+  outline: 2px solid rgba(255, 255, 255, 0.3);
+  outline-offset: -2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-sidebar-modern,
+  .sidebar-title,
+  .item-text-modern,
+  .user-info-modern {
+    transition: none;
+  }
+}

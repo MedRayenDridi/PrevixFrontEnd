@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProject } from '../../context/ProjectContext';
-import { useAuth } from '../../context/AuthContext';
-import { projectService } from '../../services/projectService';
-import AssetDisplay from '../assets/AssetDisplay';
+import { useProject } from '../../../context/ProjectContext';
+import { useAuth } from '../../../context/AuthContext';
+import { projectService } from '../../../services/projectService';
+import AssetDisplay from '../../assets/AssetDisplay';
 import './ProjectDetail.css';
 
 const ProjectDetail = () => {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProject } from '../../context/ProjectContext';
 import { useAuth } from '../../context/AuthContext';
 import ProjectsMatrixAnimation from '../animation/ProjectsMatrixAnimation';
+import ClientProjectList from './Clients/ClientProjectList';
 import './ProjectList.css';
 
 // Icons
@@ -55,6 +56,11 @@ const ProjectList = () => {
   const [typeFilter, setTypeFilter] = useState('');
   const [viewMode, setViewMode] = useState('table');
   const [selectedProjects, setSelectedProjects] = useState([]);
+
+  // Redirect non-admins to ClientProjectList
+  if (!isAdmin()) {
+    return <ClientProjectList />;
+  }
 
   useEffect(() => {
     fetchProjects();
@@ -267,7 +273,7 @@ const ProjectList = () => {
           </div>
         </div>
         <div className="header-right">
-          {selectedProjects.length > 0 && isAdmin() && (
+          {selectedProjects.length > 0 && (
             <button className="btn-danger" onClick={handleBulkDelete}>
               Supprimer la Sélection ({selectedProjects.length})
             </button>

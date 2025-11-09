@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useProject } from '../../context/ProjectContext';
-import { projectService } from '../../services/api';
+import { useProject } from '../../../context/ProjectContext';
+import { projectService } from '../../../services/api';
 import './ProjectUpload.css';
 
 const ProjectUpload = () => {

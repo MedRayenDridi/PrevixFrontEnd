@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { adminService } from '../services/api';
-import { useAuth } from '../context/AuthContext';
-import AdminConsoleAnimation from '../components/animation/AdminConsoleAnimation';
+import { adminService } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
+import AdminConsoleAnimation from '../../components/animation/AdminConsoleAnimation';
 import './AdminPage.css';
 
 export const AdminPage = () => {

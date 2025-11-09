@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useProject } from '../../context/ProjectContext';
-import { useAuth } from '../../context/AuthContext';
-import { api } from '../../services/api';
+import { useProject } from '../../../context/ProjectContext';
+import { useAuth } from '../../../context/AuthContext';
+import { api } from '../../../services/api';
 import './ProjectForm.css';
 
 

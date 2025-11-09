@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useProject } from '../context/ProjectContext';
 import DashboardStats from '../components/dashboard/DashboardStats';
@@ -6,6 +6,7 @@ import DashboardGraphs from '../components/dashboard/DashboardGraphs';
 import DashboardTasks from '../components/dashboard/DashboardTasks';
 import DashboardCalendar from '../components/dashboard/DashboardCalendar';
 import DashboardLoadingAnimation from '../components/animation/DashboardLoadingAnimation';
+import ClientDashboard from './Client/ClientDashboard';
 import './DashboardPage.css';
 
 const DashboardPage = () => {
@@ -25,6 +26,11 @@ const DashboardPage = () => {
         </div>
       </div>
     );
+  }
+
+  // NON-ADMIN: Return ClientDashboard WITHOUT wrapper
+  if (!isAdmin() && !isStaff()) {
+    return <ClientDashboard />;
   }
 
   const renderAdminDashboard = () => (
@@ -74,7 +80,7 @@ const DashboardPage = () => {
             <div className="stat-icon">⚡</div>
             <div className="stat-content">
               <h3 className="stat-number">
-                {projects.filter(p => p.status === 'in_progress').length}
+                {projects.filter(p => p.status === 'active').length}
               </h3>
               <p className="stat-label">Projets Actifs</p>
             </div>
@@ -100,53 +106,7 @@ const DashboardPage = () => {
     </div>
   );
 
-  const renderClientDashboard = () => (
-    <div className="client-dashboard">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Tableau de Bord Client</h1>
-        <p className="dashboard-subtitle">
-          Vue d'ensemble de vos projets en cours et de leur progression
-        </p>
-      </div>
-
-      {/* Quick Stats for Clients */}
-      <div className="user-stats">
-        <div className="stats-grid">
-          <div className="stat-card">
-            <div className="stat-icon">📊</div>
-            <div className="stat-content">
-              <h3 className="stat-number">{projects.length}</h3>
-              <p className="stat-label">Vos Projets</p>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon">⚡</div>
-            <div className="stat-content">
-              <h3 className="stat-number">
-                {projects.filter(p => p.status === 'in_progress').length}
-              </h3>
-              <p className="stat-label">Projets Actifs</p>
-            </div>
-          </div>
-
-          <div className="stat-card">
-            <div className="stat-icon">✅</div>
-            <div className="stat-content">
-              <h3 className="stat-number">
-                {projects.filter(p => p.status === 'completed').length}
-              </h3>
-              <p className="stat-label">Projets Terminés</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Graphs Section */}
-      <DashboardGraphs projects={projects} userRole="client" />
-    </div>
-  );
-
+  // ADMIN/STAFF: Return with wrapper
   return (
     <div className="dashboard-container">
       {/* Background Elements */}
@@ -159,13 +119,7 @@ const DashboardPage = () => {
 
       {/* Main Content */}
       <div className="dashboard-content-wrapper">
-        {isAdmin() ? (
-          renderAdminDashboard()
-        ) : isStaff() ? (
-          renderStaffDashboard()
-        ) : (
-          renderClientDashboard()
-        )}
+        {isAdmin() ? renderAdminDashboard() : renderStaffDashboard()}
       </div>
     </div>
   );
