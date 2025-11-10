@@ -73,9 +73,9 @@ export const AdminAppBar = ({ sidebarExpanded, user, onLogout }) => {
       
       <div className="admin-appbar-content">
         <h1 className="admin-app-title">
-          Prev-IX
-          <span className="admin-app-title-glow"></span>
-        </h1>
+            <img src="/Prev-EX africa Logo.jpeg" alt="Prev-IX Logo" className="admin-app-logo" />
+            <span className="admin-app-title-glow"></span>
+           </h1>
 
         <div className="admin-user-menu" ref={userMenuRef}>
           <button 

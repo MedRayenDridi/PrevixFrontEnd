@@ -207,12 +207,14 @@
 }
 
 /* ========================================
-   LEFT PANEL - NAVY BLUE SECTION
+   LEFT PANEL - FOND GRIS CLAIR (MODIFIÉ)
    ======================================== */
 
 .login-left-panel {
-  background: linear-gradient(135deg, #123a63 0%, #0d2c4e 100%);
-  color: white;
+  /* Fond gris clair au lieu du bleu foncé */
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8edf2 100%);
+  /* Texte en foncé pour contraste */
+  color: #1f2937;
   padding: 2.5rem;
   display: flex;
   align-items: center;
@@ -225,7 +227,8 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.2) 0%, transparent 60%);
+  /* Effet de lumière très subtil pour fond clair */
+  background: radial-gradient(circle at 30% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 60%);
   animation: pulseGlow 4s ease-in-out infinite;
 }
 
@@ -245,25 +248,49 @@
     45deg,
     transparent,
     transparent 10px,
-    rgba(255, 255, 255, 0.02) 10px,
-    rgba(255, 255, 255, 0.02) 20px
+    /* Rayures très subtiles adaptées au fond clair */
+    rgba(18, 58, 99, 0.02) 10px,
+    rgba(18, 58, 99, 0.02) 20px
   );
 }
 
 .brand-content {
   position: relative;
   z-index: 1;
+  width: 100%;
 }
 
+/* LOGO CENTRÉ ET AGRANDI */
 .brand-logo-large {
-  margin-bottom: 1.5rem;
+  /* Utilise flexbox pour centrer parfaitement */
+  display: flex;
+  justify-content: center; /* Centre horizontalement */
+  align-items: center; /* Centre verticalement */
+  
+  /* Hauteur pour créer l'espace nécessaire */
+  min-height: 220px;
+  
+  margin-bottom: 2rem;
   animation: fadeInUp 0.6s ease;
 }
 
 .logo-img {
-  width: 80px;
-  height: auto;
-  filter: brightness(0) invert(1) drop-shadow(0 4px 12px rgba(255, 255, 255, 0.3));
+  /* Taille agrandie du logo */
+  width: 240px;
+  max-width: 85%; /* Responsive */
+  height: auto; /* Conserve les proportions */
+  
+  /* Retire le filtre blanc et ajoute une ombre subtile */
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+  
+  /* Animation douce */
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+/* Effet au survol du logo */
+.logo-img:hover {
+  transform: scale(1.05);
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.15));
 }
 
 .brand-title {
@@ -272,26 +299,32 @@
   margin-bottom: 0.75rem;
   line-height: 1.2;
   animation: fadeInUp 0.6s ease 0.1s backwards;
+  /* Texte en foncé pour fond clair */
+  color: #1f2937;
+  text-align: center;
 }
 
 .brand-highlight {
   color: #ef4444;
-  text-shadow: 0 2px 12px rgba(239, 68, 68, 0.5);
+  /* Ombre plus subtile pour fond clair */
+  text-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
   display: inline-block;
   animation: glowRed 2s ease-in-out infinite;
 }
 
 @keyframes glowRed {
-  0%, 100% { text-shadow: 0 2px 12px rgba(239, 68, 68, 0.5); }
-  50% { text-shadow: 0 2px 20px rgba(239, 68, 68, 0.8); }
+  0%, 100% { text-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
+  50% { text-shadow: 0 2px 16px rgba(239, 68, 68, 0.5); }
 }
 
 .brand-description {
   font-size: 0.9rem;
-  opacity: 0.9;
+  /* Couleur adaptée au fond clair */
+  color: #4b5563;
   line-height: 1.6;
   margin-bottom: 2rem;
   animation: fadeInUp 0.6s ease 0.2s backwards;
+  text-align: center;
 }
 
 .feature-list {
@@ -307,32 +340,38 @@
   gap: 0.75rem;
   font-size: 0.875rem;
   padding: 0.5rem;
-  background: rgba(255, 255, 255, 0.08);
+  /* Fond légèrement blanc pour contraste */
+  background: rgba(255, 255, 255, 0.6);
   border-radius: 8px;
   backdrop-filter: blur(10px);
   transition: all 0.3s ease;
+  /* Bordure subtile */
+  border: 1px solid rgba(18, 58, 99, 0.08);
 }
 
 .feature-item:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.9);
   transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .feature-icon {
   width: 24px;
   height: 24px;
-  background: rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.15);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 
 .feature-icon svg {
   width: 12px;
   height: 12px;
+  /* Icône en bleu foncé pour visibilité */
+  color: #123a63;
 }
 
 @keyframes fadeInUp {
@@ -712,7 +751,47 @@
     padding: 0.75rem;
     font-size: 0.875rem;
   }
+  
+  /* Ajustement du logo sur mobile */
+  .brand-logo-large {
+    min-height: 150px;
+  }
+  
+  .logo-img {
+    width: 180px;
+  }
 }
+
+/* Client Logo Section - Optional */ 
+
+
+.client-logo-top-right {
+  position: absolute;
+  top: 32px;         /* espace en haut */
+  right: 40px;       /* espace à droite */
+  z-index: 10;
+}
+
+.client-logo-top-right img {
+  height: 40px;      /* adapte à tes besoins, ex : 40-60px */
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.10));
+}
+
+@media (max-width: 768px) {
+  .client-logo-top-right {
+    top: 14px;
+    right: 16px;
+  }
+
+  .client-logo-top-right img {
+    height: 34px;
+  }
+}
+/* -----End CLient ---- */
+
+
 
 /* ========================================
    UTILITY ANIMATIONS

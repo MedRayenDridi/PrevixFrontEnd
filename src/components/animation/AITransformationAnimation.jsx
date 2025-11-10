@@ -24,7 +24,8 @@ export default function AITransformationAnimation() {
           justifyContent: 'flex-start',
           alignItems: 'center',
           padding: '1rem',
-          marginLeft: '-15%'
+          marginLeft: '-15%',
+          backgroundColor: 'transparent'
         }}
       >
         <img
