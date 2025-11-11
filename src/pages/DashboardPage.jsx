@@ -38,21 +38,18 @@ const DashboardPage = () => {
       <div className="dashboard-header">
         <h1 className="dashboard-title">Tableau de Bord Administrateur</h1>
         <p className="dashboard-subtitle">
-          Vue d'ensemble complète de tous les projets et des performances système
-        </p>
+          Vue d'ensemble sur projets et les performances</p>
       </div>
-
-      {/* Stats Section */}
-      <DashboardStats projects={projects} />
-
-      {/* Calendar and Tasks Section */}
-      <div className="dashboard-main-content">
-        <DashboardCalendar projects={projects} />
-        <DashboardTasks projects={projects} />
-      </div>
-
-      {/* Graphs Section */}
-      <DashboardGraphs projects={projects} userRole="admin" />
+        
+         {/* Calendar and Tasks Section */}
+              <div className="dashboard-main-content">
+              <DashboardCalendar projects={projects} />
+              <DashboardTasks projects={projects} />
+             </div>
+         {/* Stats Section */}
+              <DashboardStats projects={projects} />
+           {/* Graphs Section */}
+             <DashboardGraphs projects={projects} userRole="admin" />
     </div>
   );
 

@@ -54,7 +54,6 @@ export default function LoginPage() {
     <div className="modern-login-page">
 
 
-
       {/* Éléments d'arrière-plan décoratifs */}
       <div className="login-bg-shapes">
         <div className="shape shape-1"></div>
@@ -91,15 +90,15 @@ export default function LoginPage() {
           <div className="brand-content">
             {/* Conteneur du logo agrandi et centré */}
             <div className="brand-logo-large">
-              <img src="/QuantoLogo.png" alt="Logo QuantoBridge" className="logo-img" />
+              <img src="/Logo-tool-Previx.png" alt="Logo QuantoBridge" className="logo-img" />
             </div>
             {/* Titre principal avec mise en évidence */}
             <h1 className="brand-title">
-              Bienvenue sur <span className="brand-highlight">Prev-IX</span>
+              Bienvenue sur Prev-IX
             </h1>
             {/* Description de la plateforme */}
             <p className="brand-description">
-              Intelligent Asset Assessment Tool - Prev-EX Africa
+              <span class="brand-highlight">IA Assistant</span> tool for Risk Assessment & Valuation
             </p>
             
             {/* Liste des fonctionnalités principales */}
@@ -140,13 +139,14 @@ export default function LoginPage() {
 
         {/* Panneau droit - Formulaire de connexion */}
         <div className="login-right-panel">
-          
-                <div className="client-logo-top-right">
-                  <img src="/Logo-PrevEX.png" alt="Client Logo" />
-                </div>
 
           <div className="login-form-container">
-            
+
+            <div className="client-logo-top-right">
+                  <img src="/Logo-Prevex-Africa.png" alt="Client Logo" />
+            </div>
+
+
             {/* Logo mobile (visible uniquement sur petits écrans) */}
             <div className="mobile-logo">
               <img src="/QuantoLogo.png" alt="Logo" />
@@ -260,6 +260,12 @@ export default function LoginPage() {
           </div>
         </div>
       </div>
+
+      <div className="powered-by-container">
+          <span>Powered by</span>
+          <img src="QuantoLogo.png" alt="QuantoBridge" className="powered-logo" />
+        </div>
+
     </div>
   );
 }

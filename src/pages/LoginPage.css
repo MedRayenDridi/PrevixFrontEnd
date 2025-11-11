@@ -276,10 +276,10 @@
 
 .logo-img {
   /* Taille agrandie du logo */
-  width: 240px;
+  width: 600px;
   max-width: 85%; /* Responsive */
   height: auto; /* Conserve les proportions */
-  
+  border-radius: 16px;
   /* Retire le filtre blanc et ajoute une ombre subtile */
   filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
   
@@ -304,13 +304,30 @@
   text-align: center;
 }
 
-.brand-highlight {
+.brand-highlight { 
   color: #ef4444;
-  /* Ombre plus subtile pour fond clair */
-  text-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  font-weight: 700; /* Texte en gras */
+  text-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
   display: inline-block;
-  animation: glowRed 2s ease-in-out infinite;
+  animation: glowRed 2.5s ease-in-out infinite;
 }
+
+/* Animation douce d’un halo rouge */
+@keyframes glowRed {
+  0%, 100% {
+    text-shadow:
+      0 0 2px #ef4444,
+      0 0 8px rgba(239, 68, 68, 0.6),
+      0 0 12px rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    text-shadow:
+      0 0 4px #ef4444,
+      0 0 14px rgba(239, 68, 68, 0.8),
+      0 0 20px rgba(239, 68, 68, 0.6);
+  }
+}
+
 
 @keyframes glowRed {
   0%, 100% { text-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
@@ -767,13 +784,13 @@
 
 .client-logo-top-right {
   position: absolute;
-  top: 32px;         /* espace en haut */
-  right: 40px;       /* espace à droite */
+  top: 10px;         /* espace en haut */
+  right: 10px;       /* espace à droite */
   z-index: 10;
 }
 
 .client-logo-top-right img {
-  height: 40px;      /* adapte à tes besoins, ex : 40-60px */
+  height: 80px;      /* adapte à tes besoins, ex : 40-60px */
   width: auto;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0,0,0,0.10));
@@ -801,3 +818,31 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+
+.powered-by-container {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  color: #64748b; /* couleur gris doux */
+  user-select: none;
+  z-index: 1000;
+  font-family: 'Poppins', sans-serif;
+}
+
+.powered-by-container span {
+  font-weight: 600;
+}
+
+.powered-logo {
+  height: 100px; /* taille modérée */
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0) invert(0.3); /* optionnel: adapte la luminosité pour fond clair */
+  user-select: none;
+}
+

@@ -93,7 +93,7 @@ const DashboardTasks = ({ projects }) => {
     <div className="dashboard-tasks">
       <div className="tasks-header">
         <h2 className="tasks-title">Tâches Importantes</h2>
-        <p className="tasks-subtitle">Éléments critiques nécessitant une attention</p>
+        <p className="tasks-subtitle">Prochaines échéances</p>
       </div>
 
       <div className="tasks-content">

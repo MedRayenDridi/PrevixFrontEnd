@@ -54,7 +54,7 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
   const menuItems = [
     { text: 'Tableau de Bord', icon: <DashboardIcon />, path: '/dashboard', id: 'home' },
     { text: 'Projets', icon: <FolderIcon />, path: '/projects', id: 'measure' },
-    { text: 'Utilisateurs', icon: <GroupIcon />, path: '/admin', id: 'analyze' },
+    { text: 'Gestion des utilisateurs', icon: <GroupIcon />, path: '/admin', id: 'analyze' },
     { text: 'Profil', icon: <PersonIcon />, path: '/profile', id: 'reduce' },
     { text: 'Paramètres', icon: <SettingsIcon />, path: '/settings', id: 'report' },
   ];
