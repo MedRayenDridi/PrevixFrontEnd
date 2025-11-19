@@ -15,6 +15,8 @@ import AITransformationAnimation from "./components/animation/AITransformationAn
 import LoadingScreen from "./components/animation/LoadingScreen";
 import './App.css';
 import { useEffect, useState } from 'react';
+import Organizations from './pages/Organizations';
+
 
 // PrivateRoute Component
 const PrivateRoute = ({ children }) => {
@@ -220,6 +222,8 @@ function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
+                        <Route path="/organizations" element={<Organizations />} />
+
                         <Route
                             path="/dashboard"
                             element={
