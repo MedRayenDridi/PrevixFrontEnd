@@ -13,10 +13,9 @@ import ProjectDetail from "./components/projects/Admin/ProjectDetail";
 import ProjectUpload from "./components/projects/Admin/ProjectUpload";
 import AITransformationAnimation from "./components/animation/AITransformationAnimation";
 import LoadingScreen from "./components/animation/LoadingScreen";
+import Organizations from './pages/Organizations';
 import './App.css';
 import { useEffect, useState } from 'react';
-import Organizations from './pages/Organizations';
-
 
 // PrivateRoute Component
 const PrivateRoute = ({ children }) => {
@@ -197,7 +196,8 @@ function App() {
     const location = useLocation();
     const [loadingComplete, setLoadingComplete] = useState(false);
 
-    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects'].includes(location.pathname) ||
+    // ✅ UPDATED: Added /organizations to full-screen routes
+    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations'].includes(location.pathname) ||
                               location.pathname.startsWith('/projects/');
 
     const handleLoadingComplete = () => {
@@ -222,7 +222,6 @@ function App() {
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
-                        <Route path="/organizations" element={<Organizations />} />
 
                         <Route
                             path="/dashboard"
@@ -254,6 +253,19 @@ function App() {
                                 </PrivateRoute>
                             }
                         />
+                        
+                        {/* ✅ UPDATED: Organizations route now wrapped with Layout and PrivateRoute */}
+                        <Route
+                            path="/organizations"
+                            element={
+                                <PrivateRoute>
+                                    <Layout>
+                                        <Organizations />
+                                    </Layout>
+                                </PrivateRoute>
+                            }
+                        />
+
                         <Route
                             path="/projects"
                             element={
