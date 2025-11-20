@@ -423,6 +423,17 @@ export const adminService = {
       throw error;
     }
   },
+  getAllClients: async () => {
+    const users = await userService.getAllUsers();
+    // if getAllUsers returns [{ user_id, roles: [...] }]
+    // but likely it returns {user_id, ...}
+    // so check with a second API if needed
+    // But since you only have role_id:2 for client, filter by that from admin/users
+    return users.filter(u =>
+      (u.role && u.role.role_identity === 'client_previx') ||
+      (u.user_roles && u.user_roles.some(r => r.role_id === 2 || r.role?.role_identity === 'client_previx'))
+    );
+  },
 };
 
 

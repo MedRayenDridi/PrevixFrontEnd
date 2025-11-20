@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import organizationService from '../services/organizationService';
+import OrgMembersModal from './OrgMembersModal';
 import './Organizations.css';
 
 const Organizations = () => {
@@ -7,6 +8,8 @@ const Organizations = () => {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState(null);
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [selectedOrgForMembers, setSelectedOrgForMembers] = useState(null);
   const [formData, setFormData] = useState({
     organization_name: '',
     organization_isin: '',
@@ -525,9 +528,36 @@ const Organizations = () => {
                   <p>Aucun contact enregistré pour cette organisation</p>
                 </div>
               )}
+
+              <div className="details-section">
+                <button
+                  className="btn-add-org"
+                  onClick={() => {
+                    setSelectedOrgForMembers(selectedOrg.org_id);
+                    setShowMembersModal(true);
+                  }}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                  </svg>
+                  Gérer Membres
+                </button>
+              </div>
+
             </div>
           </div>
         </div>
+      )}
+
+      {/* Members Modal */}
+      {showMembersModal && selectedOrgForMembers && (
+        <OrgMembersModal
+          orgId={selectedOrgForMembers}
+          onClose={() => {
+            setShowMembersModal(false);
+            setSelectedOrgForMembers(null);
+          }}
+        />
       )}
     </div>
   );

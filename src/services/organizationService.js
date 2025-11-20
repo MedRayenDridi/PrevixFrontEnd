@@ -1,3 +1,5 @@
+import { api } from './api';
+
 const API_BASE_URL = 'http://localhost:8000';
 
 const getAuthHeaders = () => {
@@ -162,6 +164,25 @@ const organizationService = {
       console.error('Error removing user:', error);
       return { success: false, error: error.message };
     }
+  },
+  getOrganizationMembers: async (orgId) => {
+    const response = await api.get(`/organizations/${orgId}/users`);
+    return response.data.data || [];
+  },
+
+  // Assign client to organization
+  assignClientToOrganization: async (orgId, userId, roleId = 2) => {
+    const response = await api.post(`/organizations/${orgId}/users`, {
+      user_id: userId,
+      role_id: roleId,
+    });
+    return response.data;
+  },
+
+  // Remove client from organization
+  removeClientFromOrganization: async (orgId, userId) => {
+    const response = await api.delete(`/organizations/${orgId}/users/${userId}`);
+    return response.data;
   },
 };
 
