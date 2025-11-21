@@ -51,17 +51,15 @@ export const authService = {
     return response.data;
   },
 
-  register: async ({ email, password, full_name, role_identity = 'client_previx', org_id = 1 }) => {
-    const response = await api.post('/auth/register', {
-      email,
-      password,
-      full_name,
-      role_identity,
-      org_id,
-    });
+  register: async ({ email, password, full_name, role_identity = 'client_previx', org_id }) => {
+    // ONLY include org_id if given!
+    const payload = { email, password, full_name, role_identity };
+    if (org_id !== undefined && org_id !== null) {
+      payload.org_id = org_id;
+    }
+    const response = await api.post('/auth/register', payload);
     return response.data;
   },
-
   getProfile: async () => {
     const response = await api.get('/auth/users/me');
     if (response.data) {

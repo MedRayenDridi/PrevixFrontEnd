@@ -10,6 +10,7 @@ const Organizations = () => {
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [selectedOrgForMembers, setSelectedOrgForMembers] = useState(null);
+  const [memberCounts, setMemberCounts] = useState({});
   const [formData, setFormData] = useState({
     organization_name: '',
     organization_isin: '',
@@ -33,6 +34,26 @@ const Organizations = () => {
     const result = await organizationService.getAllOrganizations();
     if (result.success) {
       setOrganizations(result.data);
+
+      // Fetch member (client) counts for all orgs, in parallel
+      const orgs = result.data;
+      const fetchCounts = async () => {
+        const counts = {};
+        await Promise.all(
+          orgs.map(async (org) => {
+            try {
+              const members = await organizationService.getOrganizationMembers(org.org_id);
+              counts[org.org_id] = members.filter(
+                (m) => m.role === 'client_previx'
+              ).length;
+            } catch (e) {
+              counts[org.org_id] = 0;
+            }
+          })
+        );
+        setMemberCounts(counts);
+      };
+      fetchCounts();
     } else {
       alert(`Erreur: ${result.error}`);
     }
@@ -41,23 +62,24 @@ const Organizations = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     const result = await organizationService.createOrganization(formData);
-    
+
     if (result.success) {
       alert('Organisation créée avec succès!');
       setShowAddModal(false);
       resetForm();
       loadOrganizations();
     } else {
-      const errorMsg = typeof result.error === 'string' 
-        ? result.error
-        : JSON.stringify(result.error, null, 2);
+      const errorMsg =
+        typeof result.error === 'string'
+          ? result.error
+          : JSON.stringify(result.error, null, 2);
       alert(`Erreur:\n${errorMsg}`);
     }
   };
@@ -66,9 +88,9 @@ const Organizations = () => {
     if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette organisation ?')) {
       return;
     }
-    
+
     const result = await organizationService.deleteOrganization(orgId);
-    
+
     if (result.success) {
       alert('Organisation supprimée avec succès!');
       loadOrganizations();
@@ -109,7 +131,7 @@ const Organizations = () => {
           <h1>Gestion des Organisations</h1>
           <p className="header-subtitle">Gérez vos organisations et leurs membres</p>
         </div>
-        <button 
+        <button
           className="btn-add-org"
           onClick={() => setShowAddModal(true)}
         >
@@ -129,7 +151,7 @@ const Organizations = () => {
           </div>
           <h2>Aucune organisation</h2>
           <p>Commencez par créer votre première organisation</p>
-          <button 
+          <button
             className="btn-add-org btn-primary"
             onClick={() => setShowAddModal(true)}
           >
@@ -144,45 +166,69 @@ const Organizations = () => {
           {organizations.map((org) => (
             <div key={org.org_id} className="org-card">
               <div className="org-card-badge">
-                <span className={`badge ${org.organisation_scope === 'internal_previx' ? 'badge-internal' : 'badge-external'}`}>
-                  {org.organisation_scope === 'internal_previx' ? 'Interne' : 'Externe'}
+                <span
+                  className={`badge ${
+                    org.organisation_scope === 'internal_previx'
+                      ? 'badge-internal'
+                      : 'badge-external'
+                  }`}
+                >
+                  {org.organisation_scope === 'internal_previx'
+                    ? 'Interne'
+                    : 'Externe'}
                 </span>
               </div>
-              
-              <div className="org-card-header">
+
+              <div className="org-card-header" style={{ alignItems: 'center', display: 'flex', gap: 10 }}>
                 <div className="org-icon">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
                   </svg>
                 </div>
-                <h3>{org.organization_name}</h3>
+                <h3>
+  {org.organization_name}
+  <span className="members-count">
+    {/* Optional: Add a user icon here */}
+    {memberCounts[org.org_id] ?? 0} membre
+    {memberCounts[org.org_id] === 1 ? "" : "s"}
+  </span>
+</h3>
               </div>
 
               <div className="org-card-body">
                 <div className="info-row">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="info-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="info-icon"
+                  >
                     <path d="M20 6h-2.18c.11-.31.18-.65.18-1 0-1.66-1.34-3-3-3-1.05 0-1.96.54-2.5 1.35l-.5.67-.5-.68C10.96 2.54 10.05 2 9 2 7.34 2 6 3.34 6 5c0 .35.07.69.18 1H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-5-2c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zM9 4c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm11 15H4v-2h16v2zm0-5H4V8h5.08L7 10.83 8.62 12 11 8.76l1-1.36 1 1.36L15.38 12 17 10.83 14.92 8H20v6z" />
                   </svg>
                   <span className="info-label">ISIN:</span>
                   <span className="info-value">{org.organization_isin || 'Non défini'}</span>
                 </div>
-
                 <div className="info-row">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="info-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="info-icon"
+                  >
                     <path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z" />
                   </svg>
                   <span className="info-label">Industrie:</span>
                   <span className="info-value">{org.organization_industry || 'Non définie'}</span>
                 </div>
-
                 <div className="info-row">
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="info-icon">
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="info-icon"
+                  >
                     <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
                   </svg>
                   <span className="info-label">Adresse:</span>
                   <span className="info-value">{org.organization_adress || 'Non définie'}</span>
                 </div>
-
                 {org.fullname_contactperson && (
                   <div className="contact-info">
                     <div className="contact-header">
@@ -197,9 +243,8 @@ const Organizations = () => {
                   </div>
                 )}
               </div>
-
               <div className="org-card-actions">
-                <button 
+                <button
                   className="btn-action btn-view"
                   onClick={() => setSelectedOrg(org)}
                   title="Voir les détails"
@@ -209,7 +254,20 @@ const Organizations = () => {
                   </svg>
                   Détails
                 </button>
-                <button 
+                <button
+                  className="btn-action btn-members"
+                  onClick={() => {
+                    setSelectedOrgForMembers(org.org_id);
+                    setShowMembersModal(true);
+                  }}
+                  title="Gérer les membres"
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" />
+                  </svg>
+                  Membres
+                </button>
+                <button
                   className="btn-action btn-delete"
                   onClick={() => handleDelete(org.org_id)}
                   title="Supprimer"

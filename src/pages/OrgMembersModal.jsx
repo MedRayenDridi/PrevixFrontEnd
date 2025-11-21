@@ -25,11 +25,16 @@ const MembersModal = ({ orgId, onClose }) => {
   };
 
   const loadClients = async () => {
-    // Fetch all users with the client role
-    const all = await userService.getAllUsers();
-    // Only users with no match in this org already!
-    setClients(all.filter(u => (u.user_roles || []).some(r => r.role_id === 2)));
-  };
+  // Fetch all users
+  const all = await userService.getAllUsers();
+  // Filter for client users and unassigned users
+  setClients(all.filter(
+    u =>
+      (u.user_roles && u.user_roles.some(r => r.role_id === 2)) ||
+      !u.user_roles || u.user_roles.length === 0
+  ));
+};
+
 
   const handleAssign = async () => {
     if (!selectedClient) return;
@@ -46,16 +51,21 @@ const MembersModal = ({ orgId, onClose }) => {
   };
 
   const handleNewClientSubmit = async (e) => {
-    e.preventDefault();
-    // Create user
-    await authService.register({
-      ...newClient,
-      role_identity: 'client_previx',
-    });
-    setShowAddClientForm(false);
-    setNewClient({ full_name: '', email: '', password: '' });
-    loadClients();
-  };
+  e.preventDefault();
+  // 1. Register new user as client
+  const userCreated = await authService.register({
+    ...newClient,
+    role_identity: 'client_previx',
+  });
+  // 2. Get their user_id (from response or by fetching)
+  const userId = userCreated.user_id || (await userService.getUserByEmail(newClient.email)).user_id;
+  // 3. Assign this user to selected org!
+  await organizationService.assignClientToOrganization(orgId, userId, 2);
+  setShowAddClientForm(false);
+  setNewClient({ full_name: '', email: '', password: '' });
+  loadClients();
+  loadMembers();
+};
 
   return (
     <div className="modal-overlay" onClick={onClose}>
