@@ -69,27 +69,29 @@ const ClientDashboard = () => {
   });
 
   useEffect(() => {
-    if (projects && user) {
-      const userProjects = projects.filter(p => 
-        p.created_by === user.user_id || p.assigned_to === user.user_id
-      );
-      setClientProjects(userProjects);
+  if (projects && user) {
+    // Show all projects for the user's org(s)
+    const currentOrgIds = user.user_roles.map(ur => ur.org_id);
+    const userProjects = projects.filter(p =>
+      currentOrgIds.includes(p.org_id)
+    );
+    setClientProjects(userProjects);
 
-      const active = userProjects.filter(p => p.status === 'active').length;
-      const completed = userProjects.filter(p => p.status === 'completed').length;
-      const avgProgress = userProjects.length > 0
-        ? Math.round(userProjects.reduce((sum, p) => sum + (p.progress || 0), 0) / userProjects.length)
-        : 0;
+    const active = userProjects.filter(p => p.status === 'active').length;
+    const completed = userProjects.filter(p => p.status === 'completed').length;
+    const avgProgress = userProjects.length > 0
+      ? Math.round(userProjects.reduce((sum, p) => sum + (p.progress || 0), 0) / userProjects.length)
+      : 0;
 
-      setStats({
-        total: userProjects.length,
-        active,
-        completed,
-        pending: userProjects.length - active - completed,
-        avgProgress,
-      });
-    }
-  }, [projects, user]);
+    setStats({
+      total: userProjects.length,
+      active,
+      completed,
+      pending: userProjects.length - active - completed,
+      avgProgress,
+    });
+  }
+}, [projects, user]);
 
   const formatDate = (dateString) => {
     if (!dateString) return '-';

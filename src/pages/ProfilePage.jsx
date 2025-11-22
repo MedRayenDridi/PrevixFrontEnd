@@ -1,8 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Paper, Typography, Box, Grid } from '@mui/material';
+import { Container, Paper, Typography, Box, Grid, Avatar } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 import { TextField } from '../components/common/TextField';
 import { Button } from '../components/common/Button';
+import organizationService from '../services/organizationService';
+import PersonIcon from '@mui/icons-material/Person';
+import EmailIcon from '@mui/icons-material/Email';
+import BadgeIcon from '@mui/icons-material/Badge';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import BusinessIcon from '@mui/icons-material/Business';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import WorkIcon from '@mui/icons-material/Work';
+import SaveIcon from '@mui/icons-material/Save';
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
+import './ProfilePage.css';
 
 const ProfilePage = () => {
   const { user, updateProfile } = useAuth();
@@ -10,8 +23,41 @@ const ProfilePage = () => {
     full_name: '',
     status: 'active',
   });
+  const [orgsDetails, setOrgsDetails] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [orgsLoading, setOrgsLoading] = useState(true);
   const [message, setMessage] = useState('');
+
+  // Fetch organizations
+  useEffect(() => {
+    const fetchOrgs = async () => {
+      if (user && user.user_roles && user.user_roles.length > 0) {
+        setOrgsLoading(true);
+        try {
+          const orgIds = [...new Set(user.user_roles.map((ur) => ur.org_id))];
+          const orgs = await Promise.all(
+            orgIds.map(async (orgId) => {
+              try {
+                const res = await organizationService.getOrganizationById(orgId);
+                console.log("Org fetch response for orgId=", orgId, res);
+                return res.success ? res.data : null;
+              } catch (err) {
+                console.warn("Org fetch failed", orgId, err);
+                return null;
+              }
+            })
+          );
+          setOrgsDetails(orgs.filter(Boolean));
+        } finally {
+          setOrgsLoading(false);
+        }
+      } else {
+        setOrgsDetails([]);
+        setOrgsLoading(false);
+      }
+    };
+    fetchOrgs();
+  }, [user]);
 
   useEffect(() => {
     if (user) {
@@ -47,161 +93,237 @@ const ProfilePage = () => {
   if (!user) {
     return (
       <Container maxWidth="md">
-        <Box sx={{ mt: 4, textAlign: 'center' }}>
-          <Typography variant="h6">Chargement du profil...</Typography>
+        <Box className="loading-container">
+          <Typography variant="h6" className="loading-text">
+            Chargement du profil...
+          </Typography>
         </Box>
       </Container>
     );
   }
 
-  return (
-    <Container maxWidth="md">
-      <Box sx={{ mt: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Mon Profil
-        </Typography>
-        <Paper sx={{ p: 3, mt: 2 }}>
-          <Grid container spacing={3}>
-            {/* Profile Info Section */}
-            <Grid item xs={12} md={8}>
-              <form onSubmit={handleSubmit}>
-                <TextField
-                  name="full_name"
-                  label="Nom Complet"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  margin="normal"
-                  fullWidth
-                />
+  // Get user initials for avatar
+  const getInitials = (name) => {
+    if (!name) return 'U';
+    return name
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Email
+  return (
+    <Container maxWidth="lg" className="profile-container">
+      {/* Profile Header with Avatar */}
+      <Paper className="profile-header-card">
+        <Box className="profile-header-content">
+          <Avatar className="profile-avatar">
+            {getInitials(user.full_name)}
+          </Avatar>
+          <Box className="profile-header-info">
+            <Typography variant="h4" className="profile-name">
+              {user.full_name || 'Utilisateur'}
+            </Typography>
+            <Box className="profile-header-meta">
+              <Box className="meta-item">
+                <EmailIcon className="meta-icon" />
+                <Typography variant="body1">{user.email}</Typography>
+              </Box>
+              <Box className="meta-item">
+                <CalendarTodayIcon className="meta-icon" />
+                <Typography variant="body1">
+                  Membre depuis {new Date(user.created_at).toLocaleDateString('fr-FR', {
+                    year: 'numeric',
+                    month: 'short',
+                  })}
+                </Typography>
+              </Box>
+              <Box className={user.status === 'active' ? 'meta-status status-active' : 'meta-status status-inactive'}>
+                {user.status === 'active' ? (
+                  <>
+                    <CheckCircleIcon className="status-icon" />
+                    <Typography variant="body2">Actif</Typography>
+                  </>
+                ) : (
+                  <>
+                    <CancelIcon className="status-icon" />
+                    <Typography variant="body2">Inactif</Typography>
+                  </>
+                )}
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Paper>
+
+      <Grid container spacing={3} sx={{ mt: 2 }}>
+        {/* Main Profile Section */}
+        <Grid item xs={12} md={8}>
+          {/* Personal Information Card */}
+          <Paper className="profile-card">
+            <Box className="card-header">
+              <PersonIcon className="card-header-icon" />
+              <Typography variant="h6" className="card-title">
+                Informations Personnelles
+              </Typography>
+            </Box>
+            <form onSubmit={handleSubmit}>
+              <Box className="card-content">
+                {/* Full Name Field */}
+                <Box className="form-field">
+                  <Typography variant="subtitle2" className="field-label">
+                    Nom Complet
                   </Typography>
-                  <Typography variant="body2" sx={{ p: 1.5, bgcolor: '#f5f5f5', borderRadius: 1 }}>
-                    {user.email}
-                  </Typography>
+                  <TextField
+                    name="full_name"
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    fullWidth
+                    placeholder="Entrez votre nom complet"
+                    className="premium-input"
+                  />
                 </Box>
 
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Rôles
+                {/* Email Field (Read-only) */}
+                <Box className="form-field">
+                  <Typography variant="subtitle2" className="field-label">
+                    Adresse Email
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {user.user_roles && user.user_roles.length > 0 ? (
-                      user.user_roles.map((ur) => (
-                        <Typography
-                          key={ur.user_role_id}
-                          variant="body2"
-                          sx={{
-                            px: 2,
-                            py: 1,
-                            bgcolor: '#e3f2fd',
-                            color: '#1976d2',
-                            borderRadius: 1,
-                            fontWeight: 'medium',
-                          }}
-                        >
-                          {ur.role?.role_identity || 'Unknown'}
-                        </Typography>
-                      ))
-                    ) : (
-                      <Typography variant="body2" color="textSecondary">
-                        Aucun rôle assigné
-                      </Typography>
-                    )}
+                  <Box className="readonly-field">
+                    <EmailIcon className="readonly-icon" />
+                    <Typography variant="body1">{user.email}</Typography>
                   </Box>
                 </Box>
 
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Statut du Compte
+                {/* Member Since */}
+                <Box className="form-field">
+                  <Typography variant="subtitle2" className="field-label">
+                    Date d'inscription
                   </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      px: 2,
-                      py: 1,
-                      bgcolor: user.status === 'active' ? '#e8f5e9' : '#ffebee',
-                      color: user.status === 'active' ? '#2e7d32' : '#c62828',
-                      borderRadius: 1,
-                      fontWeight: 'medium',
-                      display: 'inline-block',
-                    }}
-                  >
-                    {user.status === 'active' ? 'Actif' : 'Inactif'}
-                  </Typography>
+                  <Box className="readonly-field">
+                    <CalendarTodayIcon className="readonly-icon" />
+                    <Typography variant="body1">
+                      {new Date(user.created_at).toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </Typography>
+                  </Box>
                 </Box>
 
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                    Membre depuis
-                  </Typography>
-                  <Typography variant="body2">
-                    {new Date(user.created_at).toLocaleDateString('fr-FR', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </Typography>
-                </Box>
-
+                {/* Success/Error Message */}
                 {message && (
                   <Box
-                    sx={{
-                      mt: 2,
-                      p: 2,
-                      bgcolor: message.includes('succès') ? '#e8f5e9' : '#ffebee',
-                      color: message.includes('succès') ? '#2e7d32' : '#c62828',
-                      borderRadius: 1,
-                    }}
+                    className={
+                      message.includes('succès')
+                        ? 'message-box message-success'
+                        : 'message-box message-error'
+                    }
                   >
                     <Typography variant="body2">{message}</Typography>
                   </Box>
                 )}
 
+                {/* Submit Button */}
                 <Button
                   type="submit"
                   disabled={loading}
-                  sx={{ mt: 3 }}
+                  className="submit-button"
+                  startIcon={<SaveIcon />}
+                  fullWidth
                 >
-                  {loading ? 'Sauvegarde en cours...' : 'Enregistrer les modifications'}
+                  {loading ? 'Enregistrement en cours...' : 'Enregistrer les modifications'}
                 </Button>
-              </form>
-            </Grid>
+              </Box>
+            </form>
+          </Paper>
+        </Grid>
 
-            {/* Stats Section */}
-            <Grid item xs={12} md={4}>
-              <Paper sx={{ p: 2, bgcolor: '#f5f5f5' }}>
-                <Typography variant="h6" sx={{ mb: 2 }}>
-                  Informations
-                </Typography>
-                <Box sx={{ space: 2 }}>
-                  <Typography variant="body2" color="textSecondary">
-                    <strong>ID Utilisateur:</strong> {user.user_id}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                    <strong>Organisations:</strong>
-                  </Typography>
-                  {user.user_roles && user.user_roles.length > 0 ? (
-                    <Box sx={{ ml: 2 }}>
-                      {user.user_roles.map((ur) => (
-                        <Typography key={ur.user_role_id} variant="body2" sx={{ mt: 0.5 }}>
-                          Org ID: {ur.org_id}
-                        </Typography>
-                      ))}
+        {/* Sidebar */}
+        <Grid item xs={12} md={4}>
+          {/* Roles Card */}
+          <Paper className="profile-card sidebar-card">
+            <Box className="card-header">
+              <BadgeIcon className="card-header-icon" />
+              <Typography variant="h6" className="card-title">
+                Rôles & Permissions
+              </Typography>
+            </Box>
+            <Box className="card-content">
+              <Box className="roles-grid">
+                {user.user_roles && user.user_roles.length > 0 ? (
+                  user.user_roles.map((ur) => (
+                    <Box key={ur.user_role_id} className="role-chip">
+                      <VerifiedUserIcon className="role-chip-icon" />
+                      <Typography variant="body2" className="role-chip-text">
+                        {ur.role?.role_identity || 'Unknown'}
+                      </Typography>
                     </Box>
-                  ) : (
-                    <Typography variant="body2" sx={{ ml: 2 }}>
-                      Aucune organisation
-                    </Typography>
-                  )}
+                  ))
+                ) : (
+                  <Typography variant="body2" className="no-data-text">
+                    Aucun rôle assigné
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </Paper>
+
+          {/* Organizations Card */}
+          <Paper className="profile-card sidebar-card">
+            <Box className="card-header">
+              <BusinessIcon className="card-header-icon" />
+              <Typography variant="h6" className="card-title">
+                Organisations
+              </Typography>
+            </Box>
+            <Box className="card-content">
+              {orgsLoading ? (
+                <Typography variant="body2" className="loading-text-small">
+                  Chargement...
+                </Typography>
+              ) : orgsDetails && orgsDetails.length > 0 ? (
+                <Box className="organizations-list">
+                  {orgsDetails.map((org) => (
+                    <Box key={org.org_id} className="org-item">
+                      <Box className="org-item-header">
+                        <BusinessIcon className="org-item-icon" />
+                        <Typography className="org-item-name">
+                          {org.organization_name}
+                        </Typography>
+                      </Box>
+                      <Box className="org-item-details">
+                        {org.organization_industry && (
+                          <Box className="org-detail-row">
+                            <WorkIcon className="org-detail-icon" />
+                            <Typography className="org-detail-text">
+                              {org.organization_industry}
+                            </Typography>
+                          </Box>
+                        )}
+                        {org.organization_adress && (
+                          <Box className="org-detail-row">
+                            <LocationOnIcon className="org-detail-icon" />
+                            <Typography className="org-detail-text">
+                              {org.organization_adress}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  ))}
                 </Box>
-              </Paper>
-            </Grid>
-          </Grid>
-        </Paper>
-      </Box>
+              ) : (
+                <Typography variant="body2" className="no-data-text">
+                  Aucune organisation
+                </Typography>
+              )}
+            </Box>
+          </Paper>
+        </Grid>
+      </Grid>
     </Container>
   );
 };

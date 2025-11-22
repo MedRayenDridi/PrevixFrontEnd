@@ -21,14 +21,27 @@ const TrendingDownIcon = () => (
   </svg>
 );
 
+const DatabaseIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 3C7.58 3 4 4.79 4 7s3.58 4 8 4 8-1.79 8-4-3.58-4-8-4zM4 9v3c0 2.21 3.58 4 8 4s8-1.79 8-4V9c0 2.21-3.58 4-8 4s-8-1.79-8-4zm0 5v3c0 2.21 3.58 4 8 4s8-1.79 8-4v-3c0 2.21-3.58 4-8 4s-8-1.79-8-4z"/>
+  </svg>
+);
+
+const CloudIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/>
+  </svg>
+);
+
 const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
   const [rates, setRates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdate, setLastUpdate] = useState(null);
-  const [selectedCurrencies, setSelectedCurrencies] = useState(['EUR', 'USD', 'GBP', 'JPY', 'CAD', 'CHF']);
+  const [metadata, setMetadata] = useState(null);
+  const [selectedCurrencies] = useState(['EUR', 'USD', 'GBP', 'JPY', 'CAD', 'CHF']);
 
-  const API_BASE_URL = 'http://localhost:8000'; // Adjust to your backend URL
+  const API_BASE_URL = 'http://localhost:8000';
 
   const fetchRates = async () => {
     setLoading(true);
@@ -37,19 +50,46 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
     try {
       const response = await axios.get(`${API_BASE_URL}/ex/rates/${baseCurrency}`);
       
-      if (response.data && Array.isArray(response.data)) {
+      console.log('API Response:', response.data); // Debug log
+      
+      // 🔥 FIXED: Handle new API response format with nested 'rates' array
+      if (response.data && response.data.rates && Array.isArray(response.data.rates)) {
+        // Extract rates array from response
+        const allRates = response.data.rates;
+        
         // Filter only selected currencies
-        const filteredRates = response.data.filter(rate => 
+        const filteredRates = allRates.filter(rate => 
           selectedCurrencies.includes(rate.to_currency)
         );
+        
         setRates(filteredRates);
+        
+        // 🔥 NEW: Store metadata from API response
+        setMetadata({
+          message: response.data.message,
+          source: response.data.source,
+          date: response.data.date,
+          baseCurrency: response.data.base_currency,
+          totalCount: response.data.count,
+          filteredCount: filteredRates.length
+        });
+        
         setLastUpdate(new Date());
       } else {
-        throw new Error('Format de données invalide');
+        // Fallback: Handle old format (simple array)
+        if (Array.isArray(response.data)) {
+          const filteredRates = response.data.filter(rate => 
+            selectedCurrencies.includes(rate.to_currency)
+          );
+          setRates(filteredRates);
+          setLastUpdate(new Date());
+        } else {
+          throw new Error('Format de données invalide');
+        }
       }
     } catch (err) {
       console.error('Erreur lors du chargement des taux:', err);
-      setError('Impossible de charger les taux de change');
+      setError(err.response?.data?.detail || 'Impossible de charger les taux de change');
     } finally {
       setLoading(false);
     }
@@ -57,9 +97,11 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
 
   useEffect(() => {
     fetchRates();
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchRates, 5 * 60 * 1000);
-    return () => clearInterval(interval);
+    // 🔥 FIXED: Only refresh once per day (not every 5 minutes)
+    // Since API now caches daily, no need for frequent refreshes
+    // Commented out auto-refresh to prevent unnecessary API calls
+    // const interval = setInterval(fetchRates, 5 * 60 * 1000);
+    // return () => clearInterval(interval);
   }, [baseCurrency]);
 
   const formatRate = (rate) => {
@@ -116,6 +158,29 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
 
   return (
     <div className="exchange-rate-table-container">
+      <div className="exchange-rate-header">
+        <h2 className="exchange-rate-title">
+          Taux de Change - {baseCurrency}
+        </h2>
+        
+        {/* 🔥 NEW: Show data source indicator */}
+        {metadata && (
+          <div className="data-source-badge">
+            {metadata.source === 'database' ? (
+              <>
+                <DatabaseIcon />
+                <span>Base de données</span>
+              </>
+            ) : (
+              <>
+                <CloudIcon />
+                <span>API mise à jour</span>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
       <div className="exchange-rate-controls">
         <button 
           className="btn-refresh-rates" 
@@ -125,12 +190,20 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
           <RefreshIcon />
           {loading ? 'Mise à jour...' : 'Actualiser'}
         </button>
+        
         {lastUpdate && (
           <span className="update-time">
             Mis à jour: {lastUpdate.toLocaleTimeString('fr-FR', { 
               hour: '2-digit', 
               minute: '2-digit' 
             })}
+          </span>
+        )}
+        
+        {/* 🔥 NEW: Show filtered count */}
+        {metadata && (
+          <span className="rates-count">
+            {metadata.filteredCount} / {metadata.totalCount} devises affichées
           </span>
         )}
       </div>
@@ -147,7 +220,7 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
           </thead>
           <tbody>
             {rates.map((rate, index) => (
-              <tr key={index} className="rate-row">
+              <tr key={`${rate.to_currency}-${index}`} className="rate-row">
                 <td className="currency-cell">
                   <span className="currency-flag">{getCurrencyFlag(rate.to_currency)}</span>
                   <span className="currency-code">{rate.to_currency}</span>
@@ -169,7 +242,7 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
 
       {rates.length === 0 && !loading && (
         <div className="no-rates">
-          <p>Aucun taux disponible</p>
+          <p>Aucun taux disponible pour les devises sélectionnées</p>
         </div>
       )}
     </div>
