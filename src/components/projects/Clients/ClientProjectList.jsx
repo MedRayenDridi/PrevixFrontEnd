@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProject } from '../../../context/ProjectContext';
 import { useAuth } from '../../../context/AuthContext';
 import { projectService } from '../../../services/projectService';
+import { clientProjectService } from '../../../services/api';
 import ProjectsMatrixAnimation from '../../animation/ProjectsMatrixAnimation';
 import './ClientProjectList.css';
 
@@ -95,34 +96,30 @@ const ClientProjectList = () => {
       // Create project name from first file or timestamp
       const projectName = `Projet ${new Date().toLocaleDateString('fr-FR')} - ${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`;
 
-      // Create new project
-      const newProject = await projectService.createProject({
-        name: projectName,
-        description: `Projet créé automatiquement avec ${files.length} fichier(s)`,
-        type_project: 'Other',
-        status: 'active',
-        progress: 0,
-        due_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(), // 30 days from now
-        org_id: user.user_roles?.[0]?.org_id || 1,
-        assigned_to: user.user_id,
-      });
+      // Use the new client upload endpoint that creates project and uploads files in one call
+      console.log(`Creating project and uploading ${files.length} files...`);
 
-      const projectId = newProject.project_id;
+      const result = await clientProjectService.uploadFilesAndCreateProject(
+        files,
+        projectName,
+        'IFRS'
+      );
 
-      // Upload files to the project
-      console.log(`Uploading ${files.length} files to project ${projectId}...`);
-
-      const uploadResult = await projectService.uploadToProject(projectId, files);
-
-      console.log('Upload result:', uploadResult);
+      console.log('Upload result:', result);
 
       // Refresh projects list
       await fetchProjects();
 
-      alert(`✅ Projet créé avec succès! ${files.length} fichier(s) téléchargé(s).`);
+      // Navigate to the new project
+      if (result.project_id) {
+        navigate(`/projects/${result.project_id}`);
+      }
+
+      alert(`✅ Projet créé avec succès! ${result.files.length} fichier(s) téléchargé(s).`);
     } catch (err) {
       console.error('Error uploading files:', err);
-      alert(`❌ Erreur lors du téléchargement: ${err.message}`);
+      const errorMsg = err.response?.data?.detail || err.message || 'Erreur lors du téléchargement';
+      alert(`❌ Erreur: ${errorMsg}`);
     } finally {
       setUploading(false);
     }

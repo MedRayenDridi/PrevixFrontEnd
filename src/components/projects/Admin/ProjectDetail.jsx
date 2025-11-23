@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProject } from '../../../context/ProjectContext';
 import { useAuth } from '../../../context/AuthContext';
 import { projectService } from '../../../services/projectService';
+import { adminService } from '../../../services/api';
 import AssetDisplay from '../../assets/AssetDisplay';
 import './ProjectDetail.css';
 
@@ -13,6 +14,11 @@ const ProjectDetail = () => {
   const { currentProject, setCurrentProject, loading, error, deleteProject } = useProject();
 
   const [activeTab, setActiveTab] = useState('overview');
+  const [projectFiles, setProjectFiles] = useState([]);
+  const [filesLoading, setFilesLoading] = useState(false);
+  const [classifyingFileId, setClassifyingFileId] = useState(null);
+  const [classificationError, setClassificationError] = useState(null);
+  const [classificationSuccess, setClassificationSuccess] = useState(null);
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -28,6 +34,25 @@ const ProjectDetail = () => {
       fetchProject();
     }
   }, [id, setCurrentProject]);
+
+  useEffect(() => {
+    const fetchFiles = async () => {
+      if (!id) return;
+      setFilesLoading(true);
+      try {
+        const files = await adminService.getProjectFiles(id);
+        setProjectFiles(files);
+      } catch (err) {
+        console.error('Failed to fetch project files:', err);
+      } finally {
+        setFilesLoading(false);
+      }
+    };
+
+    if (id && activeTab === 'files') {
+      fetchFiles();
+    }
+  }, [id, activeTab]);
 
 
 
@@ -83,17 +108,74 @@ const ProjectDetail = () => {
     return false;
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   const getUserName = (userId) => {
     // In a real app, you'd have a users context or fetch user details
     return `User ${userId}`;
+  };
+
+  const handleRunClassification = async (fileId) => {
+    setClassifyingFileId(fileId);
+    setClassificationError(null);
+    setClassificationSuccess(null);
+
+    try {
+      const result = await adminService.runClassification(id, fileId, true);
+      
+      if (result.status === 'ok') {
+        const summary = result.mapping_summary;
+        const importStats = result.import_stats;
+        
+        let message = `Classification terminée avec succès. `;
+        if (importStats) {
+          message += `${importStats.success} actifs importés sur ${importStats.total}.`;
+        } else {
+          message += `Type d'actif détecté: ${summary.detected_asset_type}.`;
+        }
+        
+        setClassificationSuccess(message);
+        
+        // Refresh files list
+        const files = await adminService.getProjectFiles(id);
+        setProjectFiles(files);
+      } else {
+        setClassificationError('Une erreur est survenue pendant la classification.');
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.detail || 
+                      err.message || 
+                      'Une erreur est survenue pendant la classification.';
+      setClassificationError(errorMsg);
+    } finally {
+      setClassifyingFileId(null);
+    }
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      'pending': 'En attente',
+      'processing': 'En cours',
+      'completed': 'Classé',
+      'error': 'Erreur'
+    };
+    return labels[status] || status;
+  };
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return 'N/A';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   if (loading) {
@@ -162,6 +244,12 @@ const ProjectDetail = () => {
           Assets
         </button>
         <button
+          className={`tab-button ${activeTab === 'files' ? 'active' : ''}`}
+          onClick={() => setActiveTab('files')}
+        >
+          Fichiers
+        </button>
+        <button
           className={`tab-button ${activeTab === 'reports' ? 'active' : ''}`}
           onClick={() => setActiveTab('reports')}
         >
@@ -226,6 +314,75 @@ const ProjectDetail = () => {
 
         {activeTab === 'assets' && (
           <AssetDisplay projectId={id} />
+        )}
+
+        {activeTab === 'files' && (
+          <div className="files-tab">
+            <h3>Fichiers du projet</h3>
+            
+            {classificationError && (
+              <div className="error-message" style={{ marginBottom: '1rem', padding: '1rem', background: '#f8d7da', color: '#721c24', borderRadius: '4px' }}>
+                {classificationError}
+              </div>
+            )}
+            
+            {classificationSuccess && (
+              <div className="success-message" style={{ marginBottom: '1rem', padding: '1rem', background: '#d4edda', color: '#155724', borderRadius: '4px' }}>
+                {classificationSuccess}
+              </div>
+            )}
+
+            {filesLoading ? (
+              <div className="loading-spinner">Chargement des fichiers...</div>
+            ) : projectFiles.length === 0 ? (
+              <p>Aucun fichier uploadé pour ce projet.</p>
+            ) : (
+              <table className="files-table">
+                <thead>
+                  <tr>
+                    <th>Nom du fichier</th>
+                    <th>Type</th>
+                    <th>Taille</th>
+                    <th>Uploadé par</th>
+                    <th>Date d'upload</th>
+                    <th>Statut</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projectFiles.map((file) => (
+                    <tr key={file.file_id}>
+                      <td>{file.original_filename}</td>
+                      <td>{file.file_type}</td>
+                      <td>{formatFileSize(file.file_size)}</td>
+                      <td>{file.uploaded_by_name || `User ${file.uploaded_by}`}</td>
+                      <td>{formatDate(file.uploaded_at)}</td>
+                      <td>
+                        <span className={`status-badge status-${file.processing_status}`}>
+                          {getStatusLabel(file.processing_status)}
+                        </span>
+                      </td>
+                      <td>
+                        <button
+                          className="btn-primary btn-sm"
+                          onClick={() => handleRunClassification(file.file_id)}
+                          disabled={
+                            classifyingFileId === file.file_id ||
+                            file.processing_status === 'processing' ||
+                            file.processing_status === 'completed'
+                          }
+                        >
+                          {classifyingFileId === file.file_id
+                            ? 'Classification en cours...'
+                            : 'Lancer la classification'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
         )}
 
         {activeTab === 'reports' && (

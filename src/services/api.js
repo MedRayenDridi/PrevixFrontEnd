@@ -432,6 +432,87 @@ export const adminService = {
       (u.user_roles && u.user_roles.some(r => r.role_id === 2 || r.role?.role_identity === 'client_previx'))
     );
   },
+
+  // Get project files (admin only)
+  getProjectFiles: async (projectId) => {
+    try {
+      const response = await api.get(`/admin/projects/${projectId}/files/`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching files for project ${projectId}:`, error);
+      throw error;
+    }
+  },
+
+  // Run classification on a file (admin only)
+  runClassification: async (projectId, fileId, autoImport = true) => {
+    try {
+      const response = await api.post(
+        `/admin/projects/${projectId}/files/${fileId}/run-classification/`,
+        null,
+        {
+          params: { auto_import: autoImport }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error running classification for file ${fileId}:`, error);
+      throw error;
+    }
+  },
+};
+
+export const clientProjectService = {
+  // Upload files to existing project
+  uploadProjectFiles: async (projectId, files) => {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+      const response = await api.post(
+        `/client/projects/${projectId}/files/upload/`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Error uploading files to project ${projectId}:`, error);
+      throw error;
+    }
+  },
+
+  // Upload files and create new project
+  uploadFilesAndCreateProject: async (files, projectName = null, projectType = 'IFRS') => {
+    try {
+      const formData = new FormData();
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+      const response = await api.post(
+        '/client/projects/upload-and-create/',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          params: {
+            project_name: projectName,
+            project_type: projectType,
+            due_date_days: 90
+          }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Error uploading files and creating project:', error);
+      throw error;
+    }
+  },
 };
 
 
