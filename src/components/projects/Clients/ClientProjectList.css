@@ -397,6 +397,179 @@ body {
   margin: 0;
 }
 
+/* File list improvements */
+.files-error {
+  background: rgba(253, 230, 138, 0.12);
+  color: #92400e;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  margin-bottom: 0.5rem;
+  transition: all 220ms cubic-bezier(.2,.9,.2,1);
+}
+
+.project-add-files {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border-top: 1px dashed rgba(59,130,246,0.06);
+  background: transparent;
+}
+
+.btn-add-files {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 14px;
+  background: linear-gradient(90deg,#3b82f6,#1f75cb);
+  color: #fff;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 6px 18px rgba(31,117,203,0.14);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+  font-size: 0.9rem;
+}
+
+.btn-add-files.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btn-add-files:hover:not(.disabled) {
+  transform: translateY(-2px);
+}
+
+.uploading-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.uploading-indicator::before {
+  content: '';
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(37,99,235,0.2);
+  border-top-color: #2563eb;
+  animation: spin 0.8s linear infinite;
+}
+
+.files-list-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* animate open/close — keep container content smooth */
+.project-files-section .files-list {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  transition: max-height 280ms cubic-bezier(.2,.9,.2,1), opacity 200ms ease, padding 200ms ease;
+}
+
+.project-files-section .files-list.open {
+  max-height: 1200px; /* generous max to allow content */
+  opacity: 1;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+/* Upload progress */
+.upload-progress-bar {
+  height: 8px;
+  background: rgba(2,6,23,0.06);
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  width: 160px;
+  margin-left: 12px;
+}
+.upload-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg,#60a5fa,#2563eb);
+  width: 0%;
+  transition: width 160ms linear;
+}
+.upload-progress-text {
+  font-size: 0.75rem;
+  color: #0f172a;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+.upload-status { display: flex; align-items:center; gap:0.75rem }
+
+.file-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255,255,255,0.95);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid rgba(59,130,246,0.06);
+  box-shadow: 0 6px 20px rgba(2,6,23,0.04);
+}
+
+.file-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  width: 72%;
+}
+
+.file-name {
+  font-weight: 700;
+  color: #111827;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-meta .meta-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.file-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-link {
+  display: inline-block;
+  padding: 6px 10px;
+  background: linear-gradient(90deg,#10b981,#059669);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(6,95,70,0.08);
+  transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+}
+
+.btn-link:hover { transform: translateY(-2px); }
+
+.no-link { color: #9ca3af; font-weight: 600; font-size: 0.9rem; }
+
 .no-projects {
   text-align: center;
   padding: 4rem 2rem;

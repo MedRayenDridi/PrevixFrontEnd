@@ -4,6 +4,7 @@ import { useProject } from '../../../context/ProjectContext';
 import { useAuth } from '../../../context/AuthContext';
 import { projectService } from '../../../services/projectService';
 import { clientProjectService } from '../../../services/api';
+import { useToast } from '../../common/Toast';
 import ProjectsMatrixAnimation from '../../animation/ProjectsMatrixAnimation';
 import './ClientProjectList.css';
 
@@ -43,23 +44,34 @@ const ClientProjectList = () => {
   const { user } = useAuth();
   const { projects, loading, error, fetchProjects } = useProject();
   const [clientProjects, setClientProjects] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({});
+  // Removed upload area state to remove upload UI per request
+  // const [isDragging, setIsDragging] = useState(false);
+  // const [uploading, setUploading] = useState(false);
+  // const [uploadProgress, setUploadProgress] = useState({});
   const [expandedProject, setExpandedProject] = useState(null);
+  const [projectFilesMap, setProjectFilesMap] = useState({});
+  const [filesLoadingMap, setFilesLoadingMap] = useState({});
+  const [filesErrorMap, setFilesErrorMap] = useState({});
+  const [filesProgressMap, setFilesProgressMap] = useState({});
+  const toast = useToast();
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
-  // Filter projects for current user only
+  // Show projects belonging to the user's organization(s)
   useEffect(() => {
     if (projects && user) {
-      const userProjects = projects.filter(p => p.created_by === user.user_id);
-      setClientProjects(userProjects);
+      // A user may belong to multiple organizations via user_roles
+      const currentOrgIds = (user.user_roles || []).map(ur => ur.org_id);
+      // Keep projects where the project's org_id matches any of the user's org ids
+      const orgProjects = projects.filter(p => currentOrgIds.includes(p.org_id));
+      setClientProjects(orgProjects);
     }
   }, [projects, user]);
 
+  // Removed drag/drop and upload handlers to remove upload UI per request
+  /* 
   const handleDragOver = useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -124,13 +136,87 @@ const ClientProjectList = () => {
       setUploading(false);
     }
   };
+  */
 
   const handleViewProject = (projectId) => {
     navigate(`/projects/${projectId}`);
   };
 
   const toggleProjectExpand = (projectId) => {
-    setExpandedProject(expandedProject === projectId ? null : projectId);
+    const next = expandedProject === projectId ? null : projectId;
+    setExpandedProject(next);
+
+    // If expanding and we don't have files yet, fetch them
+    if (next && !projectFilesMap[projectId]) {
+      fetchProjectFiles(projectId);
+    }
+  };
+
+  const fetchProjectFiles = async (projectId) => {
+    try {
+      setFilesLoadingMap((s) => ({ ...s, [projectId]: true }));
+      setFilesErrorMap((s) => ({ ...s, [projectId]: null }));
+
+      const raw = await clientProjectService.getProjectFiles(projectId);
+
+      // Normalize response shapes
+      const files = Array.isArray(raw)
+        ? raw
+        : (raw && Array.isArray(raw.data))
+          ? raw.data
+          : (raw && Array.isArray(raw.files))
+            ? raw.files
+            : [];
+
+      setProjectFilesMap((s) => ({ ...s, [projectId]: files }));
+    } catch (err) {
+      console.error('Error fetching project files:', err);
+      setFilesErrorMap((s) => ({ ...s, [projectId]: err.response?.data?.detail || err.message || 'Failed to fetch files' }));
+      setProjectFilesMap((s) => ({ ...s, [projectId]: [] }));
+    } finally {
+      setFilesLoadingMap((s) => ({ ...s, [projectId]: false }));
+    }
+  };
+
+  // Upload files to an existing project (client endpoint)
+  const uploadFilesToProject = async (projectId, fileList) => {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList);
+
+    try {
+      // mark uploading per-project
+      setFilesLoadingMap((s) => ({ ...s, [projectId]: true }));
+      setFilesProgressMap((s) => ({ ...s, [projectId]: 0 }));
+      // call API
+      const result = await clientProjectService.uploadProjectFiles(projectId, files, (progressEvent) => {
+        if (progressEvent && progressEvent.total) {
+          const percent = Math.round((progressEvent.loaded / progressEvent.total) * 100);
+          setFilesProgressMap((s) => ({ ...s, [projectId]: percent }));
+        }
+      });
+
+      // Backend may return uploaded files in result.files or result.data
+      const uploadedFiles = Array.isArray(result)
+        ? result
+        : (result && Array.isArray(result.data))
+          ? result.data
+          : (result && Array.isArray(result.files))
+            ? result.files
+            : [];
+
+      // Refresh project files list
+      await fetchProjectFiles(projectId);
+
+      // show success toast
+      toast.success(`Fichiers ajoutés (${uploadedFiles.length}) ✓`);
+    } catch (err) {
+      console.error('Error uploading files to project:', err);
+      const msg = err.response?.data?.detail || err.message || 'Erreur lors de l\'envoi des fichiers';
+      toast.error(msg);
+    } finally {
+      setFilesLoadingMap((s) => ({ ...s, [projectId]: false }));
+      setFilesProgressMap((s) => ({ ...s, [projectId]: 0 }));
+    }
   };
 
   const formatDate = (dateString) => {
@@ -147,50 +233,29 @@ const ClientProjectList = () => {
     return '📎';
   };
 
+  const getFileSizeText = (bytes) => {
+    if (!bytes && bytes !== 0) return 'N/A';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  };
+
   if (loading && clientProjects.length === 0) {
     return <ProjectsMatrixAnimation isLoading={true} onComplete={() => {}} />;
   }
 
   return (
     <div className="client-project-list">
-      {/* Upload Zone */}
-      <div
-        className={`upload-zone ${isDragging ? 'dragging' : ''} ${uploading ? 'uploading' : ''}`}
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-      >
-        <div className="upload-zone-content">
-          <UploadIcon />
-          <h2>Glissez vos fichiers ici</h2>
-          <p>ou cliquez pour sélectionner des fichiers</p>
-          <input
-            type="file"
-            multiple
-            onChange={handleFileInput}
-            className="file-input"
-            id="file-upload"
-            disabled={uploading}
-          />
-          <label htmlFor="file-upload" className="upload-button">
-            Sélectionner des fichiers
-          </label>
-          {uploading && (
-            <div className="upload-progress">
-              <div className="spinner"></div>
-              <p>Téléchargement en cours...</p>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Upload Zone Removed as per request */}
 
       {/* Projects List */}
       <div className="client-projects-section">
-        <h2 className="section-title">
+          <h2 className="section-title">
           <FolderIcon />
-          Mes Projets ({clientProjects.length})
+          Projets de l'organisation ({clientProjects.length})
         </h2>
 
+        
         {error && (
           <div className="error-message">
             Erreur: {error}
@@ -271,14 +336,69 @@ const ClientProjectList = () => {
                     <span className={`arrow ${expandedProject === project.project_id ? 'expanded' : ''}`}>▼</span>
                   </button>
 
-                  {expandedProject === project.project_id && (
-                    <div className="files-list">
-                      <p className="files-placeholder">
-                        Chargement des fichiers...
-                      </p>
-                      {/* You can add actual file fetching logic here */}
+                  {/* Add files button + hidden input */}
+                  <div className="project-add-files">
+                    <label
+                      className={`btn-add-files ${filesLoadingMap[project.project_id] ? 'disabled' : ''}`}
+                      htmlFor={`file-input-${project.project_id}`}
+                    >
+                      + Ajouter des fichiers
+                    </label>
+                    <input
+                      id={`file-input-${project.project_id}`}
+                      type="file"
+                      multiple
+                      style={{ display: 'none' }}
+                      onChange={async (e) => {
+                        const fl = e.target.files;
+                        await uploadFilesToProject(project.project_id, fl);
+                        // reset input so the same files can be re-selected
+                        e.target.value = null;
+                      }}
+                    />
+                    {filesLoadingMap[project.project_id] && (
+                      <div className="upload-status">
+                        <span className="uploading-indicator">Envoi...</span>
+                        {typeof filesProgressMap[project.project_id] === 'number' && (
+                          <div className="upload-progress-bar">
+                            <div className="upload-progress-fill" style={{ width: `${filesProgressMap[project.project_id]}%` }} />
+                            <span className="upload-progress-text">{filesProgressMap[project.project_id]}%</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className={`files-list ${expandedProject === project.project_id ? 'open' : ''}`}>
+                      {filesLoadingMap[project.project_id] ? (
+                        <p className="files-placeholder">Chargement des fichiers...</p>
+                      ) : filesErrorMap[project.project_id] ? (
+                        <div className="files-error">Erreur: {filesErrorMap[project.project_id]}</div>
+                      ) : (projectFilesMap[project.project_id] || []).length === 0 ? (
+                        <p className="files-placeholder">Aucun fichier disponible pour ce projet.</p>
+                      ) : (
+                        <ul className="files-list-items">
+                          {(projectFilesMap[project.project_id] || []).map((file) => (
+                            <li key={file.file_id || file.id || file.filename} className="file-item">
+                              <div className="file-meta">
+                                <strong className="file-name">{file.original_filename || file.filename || file.name}</strong>
+                                <span className="file-type">{file.file_type || file.type || ''}</span>
+                                <span className="file-size">{getFileSizeText(file.file_size)}</span>
+                                <span className="file-uploader">{file.uploaded_by_name || file.uploaded_by || ''}</span>
+                                <span className="file-date">{formatDate(file.uploaded_at || file.created_at)}</span>
+                              </div>
+                              <div className="file-actions">
+                                {file.file_url || file.url ? (
+                                  <a className="btn-link" href={file.file_url || file.url} target="_blank" rel="noreferrer">Voir / Télécharger</a>
+                                ) : (
+                                  <span className="no-link">Aucun lien</span>
+                                )}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
-                  )}
                 </div>
               </div>
             ))}

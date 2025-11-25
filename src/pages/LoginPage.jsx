@@ -98,7 +98,7 @@ export default function LoginPage() {
             </h1>
             {/* Description de la plateforme */}
             <p className="brand-description">
-              <span class="brand-highlight">IA Assistant</span> tool for Risk Assessment & Valuation
+              <span className="brand-highlight">IA Assistant</span> tool for Risk Assessment & Valuation
             </p>
             
             {/* Liste des fonctionnalités principales */}

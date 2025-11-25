@@ -3,14 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProject } from '../../../context/ProjectContext';
 import { useAuth } from '../../../context/AuthContext';
 import { projectService } from '../../../services/projectService';
-import { adminService } from '../../../services/api';
+import { adminService, clientProjectService } from '../../../services/api';
+import { useToast } from '../../common/Toast';
 import AssetDisplay from '../../assets/AssetDisplay';
 import './ProjectDetail.css';
 
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { currentProject, setCurrentProject, loading, error, deleteProject } = useProject();
 
   const [activeTab, setActiveTab] = useState('overview');
@@ -19,6 +20,7 @@ const ProjectDetail = () => {
   const [classifyingFileId, setClassifyingFileId] = useState(null);
   const [classificationError, setClassificationError] = useState(null);
   const [classificationSuccess, setClassificationSuccess] = useState(null);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchProject = async () => {
@@ -40,7 +42,20 @@ const ProjectDetail = () => {
       if (!id) return;
       setFilesLoading(true);
       try {
-        const files = await adminService.getProjectFiles(id);
+        // Admin endpoint is different than the client endpoint; choose based on user role
+        const raw = (isAdmin && isAdmin())
+          ? await adminService.getProjectFiles(id)
+          : await clientProjectService.getProjectFiles(id);
+
+        // Normalize response - the API may return the array directly or inside data
+        const files = Array.isArray(raw)
+          ? raw
+          : (raw && Array.isArray(raw.data))
+            ? raw.data
+            : (raw && Array.isArray(raw.files))
+              ? raw.files
+              : [];
+
         setProjectFiles(files);
       } catch (err) {
         console.error('Failed to fetch project files:', err);
@@ -133,18 +148,21 @@ const ProjectDetail = () => {
         }
         
         setClassificationSuccess(message);
+        toast.success(message);
         
         // Refresh files list
         const files = await adminService.getProjectFiles(id);
         setProjectFiles(files);
       } else {
         setClassificationError('Une erreur est survenue pendant la classification.');
+        toast.error('Erreur pendant la classification');
       }
     } catch (err) {
       const errorMsg = err.response?.data?.detail || 
                       err.message || 
                       'Une erreur est survenue pendant la classification.';
       setClassificationError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setClassifyingFileId(null);
     }
@@ -363,19 +381,22 @@ const ProjectDetail = () => {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="btn-primary btn-sm"
-                          onClick={() => handleRunClassification(file.file_id)}
-                          disabled={
-                            classifyingFileId === file.file_id ||
-                            file.processing_status === 'processing' ||
-                            file.processing_status === 'completed'
-                          }
-                        >
-                          {classifyingFileId === file.file_id
-                            ? 'Classification en cours...'
-                            : 'Lancer la classification'}
-                        </button>
+                        {/* Only admins can trigger classification */}
+                        {isAdmin && isAdmin() && (
+                          <button
+                            className="btn-primary btn-sm"
+                            onClick={() => handleRunClassification(file.file_id)}
+                            disabled={
+                              classifyingFileId === file.file_id ||
+                              file.processing_status === 'processing' ||
+                              file.processing_status === 'completed'
+                            }
+                          >
+                            {classifyingFileId === file.file_id
+                              ? 'Classification en cours...'
+                              : 'Lancer la classification'}
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

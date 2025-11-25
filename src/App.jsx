@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate, useNavigate, useLocation } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ToastProvider } from './components/common/Toast';
 import { ProjectProvider } from "./context/ProjectContext";
 import { Layout } from "./components/layout/Layout";
 import LoginPage from "./pages/LoginPage";
@@ -217,6 +218,7 @@ function App() {
             )}
             
             <AuthProvider>
+                <ToastProvider>
                 <ProjectProvider>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
@@ -318,6 +320,7 @@ function App() {
                         />
                     </Routes>
                 </ProjectProvider>
+                </ToastProvider>
             </AuthProvider>
         </div>
     );

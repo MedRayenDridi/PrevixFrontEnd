@@ -463,21 +463,28 @@ export const adminService = {
 };
 
 export const clientProjectService = {
-  // Upload files to existing project
-  uploadProjectFiles: async (projectId, files) => {
+  // Upload files to existing project (supports optional onUploadProgress callback)
+  uploadProjectFiles: async (projectId, files, onUploadProgress = null) => {
     try {
       const formData = new FormData();
       files.forEach((file) => {
         formData.append('files', file);
       });
+      const config = {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      };
+      if (typeof onUploadProgress === 'function') {
+        config.onUploadProgress = (progressEvent) => {
+          try { onUploadProgress(progressEvent); } catch (e) { /* ignore */ }
+        };
+      }
+
       const response = await api.post(
         `/client/projects/${projectId}/files/upload/`,
         formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
+        config
       );
       return response.data;
     } catch (error) {
@@ -487,33 +494,47 @@ export const clientProjectService = {
   },
 
   // Upload files and create new project
-  uploadFilesAndCreateProject: async (files, projectName = null, projectType = 'IFRS') => {
+  uploadFilesAndCreateProject: async (files, projectName = null, projectType = 'IFRS', onUploadProgress = null) => {
     try {
       const formData = new FormData();
       files.forEach((file) => {
         formData.append('files', file);
       });
+      const config = {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        params: {
+          project_name: projectName,
+          project_type: projectType,
+          due_date_days: 90
+        }
+      };
+      if (typeof onUploadProgress === 'function') {
+        config.onUploadProgress = onUploadProgress;
+      }
+
       const response = await api.post(
         '/client/projects/upload-and-create/',
         formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-          params: {
-            project_name: projectName,
-            project_type: projectType,
-            due_date_days: 90
-          }
-        }
+        config
       );
-      return response.data;
-    } catch (error) {
-      console.error('Error uploading files and creating project:', error);
-      throw error;
-    }
-  },
-};
+        return response.data;
+      } catch (error) {
+        console.error('Error uploading files and creating project:', error);
+        throw error;
+      }
+    },
+
+    // Get project files for client users
+    getProjectFiles: async (projectId) => {
+      try {
+        const response = await api.get(`/client/projects/${projectId}/files/`);
+        return response.data;
+      } catch (error) {
+        console.error(`Error fetching client files for project ${projectId}:`, error);
+        throw error;
+      }
+    },
+  };
 
 
 export { api };

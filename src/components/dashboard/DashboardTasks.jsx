@@ -11,26 +11,29 @@ const DashboardTasks = ({ projects }) => {
     projects.forEach(project => {
       // Overdue tasks
       if (new Date(project.due_date) < new Date() && project.status !== 'completed') {
+        // prefer project.project_id if available (backend uses project_id elsewhere)
+        const pid = project.project_id ?? project.id ?? project._id ?? Math.random().toString(36).slice(2,8);
         generatedTasks.push({
-          id: `overdue-${project.id}`,
+          id: `overdue-${pid}`,
           type: 'overdue',
           title: `Le projet "${project.name}" est en retard`,
           description: `Date d'échéance: ${new Date(project.due_date).toLocaleDateString('fr-FR')}`,
           priority: 'high',
-          projectId: project.id,
+          projectId: pid,
           projectName: project.name
         });
       }
 
       // Low progress tasks
       if (project.progress < 25 && project.status === 'active') {
+        const pid = project.project_id ?? project.id ?? project._id ?? Math.random().toString(36).slice(2,8);
         generatedTasks.push({
-          id: `low-progress-${project.id}`,
+          id: `low-progress-${pid}`,
           type: 'progress',
           title: `Faible progression sur "${project.name}"`,
           description: `Progression actuelle: ${project.progress}%`,
           priority: 'medium',
-          projectId: project.id,
+          projectId: pid,
           projectName: project.name
         });
       }
@@ -38,26 +41,28 @@ const DashboardTasks = ({ projects }) => {
       // Upcoming deadlines (within 7 days)
       const daysUntilDue = Math.ceil((new Date(project.due_date) - new Date()) / (1000 * 60 * 60 * 24));
       if (daysUntilDue > 0 && daysUntilDue <= 7 && project.status === 'active') {
+        const pid = project.project_id ?? project.id ?? project._id ?? Math.random().toString(36).slice(2,8);
         generatedTasks.push({
-          id: `deadline-${project.id}`,
+          id: `deadline-${pid}`,
           type: 'deadline',
           title: `Échéance proche pour "${project.name}"`,
           description: `Échéance dans ${daysUntilDue} jour${daysUntilDue > 1 ? 's' : ''}`,
           priority: 'medium',
-          projectId: project.id,
+          projectId: pid,
           projectName: project.name
         });
       }
 
       // Unassigned projects
       if (!project.assigned_to || project.assigned_to.length === 0) {
+        const pid = project.project_id ?? project.id ?? project._id ?? Math.random().toString(36).slice(2,8);
         generatedTasks.push({
-          id: `unassigned-${project.id}`,
+          id: `unassigned-${pid}`,
           type: 'assignment',
           title: `Le projet "${project.name}" nécessite une assignation`,
           description: 'Aucun collaborateur assigné à ce projet',
           priority: 'high',
-          projectId: project.id,
+          projectId: pid,
           projectName: project.name
         });
       }
