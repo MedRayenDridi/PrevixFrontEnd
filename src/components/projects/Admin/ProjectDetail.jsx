@@ -8,6 +8,61 @@ import { useToast } from '../../common/Toast';
 import AssetDisplay from '../../assets/AssetDisplay';
 import './ProjectDetail.css';
 
+
+// ✅ Icons
+const BackIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+  </svg>
+);
+
+const EditIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
+  </svg>
+);
+
+const UploadIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z" />
+  </svg>
+);
+
+const DeleteIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+  </svg>
+);
+
+// ✅ Loading Skeleton Component
+const ProjectDetailSkeleton = () => (
+  <div className="project-detail-container">
+    <div className="project-detail-header">
+      <div className="project-title-section">
+        <div className="skeleton skeleton-title"></div>
+        <div className="skeleton skeleton-meta"></div>
+      </div>
+      <div className="project-actions">
+        <div className="skeleton skeleton-button"></div>
+        <div className="skeleton skeleton-button"></div>
+      </div>
+    </div>
+    <div className="project-tabs">
+      <div className="skeleton skeleton-tab"></div>
+      <div className="skeleton skeleton-tab"></div>
+      <div className="skeleton skeleton-tab"></div>
+      <div className="skeleton skeleton-tab"></div>
+    </div>
+    <div className="tab-content">
+      <div className="skeleton-content">
+        <div className="skeleton skeleton-card"></div>
+        <div className="skeleton skeleton-card"></div>
+        <div className="skeleton skeleton-card"></div>
+      </div>
+    </div>
+  </div>
+);
+
 const ProjectDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,6 +75,8 @@ const ProjectDetail = () => {
   const [classifyingFileId, setClassifyingFileId] = useState(null);
   const [classificationError, setClassificationError] = useState(null);
   const [classificationSuccess, setClassificationSuccess] = useState(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [reportGenerating, setReportGenerating] = useState(false); // ✅ NEW: Report loading state
   const toast = useToast();
 
   useEffect(() => {
@@ -27,8 +84,10 @@ const ProjectDetail = () => {
       try {
         const project = await projectService.getProject(id);
         setCurrentProject(project);
+        setIsInitialLoad(false);
       } catch (err) {
         console.error('Failed to fetch project:', err);
+        setIsInitialLoad(false);
       }
     };
 
@@ -42,12 +101,10 @@ const ProjectDetail = () => {
       if (!id) return;
       setFilesLoading(true);
       try {
-        // Admin endpoint is different than the client endpoint; choose based on user role
         const raw = (isAdmin && isAdmin())
           ? await adminService.getProjectFiles(id)
           : await clientProjectService.getProjectFiles(id);
 
-        // Normalize response - the API may return the array directly or inside data
         const files = Array.isArray(raw)
           ? raw
           : (raw && Array.isArray(raw.data))
@@ -69,14 +126,16 @@ const ProjectDetail = () => {
     }
   }, [id, activeTab]);
 
-
+  const handleBackToProjects = () => {
+    navigate('/projects');
+  };
 
   const handleEdit = () => {
     navigate(`/projects/${id}/edit`);
   };
 
   const handleDelete = async () => {
-    if (window.confirm('Are you sure you want to delete this project?')) {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
       try {
         await deleteProject(id);
         navigate('/projects');
@@ -90,19 +149,38 @@ const ProjectDetail = () => {
     navigate(`/projects/${id}/upload`);
   };
 
+  // ✅ UPDATED: Enhanced report download handler
   const handleDownloadReport = async (format) => {
+    setReportGenerating(true);
     try {
+      toast.info(`Génération du rapport ${format.toUpperCase()} en cours...`);
+      
       const blob = await projectService.getProjectReport(id, format);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `project-${id}-report.${format}`;
+      
+      // Better filename with project name and date
+      const timestamp = new Date().toISOString().split('T')[0];
+      const projectName = currentProject.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      a.download = `rapport_${projectName}_${timestamp}.${format}`;
+      
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      
+      toast.success(`Rapport ${format.toUpperCase()} téléchargé avec succès !`);
     } catch (err) {
       console.error('Failed to download report:', err);
+      
+      if (err.message === 'Excel reports are not yet available') {
+        toast.warning('Les rapports Excel ne sont pas encore disponibles. Utilisez le format PDF.');
+      } else {
+        toast.error(`Erreur lors de la génération du rapport: ${err.response?.data?.detail || err.message}`);
+      }
+    } finally {
+      setReportGenerating(false);
     }
   };
 
@@ -124,7 +202,6 @@ const ProjectDetail = () => {
   };
 
   const getUserName = (userId) => {
-    // In a real app, you'd have a users context or fetch user details
     return `User ${userId}`;
   };
 
@@ -150,7 +227,6 @@ const ProjectDetail = () => {
         setClassificationSuccess(message);
         toast.success(message);
         
-        // Refresh files list
         const files = await adminService.getProjectFiles(id);
         setProjectFiles(files);
       } else {
@@ -173,7 +249,9 @@ const ProjectDetail = () => {
       'pending': 'En attente',
       'processing': 'En cours',
       'completed': 'Classé',
-      'error': 'Erreur'
+      'error': 'Erreur',
+      'active': 'Actif',
+      'archived': 'Archivé'
     };
     return labels[status] || status;
   };
@@ -196,53 +274,60 @@ const ProjectDetail = () => {
     });
   };
 
-  if (loading) {
-    return (
-      <div className="project-detail-container">
-        <div className="loading-spinner">Loading project...</div>
-      </div>
-    );
+  if (isInitialLoad || loading) {
+    return <ProjectDetailSkeleton />;
   }
 
   if (error || !currentProject) {
     return (
       <div className="project-detail-container">
-        <div className="error-message">
-          {error || 'Project not found'}
+        <div className="error-message-container">
+          <div className="error-icon">⚠️</div>
+          <h2>Projet non trouvé</h2>
+          <p>{error || 'Le projet demandé n\'existe pas ou vous n\'avez pas accès.'}</p>
+          <button className="btn-primary" onClick={handleBackToProjects}>
+            <BackIcon />
+            Retour aux projets
+          </button>
         </div>
-        <button className="btn-secondary" onClick={() => navigate('/projects')}>
-          Back to Projects
-        </button>
       </div>
     );
   }
 
   return (
     <div className="project-detail-container">
+      <button className="btn-back" onClick={handleBackToProjects}>
+        <BackIcon />
+        <span>Retour aux projets</span>
+      </button>
+
       <div className="project-detail-header">
         <div className="project-title-section">
           <h1>{currentProject.name}</h1>
           <div className="project-meta">
             <span className={`status-badge status-${currentProject.status}`}>
-              {currentProject.status}
+              {getStatusLabel(currentProject.status)}
             </span>
-            <span className="project-type">{currentProject.type}</span>
+            <span className="project-type">{currentProject.type_project}</span>
           </div>
         </div>
         <div className="project-actions">
           {canEdit() && (
             <button className="btn-secondary" onClick={handleEdit}>
-              Edit
+              <EditIcon />
+              Modifier
             </button>
           )}
           {canUpload() && (
             <button className="btn-primary" onClick={handleUpload}>
-              Upload Files
+              <UploadIcon />
+              Uploader
             </button>
           )}
           {canDelete() && (
             <button className="btn-danger" onClick={handleDelete}>
-              Delete
+              <DeleteIcon />
+              Supprimer
             </button>
           )}
         </div>
@@ -253,13 +338,13 @@ const ProjectDetail = () => {
           className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => setActiveTab('overview')}
         >
-          Overview
+          Vue d'ensemble
         </button>
         <button
           className={`tab-button ${activeTab === 'assets' ? 'active' : ''}`}
           onClick={() => setActiveTab('assets')}
         >
-          Assets
+          Actifs
         </button>
         <button
           className={`tab-button ${activeTab === 'files' ? 'active' : ''}`}
@@ -271,34 +356,34 @@ const ProjectDetail = () => {
           className={`tab-button ${activeTab === 'reports' ? 'active' : ''}`}
           onClick={() => setActiveTab('reports')}
         >
-          Reports
+          Rapports
         </button>
       </div>
 
-      <div className="tab-content">
+      <div className="tab-content" key={activeTab}>
         {activeTab === 'overview' && (
-          <div className="overview-tab">
+          <div className="overview-tab tab-panel">
             <div className="project-info-grid">
               <div className="info-card">
                 <h3>Description</h3>
-                <p>{currentProject.description}</p>
+                <p>{currentProject.description || 'Aucune description'}</p>
               </div>
 
               <div className="info-card">
-                <h3>Progress</h3>
+                <h3>Progrès</h3>
                 <div className="progress-display">
                   <div className="progress-bar">
                     <div
                       className="progress-fill"
-                      style={{ width: `${currentProject.progress}%` }}
+                      style={{ width: `${currentProject.progress || 0}%` }}
                     ></div>
                   </div>
-                  <span className="progress-text">{currentProject.progress}% Complete</span>
+                  <span className="progress-text">{currentProject.progress || 0}% Complété</span>
                 </div>
               </div>
 
               <div className="info-card">
-                <h3>Due Date</h3>
+                <h3>Date d'échéance</h3>
                 <p>{formatDate(currentProject.due_date)}</p>
               </div>
 
@@ -308,7 +393,7 @@ const ProjectDetail = () => {
               </div>
 
               <div className="info-card">
-                <h3>Assigned To</h3>
+                <h3>Assigné à</h3>
                 <div className="assigned-users">
                   {currentProject.assigned_to?.length > 0 ? (
                     currentProject.assigned_to.map(userId => (
@@ -317,13 +402,13 @@ const ProjectDetail = () => {
                       </span>
                     ))
                   ) : (
-                    <p>No users assigned</p>
+                    <p>Aucun utilisateur assigné</p>
                   )}
                 </div>
               </div>
 
               <div className="info-card">
-                <h3>Created</h3>
+                <h3>Créé le</h3>
                 <p>{formatDate(currentProject.created_at)}</p>
               </div>
             </div>
@@ -331,29 +416,43 @@ const ProjectDetail = () => {
         )}
 
         {activeTab === 'assets' && (
-          <AssetDisplay projectId={id} />
+          <div className="tab-panel">
+            <AssetDisplay projectId={id} />
+          </div>
         )}
 
         {activeTab === 'files' && (
-          <div className="files-tab">
+          <div className="files-tab tab-panel">
             <h3>Fichiers du projet</h3>
             
             {classificationError && (
-              <div className="error-message" style={{ marginBottom: '1rem', padding: '1rem', background: '#f8d7da', color: '#721c24', borderRadius: '4px' }}>
+              <div className="alert alert-error">
+                <span className="alert-icon">⚠️</span>
                 {classificationError}
               </div>
             )}
             
             {classificationSuccess && (
-              <div className="success-message" style={{ marginBottom: '1rem', padding: '1rem', background: '#d4edda', color: '#155724', borderRadius: '4px' }}>
+              <div className="alert alert-success">
+                <span className="alert-icon">✓</span>
                 {classificationSuccess}
               </div>
             )}
 
             {filesLoading ? (
-              <div className="loading-spinner">Chargement des fichiers...</div>
+              <div className="loading-spinner">
+                <div className="spinner"></div>
+                <p>Chargement des fichiers...</p>
+              </div>
             ) : projectFiles.length === 0 ? (
-              <p>Aucun fichier uploadé pour ce projet.</p>
+              <div className="empty-state">
+                <div className="empty-icon">📁</div>
+                <p>Aucun fichier uploadé pour ce projet</p>
+                <button className="btn-primary" onClick={handleUpload}>
+                  <UploadIcon />
+                  Uploader des fichiers
+                </button>
+              </div>
             ) : (
               <table className="files-table">
                 <thead>
@@ -381,7 +480,6 @@ const ProjectDetail = () => {
                         </span>
                       </td>
                       <td>
-                        {/* Only admins can trigger classification */}
                         {isAdmin && isAdmin() && (
                           <button
                             className="btn-primary btn-sm"
@@ -393,8 +491,8 @@ const ProjectDetail = () => {
                             }
                           >
                             {classifyingFileId === file.file_id
-                              ? 'Classification en cours...'
-                              : 'Lancer la classification'}
+                              ? 'Classification...'
+                              : 'Classifier'}
                           </button>
                         )}
                       </td>
@@ -407,28 +505,65 @@ const ProjectDetail = () => {
         )}
 
         {activeTab === 'reports' && (
-          <div className="reports-tab">
-            <h3>Generate Reports</h3>
+          <div className="reports-tab tab-panel">
+            <h3>Générer des rapports</h3>
+            
+            {/* ✅ NEW: Report Summary Card */}
+            <div className="report-summary-card">
+              <h4>Aperçu du rapport</h4>
+              <div className="summary-stats">
+                <div className="stat-item">
+                  <span className="stat-label">Projet:</span>
+                  <span className="stat-value">{currentProject.name}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Type:</span>
+                  <span className="stat-value">{currentProject.type_project}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Statut:</span>
+                  <span className="stat-value">{getStatusLabel(currentProject.status)}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Progrès:</span>
+                  <span className="stat-value">{currentProject.progress || 0}%</span>
+                </div>
+              </div>
+            </div>
+
             <div className="report-options">
               <div className="report-card">
-                <h4>PDF Report</h4>
-                <p>Generate a comprehensive PDF report with all project details and assets.</p>
+                <div className="report-icon">📄</div>
+                <h4>Rapport PDF</h4>
+                <p>Générez un rapport PDF complet avec tous les détails du projet et des actifs.</p>
                 <button
                   className="btn-primary"
                   onClick={() => handleDownloadReport('pdf')}
+                  disabled={reportGenerating}
                 >
-                  Download PDF
+                  {reportGenerating ? (
+                    <>
+                      <span className="spinner-small"></span>
+                      Génération...
+                    </>
+                  ) : (
+                    'Télécharger PDF'
+                  )}
                 </button>
               </div>
+              
               <div className="report-card">
-                <h4>Excel Report</h4>
-                <p>Export project data and assets to Excel format for further analysis.</p>
+                <div className="report-icon">📊</div>
+                <h4>Rapport Excel</h4>
+                <p>Exportez les données du projet et des actifs au format Excel pour une analyse approfondie.</p>
                 <button
-                  className="btn-primary"
+                  className="btn-primary btn-disabled"
                   onClick={() => handleDownloadReport('xlsx')}
+                  disabled={true}
                 >
-                  Download Excel
+                  Télécharger Excel
                 </button>
+                <span className="badge-coming-soon">Bientôt disponible</span>
               </div>
             </div>
           </div>

@@ -6,7 +6,7 @@ import ProjectsMatrixAnimation from '../animation/ProjectsMatrixAnimation';
 import ClientProjectList from './Clients/ClientProjectList';
 import './ProjectList.css';
 
-// Icônes SVG
+// Icons
 const ListIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
@@ -43,6 +43,24 @@ const PlusIcon = () => (
   </svg>
 );
 
+const SearchIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+  </svg>
+);
+
+const FilterIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z" />
+  </svg>
+);
+
+const CloseIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+  </svg>
+);
+
 const PROJECT_STATUSES = ['active', 'archived', 'completed'];
 const PROJECT_TYPES = ['IFRS', 'Assurance', 'Risk_Survey', 'Other'];
 
@@ -56,14 +74,14 @@ const ProjectList = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [viewMode, setViewMode] = useState('table');
-  const [selectedProjects, setSelectedProjects] = useState([]); 
+  const [selectedProjects, setSelectedProjects] = useState([]);
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
 
   useEffect(() => {
-    let filtered = projects; 
+    let filtered = projects;
     if (searchTerm) {
       filtered = filtered.filter(project =>
         project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,7 +97,11 @@ const ProjectList = () => {
   const handleEdit = (projectId) => navigate(`/projects/${projectId}/edit`);
   const handleDelete = async (projectId) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce projet ?')) {
-      try { await deleteProject(projectId); } catch (err) { console.error(err); }
+      try {
+        await deleteProject(projectId);
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
   const handleCreate = () => navigate('/projects/new');
@@ -88,11 +110,12 @@ const ProjectList = () => {
   const canDelete = (project) => isAdmin() || project.created_by === user?.user_id;
 
   const formatDate = (dateString) => dateString ? new Date(dateString).toLocaleDateString('fr-FR') : '-';
-
   const formatProgress = (progress) => `${progress || 0}%`;
 
   const handleSelectProject = (projectId) => {
-    setSelectedProjects(prev => prev.includes(projectId) ? prev.filter(id => id !== projectId) : [...prev, projectId]);
+    setSelectedProjects(prev =>
+      prev.includes(projectId) ? prev.filter(id => id !== projectId) : [...prev, projectId]
+    );
   };
 
   const handleBulkDelete = async () => {
@@ -101,7 +124,9 @@ const ProjectList = () => {
       try {
         await Promise.all(selectedProjects.map(id => deleteProject(id)));
         setSelectedProjects([]);
-      } catch (err) { console.error(err); }
+      } catch (err) {
+        console.error(err);
+      }
     }
   };
 
@@ -121,6 +146,8 @@ const ProjectList = () => {
     return labels[type] || type;
   };
 
+  const activeFiltersCount = [searchTerm, statusFilter, typeFilter].filter(Boolean).length;
+
   const renderProjectCard = (project) => (
     <div key={project.project_id} className="project-card">
       <div className="project-card-header">
@@ -131,114 +158,267 @@ const ProjectList = () => {
             onChange={() => handleSelectProject(project.project_id)}
           />
         </div>
-        <div className="project-card-status">
-          <span className={`status-badge status-${project.status}`}>
-            {getStatusLabel(project.status)}
-          </span>
-        </div>
-      </div> 
+        <span className={`status-badge status-${project.status}`}>
+          {getStatusLabel(project.status)}
+        </span>
+      </div>
       <div className="project-card-content">
         <h3 className="project-card-title">{project.name}</h3>
+        <div className="project-card-type">
+          <span className="type-badge">{getTypeLabel(project.type_project)}</span>
+        </div>
         <p className="project-card-description">{project.description || 'Pas de description'}</p>
-        <div className="project-card-meta"> 
-          <div className="project-card-meta-item">
-            <span className="meta-label">Type:</span>
-            <span className="meta-value">{getTypeLabel(project.type_project)}</span>
+        <div className="project-card-meta">
+          <div className="project-card-progress">
+            <div className="progress-label">
+              <span>Progrès</span>
+              <span className="progress-value">{formatProgress(project.progress)}</span>
+            </div>
+            <div className="progress-bar">
+              <div className="progress-fill" style={{ width: `${project.progress ?? 0}%` }}></div>
+            </div>
           </div>
-          <div className="project-card-meta-item">
-            <span className="meta-label">Progrès:</span>
-            <span className="meta-value">{formatProgress(project.progress)}</span>
-          </div>
-          <div className="project-card-meta-item">
-            <span className="meta-label">Créé:</span>
-            <span className="meta-value">{formatDate(project.created_at)}</span>
+          <div className="project-card-date">
+            <span className="date-label">Échéance</span>
+            <span className="date-value">{formatDate(project.due_date)}</span>
           </div>
         </div>
-      </div> 
+      </div>
       <div className="project-card-actions">
-        <button className="btn-icon btn-view" onClick={() => handleView(project.project_id)} title="Voir le projet"><ViewIcon /></button>
-        {canEdit(project) && <button className="btn-icon btn-edit" onClick={() => handleEdit(project.project_id)} title="Modifier le projet"><EditIcon /></button>}
-        {canDelete(project) && <button className="btn-icon btn-delete" onClick={() => handleDelete(project.project_id)} title="Supprimer le projet"><DeleteIcon /></button>}
+        <button className="btn-icon btn-view" onClick={() => handleView(project.project_id)} title="Voir le projet">
+          <ViewIcon />
+        </button>
+        {canEdit(project) && (
+          <button className="btn-icon btn-edit" onClick={() => handleEdit(project.project_id)} title="Modifier">
+            <EditIcon />
+          </button>
+        )}
+        {canDelete(project) && (
+          <button className="btn-icon btn-delete" onClick={() => handleDelete(project.project_id)} title="Supprimer">
+            <DeleteIcon />
+          </button>
+        )}
       </div>
     </div>
   );
 
   if (!isAdmin()) return <ClientProjectList />;
   if (loading) return <ProjectsMatrixAnimation isLoading={true} onComplete={() => {}} />;
-  if (error) return <div className="project-list-container"><div className="error-message">Erreur: {error}</div></div>;
+  if (error) {
+    return (
+      <div className="project-list-container">
+        <div className="error-message">
+          <span className="error-icon">⚠️</span>
+          <span>Erreur: {error}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="project-list-container">
+      {/* Header */}
       <div className="project-list-header">
         <div className="header-left">
           <h1>Projets</h1>
-          <div className="view-toggle">
-            <button className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`} onClick={() => setViewMode('table')} title="Vue Tableau"><ListIcon /></button>
-            <button className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`} onClick={() => setViewMode('cards')} title="Vue Cartes"><GridIcon /></button>
-          </div>
+          <span className="project-count">{filteredProjects.length} projet{filteredProjects.length !== 1 ? 's' : ''}</span>
         </div>
         <div className="header-right">
-          {selectedProjects.length > 0 && <button className="btn-danger" onClick={handleBulkDelete}>Supprimer la Sélection ({selectedProjects.length})</button>}
-          <button className="btn-primary" onClick={handleCreate}><PlusIcon />Nouveau Projet</button>
+          {selectedProjects.length > 0 && (
+            <button className="btn-danger" onClick={handleBulkDelete}>
+              <DeleteIcon />
+              Supprimer ({selectedProjects.length})
+            </button>
+          )}
+          <button className="btn-primary" onClick={handleCreate}>
+            <PlusIcon />
+            Nouveau Projet
+          </button>
         </div>
-      </div> 
-      <div className="project-filters">
-        {/* Filtres */}
-      </div> 
-      {(searchTerm || statusFilter || typeFilter) && (
-        <div className="active-filters">
-          {/* filtres actifs */}
+      </div>
+
+      {/* Filters Section */}
+      <div className="filters-section">
+        <div className="search-container">
+          <SearchIcon />
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Rechercher un projet..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
-      )} 
+
+        <div className="filter-controls">
+          <div className="filter-group">
+            <FilterIcon />
+            <select
+              className="filter-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="">Tous les statuts</option>
+              {PROJECT_STATUSES.map(status => (
+                <option key={status} value={status}>{getStatusLabel(status)}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <select
+              className="filter-select"
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+            >
+              <option value="">Tous les types</option>
+              {PROJECT_TYPES.map(type => (
+                <option key={type} value={type}>{getTypeLabel(type)}</option>
+              ))}
+            </select>
+          </div>
+
+          {activeFiltersCount > 0 && (
+            <button className="btn-clear-filters" onClick={clearFilters}>
+              <CloseIcon />
+              Réinitialiser ({activeFiltersCount})
+            </button>
+          )}
+
+          <div className="view-toggle">
+            <button
+              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Vue Tableau"
+            >
+              <ListIcon />
+            </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
+              onClick={() => setViewMode('cards')}
+              title="Vue Cartes"
+            >
+              <GridIcon />
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
       {viewMode === 'table' ? (
         <div className="project-table-container">
           <table className="project-table">
             <thead>
               <tr>
-                <th><input type="checkbox" checked={selectedProjects.length === filteredProjects.length && filteredProjects.length > 0} onChange={() => {
-                  if (selectedProjects.length === filteredProjects.length) setSelectedProjects([]); else setSelectedProjects(filteredProjects.map(p => p.project_id));
-                }}/></th>
+                <th className="th-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedProjects.length === filteredProjects.length && filteredProjects.length > 0}
+                    onChange={() => {
+                      if (selectedProjects.length === filteredProjects.length) {
+                        setSelectedProjects([]);
+                      } else {
+                        setSelectedProjects(filteredProjects.map(p => p.project_id));
+                      }
+                    }}
+                  />
+                </th>
                 <th>Nom</th>
                 <th>Type</th>
                 <th>Description</th>
                 <th>Progrès</th>
                 <th>Échéance</th>
                 <th>Statut</th>
-                <th>Actions</th>
+                <th className="th-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredProjects.map(project => (
-                <tr key={project.project_id} className={selectedProjects.includes(project.project_id) ? 'selected' : ''}>
-                  <td><input type="checkbox" checked={selectedProjects.includes(project.project_id)} onChange={() => handleSelectProject(project.project_id)} /></td>
-                  <td><strong>{project.name}</strong></td>
-                  <td>{getTypeLabel(project.type_project)}</td>
-                  <td>{project.description || '-'}</td>
+                <tr
+                  key={project.project_id}
+                  className={selectedProjects.includes(project.project_id) ? 'selected' : ''}
+                >
+                  <td className="td-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={selectedProjects.includes(project.project_id)}
+                      onChange={() => handleSelectProject(project.project_id)}
+                    />
+                  </td>
                   <td>
-                    <div className="progress-bar" aria-label={`Progression du projet: ${formatProgress(project.progress)}`}>
-                      <div className="progress-fill" style={{ width: `${project.progress ?? 0}%`, transition: 'width 1s ease' }}></div>
+                    <div className="project-name">
+                      <strong>{project.name}</strong>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="type-badge-small">{getTypeLabel(project.type_project)}</span>
+                  </td>
+                  <td className="td-description">{project.description || '-'}</td>
+                  <td>
+                    <div className="progress-bar-wrapper">
+                      <div className="progress-bar">
+                        <div className="progress-fill" style={{ width: `${project.progress ?? 0}%` }}></div>
+                      </div>
                       <span className="progress-text">{formatProgress(project.progress)}</span>
                     </div>
                   </td>
                   <td>{formatDate(project.due_date)}</td>
-                  <td><span className={`status-badge status-${project.status}`}>{getStatusLabel(project.status)}</span></td>
                   <td>
+                    <span className={`status-badge status-${project.status}`}>
+                      {getStatusLabel(project.status)}
+                    </span>
+                  </td>
+                  <td className="td-actions">
                     <div className="action-buttons">
-                      <button title="Voir" className="btn-icon btn-view" onClick={() => handleView(project.project_id)}><ViewIcon /></button>
-                      {canEdit(project) && <button title="Modifier" className="btn-icon btn-edit" onClick={() => handleEdit(project.project_id)}><EditIcon /></button>}
-                      {canDelete(project) && <button title="Supprimer" className="btn-icon btn-delete" onClick={() => handleDelete(project.project_id)}><DeleteIcon /></button>}
+                      <button
+                        className="btn-icon btn-view"
+                        onClick={() => handleView(project.project_id)}
+                        title="Voir"
+                      >
+                        <ViewIcon />
+                      </button>
+                      {canEdit(project) && (
+                        <button
+                          className="btn-icon btn-edit"
+                          onClick={() => handleEdit(project.project_id)}
+                          title="Modifier"
+                        >
+                          <EditIcon />
+                        </button>
+                      )}
+                      {canDelete(project) && (
+                        <button
+                          className="btn-icon btn-delete"
+                          onClick={() => handleDelete(project.project_id)}
+                          title="Supprimer"
+                        >
+                          <DeleteIcon />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-          {filteredProjects.length === 0 && <div className="no-projects"><p>Aucun projet trouvé correspondant à vos critères.</p></div>}
+          {filteredProjects.length === 0 && (
+            <div className="no-projects">
+              <div className="no-projects-icon">📂</div>
+              <p>Aucun projet trouvé</p>
+              <span className="no-projects-hint">Essayez de modifier vos filtres ou créez un nouveau projet</span>
+            </div>
+          )}
         </div>
       ) : (
         <div className="project-cards-container">
           {filteredProjects.map(renderProjectCard)}
-          {filteredProjects.length === 0 && <div className="no-projects"><p>Aucun projet trouvé correspondant à vos critères.</p></div>}
+          {filteredProjects.length === 0 && (
+            <div className="no-projects">
+              <div className="no-projects-icon">📂</div>
+              <p>Aucun projet trouvé</p>
+              <span className="no-projects-hint">Essayez de modifier vos filtres ou créez un nouveau projet</span>
+            </div>
+          )}
         </div>
       )}
     </div>

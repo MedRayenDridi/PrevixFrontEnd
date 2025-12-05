@@ -15,8 +15,10 @@ import ProjectUpload from "./components/projects/Admin/ProjectUpload";
 import AITransformationAnimation from "./components/animation/AITransformationAnimation";
 import LoadingScreen from "./components/animation/LoadingScreen";
 import Organizations from './pages/Organizations';
+import { Parameters } from './pages/Parameters';  // ✅ ADD THIS IMPORT
 import './App.css';
 import { useEffect, useState } from 'react';
+
 
 // PrivateRoute Component
 const PrivateRoute = ({ children }) => {
@@ -33,6 +35,7 @@ const PrivateRoute = ({ children }) => {
 
     return isAuthenticated ? children : <Navigate to="/login" />;
 };
+
 
 // HomePage Component
 const HomePage = () => {
@@ -192,13 +195,14 @@ const HomePage = () => {
     );
 };
 
+
 // Main App Component
 function App() {
     const location = useLocation();
     const [loadingComplete, setLoadingComplete] = useState(false);
 
-    // ✅ UPDATED: Added /organizations to full-screen routes
-    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations'].includes(location.pathname) ||
+    // ✅ UPDATED: Added /parameters to full-screen routes
+    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations', '/parameters'].includes(location.pathname) ||
                               location.pathname.startsWith('/projects/');
 
     const handleLoadingComplete = () => {
@@ -256,13 +260,24 @@ function App() {
                             }
                         />
                         
-                        {/* ✅ UPDATED: Organizations route now wrapped with Layout and PrivateRoute */}
                         <Route
                             path="/organizations"
                             element={
                                 <PrivateRoute>
                                     <Layout>
                                         <Organizations />
+                                    </Layout>
+                                </PrivateRoute>
+                            }
+                        />
+
+                        {/* ✅ ADD THIS: Parameters Route */}
+                        <Route
+                            path="/parameters"
+                            element={
+                                <PrivateRoute>
+                                    <Layout>
+                                        <Parameters />
                                     </Layout>
                                 </PrivateRoute>
                             }
@@ -325,5 +340,6 @@ function App() {
         </div>
     );
 }
+
 
 export default App;

@@ -248,23 +248,36 @@ export const projectService = {
   },
 
   // Get project assets
-  getProjectAssets: async (projectId) => {
-    try {
-      const response = await api.get(`/assets?project_id=${projectId}`);
-      console.log('Get project assets response:', response.data);
-      
-      if (response.data && response.data.data && Array.isArray(response.data.data)) {
-        return response.data.data;
-      }
-      if (Array.isArray(response.data)) {
-        return response.data;
-      }
-      return [];
-    } catch (error) {
-      console.error(`Error fetching project assets ${projectId}:`, error);
-      throw error;
+  // In projectService object, update this method:
+
+getProjectAssets: async (projectId) => {
+  try {
+    const response = await api.get(`/projects/${projectId}/assets`);
+    console.log('Get project assets response:', response.data);
+    
+    if (response.data && response.data.data) {
+      return response.data.data;
     }
-  },
+    return {
+      batiments: [],
+      equipements_prod: [],
+      equipements_mob: [],
+      transports: [],
+      terrains: [],
+      total: 0
+    };
+  } catch (error) {
+    console.error(`Error fetching project assets ${projectId}:`, error);
+    return {
+      batiments: [],
+      equipements_prod: [],
+      equipements_mob: [],
+      transports: [],
+      terrains: [],
+      total: 0
+    };
+  }
+},
 
   // Get project report
   getReport: async (projectId, format = 'pdf') => {
@@ -377,6 +390,16 @@ export const projectService = {
       throw error;
     }
   },
+  updateAsset: async (assetId, assetData) => {
+  try {
+    const response = await api.put(`/assets/${assetId}`, assetData);
+    console.log('Update asset response:', response.data);
+    return response.data.data || response.data;
+  } catch (error) {
+    console.error(`Error updating asset ${assetId}:`, error);
+    throw error;
+  }
+},
 
   // Delete evaluation
   deleteEvaluation: async (evaluationId) => {
@@ -389,6 +412,43 @@ export const projectService = {
       throw error;
     }
   },
+  getProjectReport: async (projectId, format = 'pdf') => {
+    try {
+      console.log(`📄 Generating ${format.toUpperCase()} report for project ${projectId}`);
+      
+      if (format === 'pdf') {
+        // Call the new PDF generation endpoint
+        const response = await api.get(`/reports/projects/${projectId}/pdf`, {
+          responseType: 'blob',
+        });
+        console.log('✅ PDF report generated successfully');
+        return response.data;
+      } else if (format === 'xlsx') {
+        // Excel report (future implementation)
+        console.warn('⚠️ Excel reports not yet implemented');
+        throw new Error('Excel reports are not yet available');
+      } else {
+        throw new Error(`Unsupported report format: ${format}`);
+      }
+    } catch (error) {
+      console.error(`❌ Error generating ${format} report:`, error);
+      throw error;
+    }
+  },
+
+  // ✅ OPTIONAL: Add this to get report summary (JSON data)
+  getProjectReportSummary: async (projectId) => {
+    try {
+      const response = await api.get(`/reports/projects/${projectId}/summary`);
+      console.log('Get report summary response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching report summary for project ${projectId}:`, error);
+      throw error;
+    }
+  },
 };
+
+
 
 export default projectService;

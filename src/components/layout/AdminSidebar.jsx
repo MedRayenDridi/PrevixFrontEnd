@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './AdminSidebar.css';
 
+
 // Icons
 const DashboardIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -9,11 +10,13 @@ const DashboardIcon = () => (
   </svg>
 );
 
+
 const PersonIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
   </svg>
 );
+
 
 const GroupIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -21,18 +24,28 @@ const GroupIcon = () => (
   </svg>
 );
 
+
 const FolderIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
   </svg>
 );
 
-// ✅ NEW: Organization Icon
+
 const OrganizationIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
   </svg>
 );
+
+
+// ✅ NEW: Parameters Icon
+const ParametersIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z" />
+  </svg>
+);
+
 
 const SettingsIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -40,11 +53,13 @@ const SettingsIcon = () => (
   </svg>
 );
 
+
 const LogoutIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z" />
   </svg>
 );
+
 
 const LeafIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -52,21 +67,25 @@ const LeafIcon = () => (
   </svg>
 );
 
+
 export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded, onExpandChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
 
-  // ✅ UPDATED: Added Organizations menu item
+
+  // ✅ UPDATED: Added Parameters menu item
   const menuItems = [
     { text: 'Tableau de Bord', icon: <DashboardIcon />, path: '/dashboard', id: 'home' },
     { text: 'Projets', icon: <FolderIcon />, path: '/projects', id: 'projects' },
     { text: 'Organisations', icon: <OrganizationIcon />, path: '/organizations', id: 'organizations' },
     { text: 'Gestion des utilisateurs', icon: <GroupIcon />, path: '/admin', id: 'users' },
+    { text: 'Paramètres système', icon: <ParametersIcon />, path: '/parameters', id: 'parameters' },
     { text: 'Profil', icon: <PersonIcon />, path: '/profile', id: 'profile' },
     { text: 'Paramètres', icon: <SettingsIcon />, path: '/settings', id: 'settings' },
   ];
+
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -75,10 +94,12 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
     }
   };
 
+
   const handleLogout = () => {
     onLogout();
     navigate('/login');
   };
+
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -87,12 +108,14 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
     }
   };
 
+
   const handleMouseLeave = () => {
     setIsHovered(false);
     if (onExpandChange && !isPinned) {
       onExpandChange(false);
     }
   };
+
 
   const handleClick = () => {
     setIsPinned(!isPinned);
@@ -101,8 +124,10 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
     }
   };
 
+
   const isExpanded = isPinned || isHovered || sidebarExpanded;
   const userDisplayName = user?.full_name || user?.email || 'User';
+
 
   return (
     <>
@@ -111,6 +136,7 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
         className={`admin-sidebar-overlay ${isOpen ? 'active' : ''}`} 
         onClick={onClose}
       />
+
 
       {/* Sidebar */}
       <nav 
@@ -129,6 +155,7 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
             Prev-IX
           </span>
         </div>
+
 
         {/* Navigation Menu */}
         <ul className="sidebar-menu-modern">
@@ -149,6 +176,7 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
             </li>
           ))}
         </ul>
+
 
         {/* User Section at Bottom */}
         <div className="sidebar-footer-modern">
@@ -173,6 +201,7 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
             <LogoutIcon />
           </button>
         </div>
+
 
         {/* Pin Indicator */}
         {isPinned && (

@@ -6,6 +6,7 @@ import DashboardGraphs from '../components/dashboard/DashboardGraphs';
 import DashboardTasks from '../components/dashboard/DashboardTasks';
 import DashboardCalendar from '../components/dashboard/DashboardCalendar';
 import DashboardLoadingAnimation from '../components/animation/DashboardLoadingAnimation';
+import MarketTicker from '../components/dashboard/MarketTicker'; // ✅ NEW IMPORT
 import ClientDashboard from './Client/ClientDashboard';
 import './DashboardPage.css';
 
@@ -28,7 +29,6 @@ const DashboardPage = () => {
     );
   }
 
-  // NON-ADMIN: Return ClientDashboard WITHOUT wrapper
   if (!isAdmin() && !isStaff()) {
     return <ClientDashboard />;
   }
@@ -38,23 +38,28 @@ const DashboardPage = () => {
       <div className="dashboard-header">
         <h1 className="dashboard-title">Tableau de Bord Administrateur</h1>
         <p className="dashboard-subtitle">
-          Vue d'ensemble sur projets et les performances</p>
+          Vue d'ensemble sur projets et les performances
+        </p>
       </div>
-        
-         {/* Calendar and Tasks Section */}
-              <div className="dashboard-main-content">
-              <DashboardCalendar projects={projects} />
-              <DashboardTasks projects={projects} />
-             </div>
-         {/* Stats Section */}
-              <DashboardStats projects={projects} />
-           {/* Graphs Section */}
-             <DashboardGraphs projects={projects} userRole="admin" />
+
+      <div className="dashboard-main-content">
+        <DashboardCalendar projects={projects} />
+        <DashboardTasks projects={projects} />
+      </div>
+
+      {/* ✅ MOVE TICKER HERE */}
+      <MarketTicker />
+
+      <DashboardStats projects={projects} />
+      <DashboardGraphs projects={projects} userRole="admin" />
     </div>
   );
 
   const renderStaffDashboard = () => (
     <div className="staff-dashboard">
+      {/* ✅ ADD TICKER HERE TOO */}
+      <MarketTicker />
+
       <div className="dashboard-header">
         <h1 className="dashboard-title">Tableau de Bord Collaborateur</h1>
         <p className="dashboard-subtitle">
@@ -62,7 +67,6 @@ const DashboardPage = () => {
         </p>
       </div>
 
-      {/* Quick Stats for Staff */}
       <div className="user-stats">
         <div className="stats-grid">
           <div className="stat-card">
@@ -95,18 +99,13 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      {/* Calendar Section */}
       <DashboardCalendar projects={projects} />
-
-      {/* Graphs Section */}
       <DashboardGraphs projects={projects} userRole="staff" />
     </div>
   );
 
-  // ADMIN/STAFF: Return with wrapper
   return (
     <div className="dashboard-container">
-      {/* Background Elements */}
       <div className="dashboard-floating-shapes">
         <div className="dashboard-floating-shape dashboard-shape-1"></div>
         <div className="dashboard-floating-shape dashboard-shape-2"></div>
@@ -114,7 +113,6 @@ const DashboardPage = () => {
       </div>
       <div className="dashboard-grid-overlay"></div>
 
-      {/* Main Content */}
       <div className="dashboard-content-wrapper">
         {isAdmin() ? renderAdminDashboard() : renderStaffDashboard()}
       </div>

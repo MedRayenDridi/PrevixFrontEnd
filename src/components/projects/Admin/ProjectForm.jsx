@@ -5,10 +5,15 @@ import { useAuth } from '../../../context/AuthContext';
 import { api } from '../../../services/api';
 import './ProjectForm.css';
 
-
 const PROJECT_TYPES = ['IFRS', 'Assurance', 'Risk_Survey', 'Other'];
 const PROJECT_STATUSES = ['active', 'archived', 'completed'];
 
+// ✅ NEW: Back Arrow Icon
+const BackIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+  </svg>
+);
 
 const ProjectForm = () => {
   const navigate = useNavigate();
@@ -24,7 +29,6 @@ const ProjectForm = () => {
     clearError 
   } = useProject();
 
-
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -36,7 +40,6 @@ const ProjectForm = () => {
     assigned_to: null,
   });
 
-
   const [organizations, setOrganizations] = useState([]);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [validationErrors, setValidationErrors] = useState({});
@@ -44,12 +47,10 @@ const ProjectForm = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [dataError, setDataError] = useState(null);
 
-
   // Load organizations and users on mount
   useEffect(() => {
     loadOrganizationsAndUsers();
   }, []);
-
 
   // Load project if editing
   useEffect(() => {
@@ -57,7 +58,6 @@ const ProjectForm = () => {
       loadProject();
     }
   }, [isEdit, id, getProject]);
-
 
   const loadOrganizationsAndUsers = async () => {
     setIsLoadingData(true);
@@ -85,7 +85,6 @@ const ProjectForm = () => {
     }
   };
 
-
   const loadProject = async () => {
     try {
       const project = await getProject(id);
@@ -104,7 +103,6 @@ const ProjectForm = () => {
     }
   };
 
-
   const handleInputChange = (e) => {
     const { name, value, type } = e.target;
     
@@ -112,7 +110,6 @@ const ProjectForm = () => {
       ...prev,
       [name]: type === 'number' ? (value ? parseInt(value) : null) : value
     }));
-
 
     // Clear validation error for this field
     if (validationErrors[name]) {
@@ -123,10 +120,8 @@ const ProjectForm = () => {
     }
   };
 
-
   const validateForm = () => {
     const errors = {};
-
 
     if (!formData.name.trim()) {
       errors.name = 'Le nom du projet est requis';
@@ -134,18 +129,15 @@ const ProjectForm = () => {
       errors.name = 'Le nom doit contenir au moins 3 caractères';
     }
 
-
     if (!formData.description.trim()) {
       errors.description = 'La description est requise';
     } else if (formData.description.trim().length < 10) {
       errors.description = 'La description doit contenir au moins 10 caractères';
     }
 
-
     if (!formData.type_project) {
       errors.type_project = 'Le type de projet est requis';
     }
-
 
     if (!formData.due_date) {
       errors.due_date = 'La date d\'échéance est requise';
@@ -158,34 +150,27 @@ const ProjectForm = () => {
       }
     }
 
-
     if (!formData.org_id) {
       errors.org_id = 'L\'organisation est requise';
     }
-
 
     if (formData.progress < 0 || formData.progress > 100) {
       errors.progress = 'Le progrès doit être entre 0 et 100';
     }
 
-
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
 
     if (!validateForm()) {
       return;
     }
 
-
     setIsSubmitting(true);
     clearError();
-
 
     try {
       const submitData = {
@@ -198,7 +183,6 @@ const ProjectForm = () => {
         org_id: formData.org_id,
         assigned_to: formData.assigned_to || null,
       };
-
 
       if (isEdit) {
         await updateProject(id, submitData);
@@ -214,7 +198,6 @@ const ProjectForm = () => {
     }
   };
 
-
   const handleCancel = () => {
     if (isEdit) {
       navigate(`/projects/${id}`);
@@ -223,6 +206,10 @@ const ProjectForm = () => {
     }
   };
 
+  // ✅ NEW: Back to Projects function
+  const handleBackToProjects = () => {
+    navigate('/projects');
+  };
 
   const getTypeLabel = (type) => {
     const labels = {
@@ -234,7 +221,6 @@ const ProjectForm = () => {
     return labels[type] || type;
   };
 
-
   const getStatusLabel = (status) => {
     const labels = {
       'active': 'Actif',
@@ -244,18 +230,15 @@ const ProjectForm = () => {
     return labels[status] || status;
   };
 
-
   const getOrgName = (orgId) => {
     const org = organizations.find(o => o.org_id === orgId);
     return org ? org.organization_name : 'Non spécifié';
   };
 
-
   const getUserName = (userId) => {
     const u = availableUsers.find(user => user.user_id === userId);
     return u ? u.full_name : 'Non spécifié';
   };
-
 
   // Show loading state
   if (isLoadingData) {
@@ -271,13 +254,21 @@ const ProjectForm = () => {
     );
   }
 
-
   return (
     <div className="project-form-container">
+      {/* ✅ UPDATED: Header with Back Button */}
       <div className="project-form-header">
+        <button 
+          className="btn-back" 
+          onClick={handleBackToProjects}
+          type="button"
+          title="Retour aux projets"
+        >
+          <BackIcon />
+          <span>Retour aux projets</span>
+        </button>
         <h1>{isEdit ? 'Modifier le Projet' : 'Créer un Nouveau Projet'}</h1>
       </div>
-
 
       {error && (
         <div className="error-message">
@@ -290,7 +281,6 @@ const ProjectForm = () => {
           ⚠ {dataError}
         </div>
       )}
-
 
       <form onSubmit={handleSubmit} className="project-form">
         <div className="form-row">
@@ -309,7 +299,6 @@ const ProjectForm = () => {
             />
             {validationErrors.name && <span className="error-text">{validationErrors.name}</span>}
           </div>
-
 
           <div className="form-group">
             <label htmlFor="type_project">Type de Projet *</label>
@@ -333,7 +322,6 @@ const ProjectForm = () => {
           </div>
         </div>
 
-
         <div className="form-group">
           <label htmlFor="description">Description *</label>
           <textarea
@@ -349,7 +337,6 @@ const ProjectForm = () => {
           />
           {validationErrors.description && <span className="error-text">{validationErrors.description}</span>}
         </div>
-
 
         <div className="form-row">
           <div className="form-group">
@@ -377,7 +364,6 @@ const ProjectForm = () => {
             {validationErrors.org_id && <span className="error-text">{validationErrors.org_id}</span>}
           </div>
 
-
           <div className="form-group">
             <label htmlFor="due_date">Date d'Échéance *</label>
             <input
@@ -393,7 +379,6 @@ const ProjectForm = () => {
             {validationErrors.due_date && <span className="error-text">{validationErrors.due_date}</span>}
           </div>
         </div>
-
 
         <div className="form-row">
           <div className="form-group">
@@ -412,7 +397,6 @@ const ProjectForm = () => {
             />
             {validationErrors.progress && <span className="error-text">{validationErrors.progress}</span>}
           </div>
-
 
           <div className="form-group">
             <label htmlFor="status">Statut</label>
@@ -433,7 +417,6 @@ const ProjectForm = () => {
               <small className="form-help">Seuls les administrateurs peuvent changer le statut</small>
             )}
           </div>
-
 
           <div className="form-group">
             <label htmlFor="assigned_to">Assigné à</label>
@@ -458,7 +441,6 @@ const ProjectForm = () => {
           </div>
         </div>
 
-
         <div className="form-actions">
           <button
             type="button"
@@ -480,6 +462,5 @@ const ProjectForm = () => {
     </div>
   );
 };
-
 
 export default ProjectForm;
