@@ -11,7 +11,7 @@ const DashboardLoadingAnimation = ({ isLoading, onComplete }) => {
 
     const container = containerRef.current;
 
-    // Create floating data particles
+    // Create floating data particles (in navy blue for light theme)
     const particles = [];
     for (let i = 0; i < 20; i++) {
       const particle = document.createElement('div');
@@ -36,7 +36,7 @@ const DashboardLoadingAnimation = ({ isLoading, onComplete }) => {
       }
     });
 
-    // Central loading indicator
+    // Logo and central loading indicator
     gsap.set('.dashboard-logo', { opacity: 0, scale: 0.8 });
     gsap.set('.dashboard-loader-core', { scale: 0, opacity: 0 });
     gsap.set('.dashboard-loader-rings', { scale: 0, opacity: 0 });
@@ -109,7 +109,7 @@ const DashboardLoadingAnimation = ({ isLoading, onComplete }) => {
 
   return (
     <div ref={containerRef} className="dashboard-loading-container">
-      <img src="/QuantoLogo.png" alt="Quanto Logo" className="dashboard-logo" />
+      <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="dashboard-logo" />
       <div className="dashboard-loader-core">
         <div className="dashboard-loader-sphere"></div>
         <div className="dashboard-loader-rings">
@@ -119,16 +119,16 @@ const DashboardLoadingAnimation = ({ isLoading, onComplete }) => {
               className="dashboard-loader-ring"
               style={{
                 animationDelay: `${i * 0.3}s`,
-                width: `${60 + i * 20}px`,
-                height: `${60 + i * 20}px`
+                width: `${50 + i * 15}px`,
+                height: `${50 + i * 15}px`
               }}
             ></div>
           ))}
         </div>
       </div>
       <div className="dashboard-loader-text">
-        <h3>Loading Dashboard</h3>
-        <p>Analyzing your data...</p>
+        <h3>Chargement du Tableau de Bord</h3>
+        <p>Analyse de vos données...</p>
       </div>
     </div>
   );

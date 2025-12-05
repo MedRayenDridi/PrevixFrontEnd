@@ -11,7 +11,7 @@ const ProjectsMatrixAnimation = ({ isLoading, onComplete }) => {
 
     const container = containerRef.current;
 
-    // Create matrix-style falling characters
+    // Create matrix-style falling characters (in navy blue for light theme)
     const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
     const columns = Math.floor(window.innerWidth / 20);
     const drops = [];
@@ -39,18 +39,25 @@ const ProjectsMatrixAnimation = ({ isLoading, onComplete }) => {
       }
     });
 
-    // Central project loader
+    // Logo and project loader elements
+    gsap.set('.logo-container', { scale: 0, opacity: 0 });
     gsap.set('.projects-loader-core', { scale: 0, opacity: 0 });
     gsap.set('.projects-loader-cubes', { scale: 0, opacity: 0, rotation: 0 });
     gsap.set('.projects-loader-text', { opacity: 0, y: 30 });
 
     animationRef.current
-      .to('.projects-loader-core', {
+      .to('.logo-container', {
         duration: 0.8,
         scale: 1,
         opacity: 1,
         ease: 'back.out(1.7)'
       })
+      .to('.projects-loader-core', {
+        duration: 0.8,
+        scale: 1,
+        opacity: 1,
+        ease: 'back.out(1.7)'
+      }, '-=0.4')
       .to('.projects-loader-cubes', {
         duration: 1.2,
         scale: 1,
@@ -72,7 +79,7 @@ const ProjectsMatrixAnimation = ({ isLoading, onComplete }) => {
         ease: 'power2.inOut',
         repeat: 2
       }, '-=0.5')
-      // Matrix effect
+      // Matrix effect fade
       .to('.matrix-drop', {
         duration: 2,
         opacity: 0,
@@ -103,6 +110,9 @@ const ProjectsMatrixAnimation = ({ isLoading, onComplete }) => {
 
   return (
     <div ref={containerRef} className="projects-loading-container">
+      <div className="logo-container">
+        <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="projects-logo" />
+      </div>
       <div className="projects-loader-core">
         <div className="projects-loader-cubes">
           {Array.from({ length: 8 }, (_, i) => (
@@ -121,8 +131,8 @@ const ProjectsMatrixAnimation = ({ isLoading, onComplete }) => {
         </div>
       </div>
       <div className="projects-loader-text">
-        <h3>Loading Projects</h3>
-        <p>Initializing project matrix...</p>
+        <h3>Chargement des Projets</h3>
+        <p>Initialisation de la matrice de projets...</p>
       </div>
     </div>
   );

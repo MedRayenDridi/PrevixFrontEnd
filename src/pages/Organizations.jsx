@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import organizationService from '../services/organizationService';
 import OrgMembersModal from './OrgMembersModal';
+
+import OrganizationsLoadingAnimation from '../components/animation/OrganizationsLoadingAnimation';
 import './Organizations.css';
 
 const Organizations = () => {
@@ -11,6 +13,7 @@ const Organizations = () => {
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [selectedOrgForMembers, setSelectedOrgForMembers] = useState(null);
   const [memberCounts, setMemberCounts] = useState({});
+  const [showLoadingAnimation, setShowLoadingAnimation] = useState(true);
   const [formData, setFormData] = useState({
     organization_name: '',
     organization_isin: '',
@@ -31,6 +34,8 @@ const Organizations = () => {
 
   const loadOrganizations = async () => {
     setLoading(true);
+    setShowLoadingAnimation(true);
+    
     const result = await organizationService.getAllOrganizations();
     if (result.success) {
       setOrganizations(result.data);
@@ -53,11 +58,16 @@ const Organizations = () => {
         );
         setMemberCounts(counts);
       };
-      fetchCounts();
+      await fetchCounts();
     } else {
       alert(`Erreur: ${result.error}`);
     }
+    
     setLoading(false);
+    // Keep animation visible for minimum duration
+    setTimeout(() => {
+      setShowLoadingAnimation(false);
+    }, 500);
   };
 
   const handleInputChange = (e) => {
@@ -115,12 +125,13 @@ const Organizations = () => {
     });
   };
 
-  if (loading) {
+  // Show loading animation
+  if (showLoadingAnimation) {
     return (
-      <div className="organizations-loading">
-        <div className="spinner"></div>
-        <p>Chargement des organisations...</p>
-      </div>
+      <OrganizationsLoadingAnimation 
+        isLoading={showLoadingAnimation} 
+        onComplete={() => setShowLoadingAnimation(false)} 
+      />
     );
   }
 
@@ -186,13 +197,12 @@ const Organizations = () => {
                   </svg>
                 </div>
                 <h3>
-  {org.organization_name}
-  <span className="members-count">
-    {/* Optional: Add a user icon here */}
-    {memberCounts[org.org_id] ?? 0} membre
-    {memberCounts[org.org_id] === 1 ? "" : "s"}
-  </span>
-</h3>
+                  {org.organization_name}
+                  <span className="members-count">
+                    {memberCounts[org.org_id] ?? 0} membre
+                    {memberCounts[org.org_id] === 1 ? "" : "s"}
+                  </span>
+                </h3>
               </div>
 
               <div className="org-card-body">
@@ -601,7 +611,6 @@ const Organizations = () => {
                   Gérer Membres
                 </button>
               </div>
-
             </div>
           </div>
         </div>

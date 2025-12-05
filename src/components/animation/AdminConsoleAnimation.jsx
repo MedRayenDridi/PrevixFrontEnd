@@ -11,13 +11,13 @@ const AdminConsoleAnimation = ({ isLoading, onComplete }) => {
 
     const container = containerRef.current;
 
-    // Create console-style typing effect
+    // French console-style typing lines
     const consoleLines = [
-      '> Initializing admin console...',
-      '> Loading user permissions...',
-      '> Establishing secure connection...',
-      '> System check complete.',
-      '> Access granted.'
+      '> Initialisation de la console administrateur...',
+      '> Chargement des permissions utilisateur...',
+      '> Établissement d\'une connexion sécurisée...',
+      '> Vérification du système terminée.',
+      '> Accès autorisé.'
     ];
 
     let currentLine = 0;
@@ -45,19 +45,26 @@ const AdminConsoleAnimation = ({ isLoading, onComplete }) => {
       }
     });
 
-    // Console elements
+    // Logo and console elements
+    gsap.set('.logo-container', { scale: 0, opacity: 0 });
     gsap.set('.admin-console-core', { scale: 0, opacity: 0 });
     gsap.set('.console-screen', { opacity: 0, scale: 0.8 });
     gsap.set('.console-cursor', { opacity: 0 });
     gsap.set('.admin-loader-text', { opacity: 0, y: 30 });
 
     animationRef.current
-      .to('.admin-console-core', {
+      .to('.logo-container', {
         duration: 0.8,
         scale: 1,
         opacity: 1,
         ease: 'back.out(1.7)'
       })
+      .to('.admin-console-core', {
+        duration: 0.8,
+        scale: 1,
+        opacity: 1,
+        ease: 'back.out(1.7)'
+      }, '-=0.4')
       .to('.console-screen', {
         duration: 0.6,
         opacity: 1,
@@ -81,12 +88,12 @@ const AdminConsoleAnimation = ({ isLoading, onComplete }) => {
       // Final console flash
       .to('.console-screen', {
         duration: 0.2,
-        backgroundColor: 'rgba(28, 145, 175, 0.3)',
+        backgroundColor: 'rgba(18, 58, 99, 0.15)',
         ease: 'power2.in'
       })
       .to('.console-screen', {
         duration: 0.2,
-        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
         ease: 'power2.out'
       })
       // Final fade out
@@ -108,13 +115,16 @@ const AdminConsoleAnimation = ({ isLoading, onComplete }) => {
 
   return (
     <div ref={containerRef} className="admin-loading-container">
+      <div className="logo-container">
+        <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="admin-logo" />
+      </div>
       <div className="admin-console-core">
         <div className="console-screen">
           <div className="console-header">
-            <div className="console-title">ADMIN CONSOLE v2.1</div>
+            <div className="console-title">CONSOLE ADMIN v2.1</div>
             <div className="console-status">
               <span className="status-dot"></span>
-              SECURE CONNECTION
+              CONNEXION SÉCURISÉE
             </div>
           </div>
           <div className="console-output">
@@ -124,8 +134,8 @@ const AdminConsoleAnimation = ({ isLoading, onComplete }) => {
         <div className="console-glow"></div>
       </div>
       <div className="admin-loader-text">
-        <h3>Accessing Admin Panel</h3>
-        <p>Initializing administrative controls...</p>
+        <h3>Accès au Panneau d'Administration</h3>
+        <p>Initialisation des contrôles administratifs...</p>
       </div>
     </div>
   );
