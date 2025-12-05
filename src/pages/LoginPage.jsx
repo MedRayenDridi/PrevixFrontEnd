@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="login-left-panel">
           <div className="brand-content">
             <div className="brand-logo-large">
-              <img src="/Logo-tool-Previx.png" alt="Logo QuantoBridge" className="logo-img" />
+              <img src="/PREVIX_homePage-Photoroom.png" alt="Logo QuantoBridge" className="logo-img" />
             </div>
             <h1 className="brand-title">
               Bienvenue sur Prev-IX
