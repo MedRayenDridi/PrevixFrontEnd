@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';  // ✅ ADD THIS
 import { Clock, BarChart3, Calendar, Users, Eye } from 'lucide-react';
 
 const DashboardTasks = ({ projects }) => {
   const [tasks, setTasks] = useState([]);
+  const navigate = useNavigate();  // ✅ ADD THIS
 
   useEffect(() => {
     // Generate tasks from projects data
@@ -11,7 +13,6 @@ const DashboardTasks = ({ projects }) => {
     projects.forEach(project => {
       // Overdue tasks
       if (new Date(project.due_date) < new Date() && project.status !== 'completed') {
-        // prefer project.project_id if available (backend uses project_id elsewhere)
         const pid = project.project_id ?? project.id ?? project._id ?? Math.random().toString(36).slice(2,8);
         generatedTasks.push({
           id: `overdue-${pid}`,
@@ -94,6 +95,11 @@ const DashboardTasks = ({ projects }) => {
     }
   };
 
+  // ✅ ADD THIS FUNCTION
+  const handleViewProject = (projectId) => {
+    navigate(`/projects/${projectId}`);
+  };
+
   return (
     <div className="dashboard-tasks">
       <div className="tasks-header">
@@ -126,7 +132,11 @@ const DashboardTasks = ({ projects }) => {
                   </div>
                 </div>
                 <div className="task-actions">
-                  <button className="task-action-btn">
+                  {/* ✅ ADD onClick HANDLER */}
+                  <button 
+                    className="task-action-btn"
+                    onClick={() => handleViewProject(task.projectId)}
+                  >
                     <Eye size={16} />
                     Voir
                   </button>
