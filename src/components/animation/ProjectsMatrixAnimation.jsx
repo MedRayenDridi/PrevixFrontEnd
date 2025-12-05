@@ -40,13 +40,13 @@ const ProjectsMatrixAnimation = ({ isLoading, onComplete }) => {
     });
 
     // Logo and project loader elements
-    gsap.set('.logo-container', { scale: 0, opacity: 0 });
+    gsap.set('.projects-logo', { scale: 0, opacity: 0 });
     gsap.set('.projects-loader-core', { scale: 0, opacity: 0 });
     gsap.set('.projects-loader-cubes', { scale: 0, opacity: 0, rotation: 0 });
     gsap.set('.projects-loader-text', { opacity: 0, y: 30 });
 
     animationRef.current
-      .to('.logo-container', {
+      .to('.projects-logo', {
         duration: 0.8,
         scale: 1,
         opacity: 1,
@@ -110,9 +110,7 @@ const ProjectsMatrixAnimation = ({ isLoading, onComplete }) => {
 
   return (
     <div ref={containerRef} className="projects-loading-container">
-      <div className="logo-container">
-        <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="projects-logo" />
-      </div>
+      <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="projects-logo" />
       <div className="projects-loader-core">
         <div className="projects-loader-cubes">
           {Array.from({ length: 8 }, (_, i) => (

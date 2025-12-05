@@ -165,29 +165,9 @@ const HomePage = () => {
                 <div className="content-right">
                     <div className="illustration-container">
                         <AITransformationAnimation />
-                        <div className="floating-shape shape-1"></div>
-                        <div className="floating-shape shape-2"></div>
-                        <div className="floating-shape shape-3"></div>
-                        <div className="floating-shape shape-4"></div>
-                        <div className="floating-shape shape-5"></div>
-                        <div className="abstract-figure figure-1">
-                            <div className="figure-head"></div>
-                            <div className="figure-body"></div>
-                        </div>
-                        <div className="abstract-figure figure-2">
-                            <div className="figure-head"></div>
-                            <div className="figure-body"></div>
-                        </div>
-                        <div className="geometric-shape chart-1"></div>
-                        <div className="geometric-shape panel-1"></div>
-                        <div className="geometric-shape ui-element-1"></div>
-                        <div
-                            className="cursor-glow"
-                            style={{
-                                left: `${mousePosition.x}px`,
-                                top: `${mousePosition.y}px`,
-                            }}
-                        ></div>
+                        
+                       
+                        
                     </div>
                 </div>
             </div>

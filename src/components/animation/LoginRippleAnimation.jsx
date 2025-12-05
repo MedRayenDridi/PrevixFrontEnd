@@ -40,7 +40,7 @@ const LoginRippleAnimation = ({ children, onClick }) => {
 
     // Button glow effect
     gsap.to(button, {
-      boxShadow: '0 0 30px rgba(28, 145, 175, 0.8)',
+      boxShadow: '0 0 30px rgba(18, 58, 99, 0.5)',
       duration: 0.3,
       yoyo: true,
       repeat: 1,

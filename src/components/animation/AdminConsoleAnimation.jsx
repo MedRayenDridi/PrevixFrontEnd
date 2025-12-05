@@ -46,14 +46,14 @@ const AdminConsoleAnimation = ({ isLoading, onComplete }) => {
     });
 
     // Logo and console elements
-    gsap.set('.logo-container', { scale: 0, opacity: 0 });
+    gsap.set('.admin-logo', { scale: 0, opacity: 0 });
     gsap.set('.admin-console-core', { scale: 0, opacity: 0 });
     gsap.set('.console-screen', { opacity: 0, scale: 0.8 });
     gsap.set('.console-cursor', { opacity: 0 });
     gsap.set('.admin-loader-text', { opacity: 0, y: 30 });
 
     animationRef.current
-      .to('.logo-container', {
+      .to('.admin-logo', {
         duration: 0.8,
         scale: 1,
         opacity: 1,
@@ -115,9 +115,7 @@ const AdminConsoleAnimation = ({ isLoading, onComplete }) => {
 
   return (
     <div ref={containerRef} className="admin-loading-container">
-      <div className="logo-container">
-        <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="admin-logo" />
-      </div>
+      <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="admin-logo" />
       <div className="admin-console-core">
         <div className="console-screen">
           <div className="console-header">

@@ -13,19 +13,13 @@
   overflow: hidden;
 }
 
-.logo-container {
-  margin-bottom: 1.5rem;
-  padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(18, 58, 99, 0.12);
-}
-
 .admin-logo {
   max-width: 220px;
   width: 220px;
   height: auto;
   display: block;
+  margin-bottom: 1.5rem;
+  filter: drop-shadow(0 4px 15px rgba(18, 58, 99, 0.1));
 }
 
 .admin-console-core {

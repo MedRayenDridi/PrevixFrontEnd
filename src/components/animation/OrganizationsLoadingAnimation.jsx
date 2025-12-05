@@ -40,13 +40,13 @@ const OrganizationsLoadingAnimation = ({ isLoading, onComplete }) => {
     });
 
     // Logo and loader elements
-    gsap.set('.org-logo-container', { scale: 0, opacity: 0 });
+    gsap.set('.org-logo', { scale: 0, opacity: 0 });
     gsap.set('.org-loader-core', { scale: 0, opacity: 0 });
     gsap.set('.org-loader-buildings', { scale: 0, opacity: 0 });
     gsap.set('.org-loader-text', { opacity: 0, y: 30 });
 
     animationRef.current
-      .to('.org-logo-container', {
+      .to('.org-logo', {
         duration: 0.8,
         scale: 1,
         opacity: 1,
@@ -111,9 +111,7 @@ const OrganizationsLoadingAnimation = ({ isLoading, onComplete }) => {
 
   return (
     <div ref={containerRef} className="org-loading-container">
-      <div className="org-logo-container">
-        <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="org-logo" />
-      </div>
+      <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="org-logo" />
       <div className="org-loader-core">
         <div className="org-loader-buildings">
           {Array.from({ length: 5 }, (_, i) => (

@@ -24,12 +24,12 @@ export default function AITransformationAnimation() {
           justifyContent: 'flex-start',
           alignItems: 'center',
           padding: '1rem',
-          marginLeft: '-15%',
+          marginLeft: '-5%',
           backgroundColor: 'transparent'
         }}
       >
         <img
-          src="/AIpuffy.png"
+          src="/PREVIX_homePage-Photoroom.png"
           alt="AI Transformation"
           style={{
             maxWidth: '100%',
