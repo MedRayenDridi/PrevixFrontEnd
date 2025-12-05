@@ -552,19 +552,28 @@ const ProjectDetail = () => {
                 </button>
               </div>
               
-              <div className="report-card">
-                <div className="report-icon">📊</div>
-                <h4>Rapport Excel</h4>
-                <p>Exportez les données du projet et des actifs au format Excel pour une analyse approfondie.</p>
-                <button
-                  className="btn-primary btn-disabled"
-                  onClick={() => handleDownloadReport('xlsx')}
-                  disabled={true}
-                >
-                  Télécharger Excel
-                </button>
-                <span className="badge-coming-soon">Bientôt disponible</span>
-              </div>
+                          <div className="report-card">
+              <div className="report-icon">📊</div>
+              <h4>Rapport Excel</h4>
+              <p>Exportez les données du projet et des actifs au format Excel pour une analyse approfondie.</p>
+              <button
+                className="btn-primary"
+                onClick={() => handleDownloadReport('xlsx')}
+                disabled={reportGenerating}  // ✅ Changed from true
+              >
+                {reportGenerating ? (
+                  <>
+                    <span className="spinner-small"></span>
+                    Génération...
+                  </>
+                ) : (
+                  'Télécharger Excel'
+                )}
+              </button>
+              {/* ❌ Remove this line: */}
+              {/* <span className="badge-coming-soon">Bientôt disponible</span> */}
+            </div>
+
             </div>
           </div>
         )}

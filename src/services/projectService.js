@@ -413,42 +413,51 @@ getProjectAssets: async (projectId) => {
     }
   },
   getProjectReport: async (projectId, format = 'pdf') => {
-    try {
-      console.log(`📄 Generating ${format.toUpperCase()} report for project ${projectId}`);
-      
-      if (format === 'pdf') {
-        // Call the new PDF generation endpoint
-        const response = await api.get(`/reports/projects/${projectId}/pdf`, {
-          responseType: 'blob',
-        });
-        console.log('✅ PDF report generated successfully');
-        return response.data;
-      } else if (format === 'xlsx') {
-        // Excel report (future implementation)
-        console.warn('⚠️ Excel reports not yet implemented');
-        throw new Error('Excel reports are not yet available');
-      } else {
-        throw new Error(`Unsupported report format: ${format}`);
+  try {
+    console.log(`📄 Generating ${format.toUpperCase()} report for project ${projectId}`);
+    
+    // ✅ Support both PDF and Excel formats
+    let endpoint = '';
+    let mimeType = '';
+    
+    if (format === 'pdf') {
+      endpoint = `/reports/projects/${projectId}/pdf`;
+      mimeType = 'application/pdf';
+    } else if (format === 'xlsx') {
+      endpoint = `/reports/projects/${projectId}/excel`;  // ✅ Changed to use excel endpoint
+      mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    } else {
+      throw new Error(`Unsupported report format: ${format}`);
+    }
+    
+    const response = await api.get(endpoint, {
+      responseType: 'blob',
+      headers: {
+        'Accept': mimeType
       }
-    } catch (error) {
-      console.error(`❌ Error generating ${format} report:`, error);
-      throw error;
-    }
-  },
+    });
+    
+    console.log(`✅ ${format.toUpperCase()} report generated successfully`);
+    return response.data;
+    
+  } catch (error) {
+    console.error(`❌ Error generating ${format} report:`, error);
+    throw error;
+  }
+},
 
-  // ✅ OPTIONAL: Add this to get report summary (JSON data)
-  getProjectReportSummary: async (projectId) => {
-    try {
-      const response = await api.get(`/reports/projects/${projectId}/summary`);
-      console.log('Get report summary response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error(`Error fetching report summary for project ${projectId}:`, error);
-      throw error;
-    }
-  },
+// ✅ OPTIONAL: Add this to get report summary (JSON data)
+getProjectReportSummary: async (projectId) => {
+  try {
+    const response = await api.get(`/reports/projects/${projectId}/summary`);
+    console.log('Get report summary response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching report summary for project ${projectId}:`, error);
+    throw error;
+  }
+},
 };
-
 
 
 export default projectService;
