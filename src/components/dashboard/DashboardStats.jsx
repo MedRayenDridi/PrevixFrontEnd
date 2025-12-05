@@ -34,44 +34,60 @@ const DashboardStats = ({ projects }) => {
   return (
     <div className="dashboard-stats">
       {/* Key Metrics Cards */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon">
-            <BarChart3 size={32} />
+      <div className="modern-stats-grid">
+        <div className="modern-stat-card stat-card-1">
+          <div className="stat-card-bg"></div>
+          <div className="stat-icon-container">
+            <BarChart3 size={24} />
           </div>
-          <div className="stat-content">
-            <h3 className="stat-number">{totalProjects}</h3>
+          <div className="stat-details">
             <p className="stat-label">Total des Projets</p>
+            <h3 className="stat-number">{totalProjects}</h3>
+            <div className="stat-trend">
+              <span className="trend-positive">↑ Actif</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon">
-            <TrendingUp size={32} />
+        <div className="modern-stat-card stat-card-2">
+          <div className="stat-card-bg"></div>
+          <div className="stat-icon-container">
+            <TrendingUp size={24} />
           </div>
-          <div className="stat-content">
-            <h3 className="stat-number">{activeProjects}</h3>
+          <div className="stat-details">
             <p className="stat-label">Projets Actifs</p>
+            <h3 className="stat-number">{activeProjects}</h3>
+            <div className="stat-trend">
+              <span className="trend-positive">↑ +{activeProjects}</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon">
-            <CheckCircle size={32} />
+        <div className="modern-stat-card stat-card-3">
+          <div className="stat-card-bg"></div>
+          <div className="stat-icon-container">
+            <CheckCircle size={24} />
           </div>
-          <div className="stat-content">
-            <h3 className="stat-number">{completedProjects}</h3>
+          <div className="stat-details">
             <p className="stat-label">Projets Terminés</p>
+            <h3 className="stat-number">{completedProjects}</h3>
+            <div className="stat-trend">
+              <span className="trend-neutral">✓ Complétés</span>
+            </div>
           </div>
         </div>
 
-        <div className="stat-card">
-          <div className="stat-icon">
-            <AlertTriangle size={32} />
+        <div className="modern-stat-card stat-card-4">
+          <div className="stat-card-bg"></div>
+          <div className="stat-icon-container">
+            <AlertTriangle size={24} />
           </div>
-          <div className="stat-content">
-            <h3 className="stat-number">{overdueProjects}</h3>
+          <div className="stat-details">
             <p className="stat-label">Projets en Retard</p>
+            <h3 className="stat-number">{overdueProjects}</h3>
+            <div className="stat-trend">
+              <span className="trend-neutral">⚠ Retard</span>
+            </div>
           </div>
         </div>
       </div>

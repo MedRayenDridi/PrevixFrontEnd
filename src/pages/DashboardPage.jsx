@@ -35,20 +35,34 @@ const DashboardPage = () => {
 
   const renderAdminDashboard = () => (
     <div className="admin-dashboard">
-      <div className="dashboard-header">
-        <h1 className="dashboard-title">Tableau de Bord Administrateur</h1>
-        <p className="dashboard-subtitle">
-          Vue d'ensemble sur projets et les performances
-        </p>
+      {/* Modern Header with Gradient */}
+      <div className="dashboard-modern-header">
+        <div className="header-glass-card">
+          <div className="header-content-wrapper">
+            <div className="header-text-section">
+              <div className="greeting-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="sparkles-icon">
+                  <path d="M12 1L9 9l-8 3 8 3 3 8 3-8 8-3-8-3-3-8z"/>
+                </svg>
+                <span>Tableau de Bord Administrateur</span>
+              </div>
+              <h1 className="modern-welcome-title">
+                Bonjour, <span className="username-highlight">{user?.full_name || 'Administrateur'}</span>
+              </h1>
+              <p className="modern-welcome-subtitle">
+                Vue d'ensemble sur projets et les performances
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <MarketTicker />
 
       <div className="dashboard-main-content">
         <DashboardCalendar projects={projects} />
         <DashboardTasks projects={projects} />
       </div>
-
-      {/* ✅ MOVE TICKER HERE */}
-      <MarketTicker />
 
       <DashboardStats projects={projects} />
       <DashboardGraphs projects={projects} userRole="admin" />

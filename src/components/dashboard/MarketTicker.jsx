@@ -114,7 +114,7 @@ const MarketTicker = () => {
   return (
     <div className="market-ticker-container">
       <div className="ticker-header">
-        <span className="ticker-title"><BarChart /> Données du Marché - Tunisie 2025</span>
+        <span className="ticker-title"><BarChart /> Données du Marché - 2025</span>
         <span className="ticker-live">
           <span className="live-dot"></span>
           EN DIRECT

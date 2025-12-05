@@ -1,7 +1,7 @@
-# TODO: Replace Emojis with Icons in MarketTicker
+# TODO: Add Welcoming Page to Admin Dashboard
 
-- [x] Import relevant icons from @mui/icons-material (BuildIcon, LayersIcon, LandscapeIcon, BarChartIcon)
-- [x] Replace construction emoji 🏗️ with BuildIcon in ticker items
-- [x] Replace materials emoji 🧱 with LayersIcon in ticker items
-- [x] Replace land emoji 🏞️ with LandscapeIcon in ticker items
-- [x] Replace market data emoji 📊 with BarChartIcon in loading state and header
+## Tasks
+- [x] Modify `src/pages/DashboardPage.jsx` to add a welcome section in the `renderAdminDashboard` function, right after the `dashboard-header`.
+- [x] Add basic styling in `src/pages/DashboardPage.css` for the welcome section to make it visually appealing.
+- [x] Test the dashboard to ensure the welcome message displays correctly.
+- [x] Adjust styling if needed for better integration.

@@ -1,12 +1,12 @@
 /* ========================================
-   MARKET TICKER - NAVY BLUE THEME
+   MARKET TICKER - LIGHT THEME
    ======================================== */
 
 .market-ticker-container {
   width: 100%;
-  background: linear-gradient(135deg, #07315c 0%, #0d4a73 50%, #1c91af 100%);
+  background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(7, 49, 92, 0.3);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin-bottom: 2rem;
   overflow: hidden;
   position: relative;
@@ -18,14 +18,14 @@
   justify-content: space-between;
   align-items: center;
   padding: 12px 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(7, 49, 92, 0.1);
+  border-bottom: 1px solid rgba(7, 49, 92, 0.2);
 }
 
 .ticker-title {
   font-size: 14px;
   font-weight: 700;
-  color: white;
+  color: #07315c;
   text-transform: uppercase;
   letter-spacing: 1px;
   display: flex;
@@ -39,7 +39,7 @@
   gap: 6px;
   font-size: 11px;
   font-weight: 600;
-  color: #10b981;
+  color: #07315c;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -47,10 +47,10 @@
 .live-dot {
   width: 8px;
   height: 8px;
-  background: #10b981;
+  background: #960c0c;
   border-radius: 50%;
   animation: pulse-dot 2s ease-in-out infinite;
-  box-shadow: 0 0 10px #10b981;
+  box-shadow: 0 0 10px #07315c;
 }
 
 @keyframes pulse-dot {
@@ -69,7 +69,7 @@
   position: relative;
   overflow: hidden;
   height: 60px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(7, 49, 92, 0.05);
 }
 
 .ticker-content {
@@ -107,28 +107,29 @@
 }
 
 .ticker-item:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(7, 49, 92, 0.1);
 }
 
 .ticker-icon {
   font-size: 20px;
-  filter: drop-shadow(0 0 4px rgba(255, 255, 255, 0.3));
+  color: #07315c;
+  filter: drop-shadow(0 0 4px rgba(7, 49, 92, 0.3));
 }
 
 .ticker-label {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: #07315c;
 }
 
 .ticker-value {
   font-size: 15px;
   font-weight: 700;
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+  color: #07315c;
+  background: rgba(7, 49, 92, 0.1);
   padding: 4px 10px;
   border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(7, 49, 92, 0.2);
 }
 
 .ticker-badge {
@@ -141,21 +142,21 @@
 }
 
 .ticker-badge.construction {
-  background: rgba(59, 130, 246, 0.3);
-  color: #93c5fd;
-  border: 1px solid rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+  border: 1px solid rgba(59, 130, 246, 0.4);
 }
 
 .ticker-badge.material {
-  background: rgba(245, 158, 11, 0.3);
-  color: #fcd34d;
-  border: 1px solid rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.2);
+  color: #92400e;
+  border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
 .ticker-badge.land {
-  background: rgba(16, 185, 129, 0.3);
-  color: #6ee7b7;
-  border: 1px solid rgba(16, 185, 129, 0.5);
+  background: rgba(16, 185, 129, 0.2);
+  color: #065f46;
+  border: 1px solid rgba(16, 185, 129, 0.4);
 }
 
 /* Loading State */
@@ -166,7 +167,7 @@
   gap: 12px;
   width: 100%;
   height: 100%;
-  color: rgba(255, 255, 255, 0.7);
+  color: #07315c;
   font-size: 13px;
   font-weight: 500;
 }
@@ -180,7 +181,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
+  background: #07315c;
   animation: pulse 1.4s ease-in-out infinite;
 }
 
