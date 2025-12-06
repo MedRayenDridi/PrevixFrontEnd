@@ -1,7 +1,9 @@
 /* ========================================
-   ENHANCED PROJECT LIST - NAVY BLUE THEME
+   PROJECT LIST - COMPLETE STYLES
+   Navy Blue Theme
    ======================================== */
 
+/* Base Container */
 .project-list-container {
   max-width: 1400px;
   margin: 0 auto;
@@ -13,7 +15,7 @@
 }
 
 /* ========================================
-   HEADER
+   HEADER SECTION
    ======================================== */
 
 .project-list-header {
@@ -91,6 +93,11 @@
   transform: translateY(0);
 }
 
+.btn-primary svg {
+  width: 18px;
+  height: 18px;
+}
+
 .btn-danger {
   background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
   color: white;
@@ -101,6 +108,11 @@
 .btn-danger:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+}
+
+.btn-danger svg {
+  width: 18px;
+  height: 18px;
 }
 
 .btn-clear-filters {
@@ -119,52 +131,6 @@
 .btn-clear-filters svg {
   width: 16px;
   height: 16px;
-}
-
-/* Icon Buttons */
-.btn-icon {
-  background: transparent;
-  border-radius: 8px;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.btn-view {
-  color: #1c91af;
-}
-
-.btn-view:hover {
-  background: rgba(28, 145, 175, 0.1);
-  transform: scale(1.1);
-}
-
-.btn-edit {
-  color: #10b981;
-}
-
-.btn-edit:hover {
-  background: rgba(16, 185, 129, 0.1);
-  transform: scale(1.1);
-}
-
-.btn-delete {
-  color: #ef4444;
-}
-
-.btn-delete:hover {
-  background: rgba(239, 68, 68, 0.1);
-  transform: scale(1.1);
 }
 
 /* ========================================
@@ -304,6 +270,296 @@
 }
 
 /* ========================================
+   ADMIN CARD VIEW (PRIMARY STYLE)
+   ======================================== */
+
+.projects-grid-admin {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 2rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.project-card-admin {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 1.5rem;
+  border: 1px solid rgba(7, 49, 92, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 100%;
+}
+
+.project-card-admin:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 40px rgba(7, 49, 92, 0.15);
+  border-color: #1c91af;
+}
+
+.project-card-header-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(7, 49, 92, 0.08) 0%, rgba(28, 145, 175, 0.05) 100%);
+  border-bottom: 1px solid rgba(7, 49, 92, 0.1);
+}
+
+.project-header-left-admin {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.project-card-checkbox-admin {
+  flex-shrink: 0;
+}
+
+.project-card-checkbox-admin input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #1c91af;
+}
+
+.project-header-left-admin svg {
+  width: 2rem;
+  height: 2rem;
+  color: #1c91af;
+  flex-shrink: 0;
+}
+
+.project-info-admin {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-title-admin {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #07315c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.project-date-admin {
+  margin: 0.25rem 0 0 0;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.project-header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.btn-view-admin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: rgba(28, 145, 175, 0.1);
+  border: none;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.btn-view-admin:hover {
+  background: rgba(28, 145, 175, 0.2);
+  transform: scale(1.05);
+}
+
+.btn-view-admin svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  color: #1c91af;
+}
+
+.project-card-body-admin {
+  padding: 1.5rem;
+}
+
+.project-description-admin {
+  color: #6b7280;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin: 0 0 1.5rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.project-stats-admin {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.stat-item-admin {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.stat-label-admin {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-value-admin {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #07315c;
+}
+
+.type-badge-admin {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: rgba(28, 145, 175, 0.1);
+  color: #1c91af;
+}
+
+.status-badge-admin {
+  display: inline-block;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.status-badge-admin.status-active {
+  background: rgba(34, 197, 94, 0.1);
+  color: #059669;
+}
+
+.status-badge-admin.status-completed {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.status-badge-admin.status-archived {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+
+.progress-section-admin {
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.progress-header-admin {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.progress-label-admin {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.progress-percent-admin {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1c91af;
+}
+
+.progress-bar-admin {
+  width: 100%;
+  height: 8px;
+  background: rgba(28, 145, 175, 0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-fill-admin {
+  height: 100%;
+  background: linear-gradient(90deg, #1c91af 0%, #07315c 100%);
+  transition: width 0.5s ease;
+  box-shadow: 0 0 10px rgba(28, 145, 175, 0.3);
+}
+
+.project-card-footer-admin {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid rgba(7, 49, 92, 0.1);
+  background: rgba(7, 49, 92, 0.02);
+}
+
+.btn-action-admin {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.75rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-edit-admin {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.btn-edit-admin:hover {
+  background: rgba(16, 185, 129, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-edit-admin svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.btn-delete-admin {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.btn-delete-admin:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-delete-admin svg {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+/* ========================================
    TABLE VIEW
    ======================================== */
 
@@ -395,7 +651,6 @@
   justify-content: center;
 }
 
-/* Checkbox Styling */
 .project-table input[type="checkbox"] {
   width: 18px;
   height: 18px;
@@ -435,7 +690,7 @@
   text-align: right;
 }
 
-/* Status and Type Badges */
+/* Status and Type Badges in Table */
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -470,154 +725,50 @@
   color: #1c91af;
 }
 
-/* ========================================
-   CARDS VIEW
-   ======================================== */
-
-.project-cards-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-.project-card {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 2px solid transparent;
-}
-
-.project-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(28, 145, 175, 0.15);
-  border-color: #1c91af;
-}
-
-.project-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.project-card-checkbox input {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: #1c91af;
-}
-
-.project-card-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.project-card-title {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  color: #07315c;
-  line-height: 1.3;
-}
-
-.project-card-type {
-  display: flex;
-  gap: 8px;
-}
-
-.type-badge {
+/* Icon Buttons in Table */
+.btn-icon {
+  background: transparent;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  background: rgba(28, 145, 175, 0.1);
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-view {
   color: #1c91af;
 }
 
-.project-card-description {
-  font-size: 14px;
-  color: #6b7280;
-  line-height: 1.6;
-  margin: 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+.btn-view:hover {
+  background: rgba(28, 145, 175, 0.1);
+  transform: scale(1.1);
 }
 
-.project-card-meta {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
+.btn-edit {
+  color: #10b981;
 }
 
-.project-card-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+.btn-edit:hover {
+  background: rgba(16, 185, 129, 0.1);
+  transform: scale(1.1);
 }
 
-.progress-label {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 600;
+.btn-delete {
+  color: #ef4444;
 }
 
-.progress-value {
-  color: #07315c;
-  font-weight: 700;
-}
-
-.project-card-progress .progress-bar {
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.project-card-progress .progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #1c91af 0%, #07315c 100%);
-  border-radius: 10px;
-  transition: width 0.6s ease;
-}
-
-.project-card-date {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-}
-
-.date-label {
-  color: #6b7280;
-  font-weight: 600;
-}
-
-.date-value {
-  color: #07315c;
-  font-weight: 600;
-}
-
-.project-card-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-  padding-top: 12px;
-  border-top: 1px solid #f3f4f6;
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.1);
+  transform: scale(1.1);
 }
 
 /* ========================================
@@ -631,6 +782,7 @@
   border-radius: 12px;
   margin-top: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  grid-column: 1 / -1;
 }
 
 .no-projects-icon {
@@ -676,10 +828,10 @@
    ANIMATIONS
    ======================================== */
 
-@keyframes fadeIn {
+@keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -687,25 +839,28 @@
   }
 }
 
-.project-card,
-.project-table tbody tr {
-  animation: fadeIn 0.4s ease-out backwards;
+.project-card-admin {
+  animation: fadeInUp 0.4s ease-out backwards;
 }
 
-.project-card:nth-child(1) { animation-delay: 0.05s; }
-.project-card:nth-child(2) { animation-delay: 0.1s; }
-.project-card:nth-child(3) { animation-delay: 0.15s; }
-.project-card:nth-child(4) { animation-delay: 0.2s; }
-.project-card:nth-child(5) { animation-delay: 0.25s; }
-.project-card:nth-child(6) { animation-delay: 0.3s; }
+.project-card-admin:nth-child(1) { animation-delay: 0.05s; }
+.project-card-admin:nth-child(2) { animation-delay: 0.1s; }
+.project-card-admin:nth-child(3) { animation-delay: 0.15s; }
+.project-card-admin:nth-child(4) { animation-delay: 0.2s; }
+.project-card-admin:nth-child(5) { animation-delay: 0.25s; }
+.project-card-admin:nth-child(6) { animation-delay: 0.3s; }
+
+.project-table tbody tr {
+  animation: fadeInUp 0.3s ease-out backwards;
+}
 
 /* ========================================
    RESPONSIVE DESIGN
    ======================================== */
 
 @media (max-width: 1024px) {
-  .project-cards-container {
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  .projects-grid-admin {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   }
 }
 
@@ -753,6 +908,20 @@
     width: 100%;
   }
 
+  .projects-grid-admin {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .project-stats-admin {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .project-card-footer-admin {
+    flex-direction: column;
+  }
+
   .project-table-container {
     overflow-x: auto;
   }
@@ -766,10 +935,6 @@
     padding: 12px 10px;
   }
 
-  .project-cards-container {
-    grid-template-columns: 1fr;
-  }
-
   .btn-primary,
   .btn-danger {
     padding: 8px 16px;
@@ -778,6 +943,10 @@
 }
 
 @media (max-width: 480px) {
+  .project-list-container {
+    padding: 15px 10px;
+  }
+
   .header-left h1 {
     font-size: 20px;
   }
@@ -791,6 +960,22 @@
     padding: 12px;
   }
 
+  .projects-grid-admin {
+    gap: 1rem;
+  }
+
+  .project-card-header-admin {
+    padding: 1rem;
+  }
+
+  .project-card-body-admin {
+    padding: 1rem;
+  }
+
+  .project-title-admin {
+    font-size: 1.1rem;
+  }
+
   .btn-primary svg,
   .btn-danger svg {
     display: none;
@@ -802,9 +987,10 @@
    ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .project-card,
+  .project-card-admin,
   .project-table tbody tr,
   .progress-fill,
+  .progress-fill-admin,
   button {
     animation: none;
     transition: none;

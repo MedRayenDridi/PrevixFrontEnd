@@ -15,7 +15,13 @@ const ListIcon = () => (
 
 const GridIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
-    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-4 4v8h8v-8h-8zm6 6h-4v-4h4v4z" />
+    <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z" />
+  </svg>
+);
+
+const FolderIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.89 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
   </svg>
 );
 
@@ -73,7 +79,7 @@ const ProjectList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
-  const [viewMode, setViewMode] = useState('table');
+  const [viewMode, setViewMode] = useState('cards'); // Default to cards
   const [selectedProjects, setSelectedProjects] = useState([]);
 
   useEffect(() => {
@@ -137,7 +143,7 @@ const ProjectList = () => {
   };
 
   const getStatusLabel = (status) => {
-    const labels = { active: 'Actif', archived: 'Archivé', completed: 'Complété' };
+    const labels = { active: 'Actif', archived: 'Archivé', completed: 'Terminé' };
     return labels[status] || status;
   };
 
@@ -149,53 +155,90 @@ const ProjectList = () => {
   const activeFiltersCount = [searchTerm, statusFilter, typeFilter].filter(Boolean).length;
 
   const renderProjectCard = (project) => (
-    <div key={project.project_id} className="project-card">
-      <div className="project-card-header">
-        <div className="project-card-checkbox">
-          <input
-            type="checkbox"
-            checked={selectedProjects.includes(project.project_id)}
-            onChange={() => handleSelectProject(project.project_id)}
-          />
-        </div>
-        <span className={`status-badge status-${project.status}`}>
-          {getStatusLabel(project.status)}
-        </span>
-      </div>
-      <div className="project-card-content">
-        <h3 className="project-card-title">{project.name}</h3>
-        <div className="project-card-type">
-          <span className="type-badge">{getTypeLabel(project.type_project)}</span>
-        </div>
-        <p className="project-card-description">{project.description || 'Pas de description'}</p>
-        <div className="project-card-meta">
-          <div className="project-card-progress">
-            <div className="progress-label">
-              <span>Progrès</span>
-              <span className="progress-value">{formatProgress(project.progress)}</span>
-            </div>
-            <div className="progress-bar">
-              <div className="progress-fill" style={{ width: `${project.progress ?? 0}%` }}></div>
-            </div>
+    <div key={project.project_id} className="project-card-admin">
+      <div className="project-card-header-admin">
+        <div className="project-header-left-admin">
+          <div className="project-card-checkbox-admin">
+            <input
+              type="checkbox"
+              checked={selectedProjects.includes(project.project_id)}
+              onChange={() => handleSelectProject(project.project_id)}
+            />
           </div>
-          <div className="project-card-date">
-            <span className="date-label">Échéance</span>
-            <span className="date-value">{formatDate(project.due_date)}</span>
+          <FolderIcon />
+          <div className="project-info-admin">
+            <h3 className="project-title-admin">{project.name}</h3>
+            <p className="project-date-admin">Créé le {formatDate(project.created_at)}</p>
           </div>
         </div>
+        <div className="project-header-actions">
+          <button
+            className="btn-view-admin"
+            onClick={() => handleView(project.project_id)}
+            title="Voir le projet"
+          >
+            <ViewIcon />
+          </button>
+        </div>
       </div>
-      <div className="project-card-actions">
-        <button className="btn-icon btn-view" onClick={() => handleView(project.project_id)} title="Voir le projet">
-          <ViewIcon />
-        </button>
+
+      <div className="project-card-body-admin">
+        <p className="project-description-admin">
+          {project.description || 'Aucune description'}
+        </p>
+
+        <div className="project-stats-admin">
+          <div className="stat-item-admin">
+            <span className="stat-label-admin">Type</span>
+            <span className="stat-value-admin type-badge-admin">{getTypeLabel(project.type_project)}</span>
+          </div>
+          <div className="stat-item-admin">
+            <span className="stat-label-admin">Statut</span>
+            <span className={`stat-value-admin status-badge-admin status-${project.status}`}>
+              {getStatusLabel(project.status)}
+            </span>
+          </div>
+          <div className="stat-item-admin">
+            <span className="stat-label-admin">Échéance</span>
+            <span className="stat-value-admin">{formatDate(project.due_date)}</span>
+          </div>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="progress-section-admin">
+          <div className="progress-header-admin">
+            <span className="progress-label-admin">Progression</span>
+            <span className="progress-percent-admin">{project.progress || 0}%</span>
+          </div>
+          <div className="progress-bar-admin">
+            <div 
+              className="progress-fill-admin" 
+              style={{ width: `${project.progress || 0}%` }}
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="project-card-footer-admin">
         {canEdit(project) && (
-          <button className="btn-icon btn-edit" onClick={() => handleEdit(project.project_id)} title="Modifier">
+          <button
+            className="btn-action-admin btn-edit-admin"
+            onClick={() => handleEdit(project.project_id)}
+            title="Modifier"
+          >
             <EditIcon />
+            <span>Modifier</span>
           </button>
         )}
         {canDelete(project) && (
-          <button className="btn-icon btn-delete" onClick={() => handleDelete(project.project_id)} title="Supprimer">
+          <button
+            className="btn-action-admin btn-delete-admin"
+            onClick={() => handleDelete(project.project_id)}
+            title="Supprimer"
+          >
             <DeleteIcon />
+            <span>Supprimer</span>
           </button>
         )}
       </div>
@@ -287,25 +330,36 @@ const ProjectList = () => {
 
           <div className="view-toggle">
             <button
-              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
-              onClick={() => setViewMode('table')}
-              title="Vue Tableau"
-            >
-              <ListIcon />
-            </button>
-            <button
               className={`view-toggle-btn ${viewMode === 'cards' ? 'active' : ''}`}
               onClick={() => setViewMode('cards')}
               title="Vue Cartes"
             >
               <GridIcon />
             </button>
+            <button
+              className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Vue Tableau"
+            >
+              <ListIcon />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Content */}
-      {viewMode === 'table' ? (
+      {viewMode === 'cards' ? (
+        <div className="projects-grid-admin">
+          {filteredProjects.map(renderProjectCard)}
+          {filteredProjects.length === 0 && (
+            <div className="no-projects">
+              <div className="no-projects-icon">📂</div>
+              <p>Aucun projet trouvé</p>
+              <span className="no-projects-hint">Essayez de modifier vos filtres ou créez un nouveau projet</span>
+            </div>
+          )}
+        </div>
+      ) : (
         <div className="project-table-container">
           <table className="project-table">
             <thead>
@@ -401,17 +455,6 @@ const ProjectList = () => {
               ))}
             </tbody>
           </table>
-          {filteredProjects.length === 0 && (
-            <div className="no-projects">
-              <div className="no-projects-icon">📂</div>
-              <p>Aucun projet trouvé</p>
-              <span className="no-projects-hint">Essayez de modifier vos filtres ou créez un nouveau projet</span>
-            </div>
-          )}
-        </div>
-      ) : (
-        <div className="project-cards-container">
-          {filteredProjects.map(renderProjectCard)}
           {filteredProjects.length === 0 && (
             <div className="no-projects">
               <div className="no-projects-icon">📂</div>

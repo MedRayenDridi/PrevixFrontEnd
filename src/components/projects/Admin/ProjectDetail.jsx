@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useProject } from '../../../context/ProjectContext';
 import { useAuth } from '../../../context/AuthContext';
 import { projectService } from '../../../services/projectService';
-import { adminService, clientProjectService } from '../../../services/api';
+import { adminService, clientProjectService, userService } from '../../../services/api';
+import organizationService from '../../../services/organizationService';
 import { useToast } from '../../common/Toast';
 import AssetDisplay from '../../assets/AssetDisplay';
 import './ProjectDetail.css';
-
 
 // ✅ Icons
 const BackIcon = () => (
@@ -31,6 +31,19 @@ const UploadIcon = () => (
 const DeleteIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
     <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+  </svg>
+);
+
+// ✅ Expand/Collapse Icons
+const ExpandMoreIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M16.59 8.59L12 13.17 7.41 8.59 6 10l6 6 6-6z" />
+  </svg>
+);
+
+const ExpandLessIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z" />
   </svg>
 );
 
@@ -76,7 +89,18 @@ const ProjectDetail = () => {
   const [classificationError, setClassificationError] = useState(null);
   const [classificationSuccess, setClassificationSuccess] = useState(null);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  const [reportGenerating, setReportGenerating] = useState(false); // ✅ NEW: Report loading state
+  const [reportGenerating, setReportGenerating] = useState(false);
+  
+  // ✅ State for organization and users data
+  const [organizationData, setOrganizationData] = useState(null);
+  const [creatorData, setCreatorData] = useState(null);
+  const [orgClients, setOrgClients] = useState([]);
+  const [assignedUsers, setAssignedUsers] = useState([]);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  
+  // ✅ State for expanding clients list
+  const [showAllClients, setShowAllClients] = useState(false);
+  
   const toast = useToast();
 
   useEffect(() => {
@@ -95,6 +119,145 @@ const ProjectDetail = () => {
       fetchProject();
     }
   }, [id, setCurrentProject]);
+
+  // ✅ UPDATED: Enhanced debugging and multiple fallbacks
+  useEffect(() => {
+    const fetchProjectDetails = async () => {
+      if (!currentProject) return;
+      
+      setLoadingDetails(true);
+      try {
+        let allUsers = [];
+        
+        // ✅ Fetch all users
+        try {
+          const usersData = await userService.getAllUsers();
+          allUsers = Array.isArray(usersData) ? usersData : [];
+          console.log('✅ All users fetched:', allUsers.length);
+        } catch (err) {
+          console.error('⚠️ Failed to fetch users, trying alternative method:', err);
+          try {
+            const adminUsers = await adminService.getUsers();
+            allUsers = Array.isArray(adminUsers) ? adminUsers : [];
+            console.log('✅ Admin users fetched:', allUsers.length);
+          } catch (adminErr) {
+            console.error('❌ Failed to fetch users from admin service:', adminErr);
+          }
+        }
+
+        // ✅ ENHANCED: Fetch organization with multiple fallbacks
+        if (currentProject.org_id) {
+          console.log('🔍 Fetching organization for org_id:', currentProject.org_id);
+          try {
+            const orgResponse = await organizationService.getOrganizationById(currentProject.org_id);
+            console.log('🔍 Full Organization Response:', orgResponse);
+            console.log('🔍 Response.success:', orgResponse?.success);
+            console.log('🔍 Response.data:', orgResponse?.data);
+            
+            // ✅ Multiple fallback strategies
+            let orgData = null;
+            
+            if (orgResponse && orgResponse.success && orgResponse.data) {
+              console.log('✅ Strategy 1: Using orgResponse.data');
+              orgData = orgResponse.data;
+            } else if (orgResponse && orgResponse.data && !orgResponse.success) {
+              console.log('✅ Strategy 2: Using orgResponse.data (no success field)');
+              orgData = orgResponse.data;
+            } else if (orgResponse && orgResponse.name) {
+              console.log('✅ Strategy 3: Response is the data itself');
+              orgData = orgResponse;
+            } else if (orgResponse && typeof orgResponse === 'object') {
+              console.log('✅ Strategy 4: Treating response as raw data');
+              orgData = orgResponse;
+            }
+            
+            if (orgData) {
+              console.log('✅ Organization data set:', orgData);
+              console.log('✅ Organization name:', orgData.name || orgData.org_name || orgData.organization_name);
+              setOrganizationData(orgData);
+            } else {
+              console.warn('❌ Could not extract organization data from response');
+            }
+          } catch (err) {
+            console.error('❌ Failed to fetch organization:', err);
+            console.error('❌ Error response:', err.response?.data);
+          }
+          
+          // ✅ Get organization members/clients
+          try {
+            const membersResponse = await organizationService.getOrganizationUsers(currentProject.org_id);
+            console.log('🔍 Organization Members Response:', membersResponse);
+            
+            let members = [];
+            
+            if (membersResponse && membersResponse.success && membersResponse.data) {
+              members = Array.isArray(membersResponse.data) ? membersResponse.data : [];
+            } else if (membersResponse && membersResponse.data) {
+              members = Array.isArray(membersResponse.data) ? membersResponse.data : [];
+            } else if (Array.isArray(membersResponse)) {
+              members = membersResponse;
+            }
+            
+            console.log('🔍 Extracted members:', members);
+            
+            if (members.length > 0) {
+              // Map to full user objects
+              const clientUsers = members.map(member => {
+                // If member already has user details
+                if (member.user_id && (member.email || member.full_name)) {
+                  return member;
+                }
+                // If member only has user_id, find in allUsers
+                if (member.user_id) {
+                  return allUsers.find(u => u.user_id === member.user_id);
+                }
+                // If member has a user object nested
+                if (member.user) {
+                  return member.user;
+                }
+                return null;
+              }).filter(u => u !== null && u !== undefined);
+              
+              setOrgClients(clientUsers);
+              console.log('✅ Organization clients set:', clientUsers.length, clientUsers);
+            } else {
+              console.log('⚠️ No members found for organization');
+            }
+          } catch (err) {
+            console.error('❌ Failed to fetch organization members:', err);
+          }
+        } else {
+          console.warn('⚠️ No org_id in project. Current project:', currentProject);
+        }
+
+        // ✅ Find creator (person who created the project)
+        if (currentProject.created_by && allUsers.length > 0) {
+          const creator = allUsers.find(u => u.user_id === currentProject.created_by);
+          if (creator) {
+            setCreatorData(creator);
+            console.log('✅ Creator found:', creator);
+          } else {
+            console.warn(`⚠️ Creator with ID ${currentProject.created_by} not found in users list`);
+          }
+        }
+
+        // ✅ Find assigned users
+        if (currentProject.assigned_to && Array.isArray(currentProject.assigned_to) && allUsers.length > 0) {
+          const users = currentProject.assigned_to
+            .map(userId => allUsers.find(u => u.user_id === userId))
+            .filter(u => u !== null && u !== undefined);
+          setAssignedUsers(users);
+          console.log('✅ Assigned users set:', users.length, users);
+        }
+      } catch (err) {
+        console.error('❌ Failed to fetch project details:', err);
+      } finally {
+        setLoadingDetails(false);
+      }
+    };
+
+    fetchProjectDetails();
+  }, [currentProject]);
 
   useEffect(() => {
     const fetchFiles = async () => {
@@ -124,7 +287,7 @@ const ProjectDetail = () => {
     if (id && activeTab === 'files') {
       fetchFiles();
     }
-  }, [id, activeTab]);
+  }, [id, activeTab, isAdmin]);
 
   const handleBackToProjects = () => {
     navigate('/projects');
@@ -141,6 +304,7 @@ const ProjectDetail = () => {
         navigate('/projects');
       } catch (err) {
         console.error('Failed to delete project:', err);
+        toast.error('Erreur lors de la suppression du projet');
       }
     }
   };
@@ -149,18 +313,16 @@ const ProjectDetail = () => {
     navigate(`/projects/${id}/upload`);
   };
 
-  // ✅ UPDATED: Enhanced report download handler
   const handleDownloadReport = async (format) => {
     setReportGenerating(true);
     try {
       toast.info(`Génération du rapport ${format.toUpperCase()} en cours...`);
       
-      const blob = await projectService.getProjectReport(id, format);
+      const blob = await projectService.getReport(id, format);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       
-      // Better filename with project name and date
       const timestamp = new Date().toISOString().split('T')[0];
       const projectName = currentProject.name.replace(/[^a-z0-9]/gi, '_').toLowerCase();
       a.download = `rapport_${projectName}_${timestamp}.${format}`;
@@ -185,24 +347,22 @@ const ProjectDetail = () => {
   };
 
   const canEdit = () => {
-    if (user.role === 'admin') return true;
-    if (user.role === 'collaborator') return currentProject?.assigned_to?.includes(user.id);
+    if (!user) return false;
+    if (isAdmin && isAdmin()) return true;
+    if (currentProject?.assigned_to?.includes(user.user_id)) return true;
     return false;
   };
 
   const canDelete = () => {
-    return user.role === 'admin';
+    return isAdmin && isAdmin();
   };
 
   const canUpload = () => {
-    if (user.role === 'admin') return true;
-    if (user.role === 'collaborator') return currentProject?.assigned_to?.includes(user.id);
-    if (user.role === 'client') return currentProject?.client === user.id;
+    if (!user) return false;
+    if (isAdmin && isAdmin()) return true;
+    if (currentProject?.assigned_to?.includes(user.user_id)) return true;
+    if (currentProject?.created_by === user.user_id) return true;
     return false;
-  };
-
-  const getUserName = (userId) => {
-    return `User ${userId}`;
   };
 
   const handleRunClassification = async (fileId) => {
@@ -293,6 +453,21 @@ const ProjectDetail = () => {
       </div>
     );
   }
+
+  // ✅ Calculate how many clients to show initially
+  const MAX_VISIBLE_CLIENTS = 3;
+  const visibleClients = showAllClients ? orgClients : orgClients.slice(0, MAX_VISIBLE_CLIENTS);
+  const hasMoreClients = orgClients.length > MAX_VISIBLE_CLIENTS;
+
+  // ✅ Helper function to get organization name with fallbacks
+  const getOrgName = () => {
+    if (!organizationData) return null;
+    return organizationData.name || 
+           organizationData.org_name || 
+           organizationData.organization_name || 
+           organizationData.company_name || 
+           null;
+  };
 
   return (
     <div className="project-detail-container">
@@ -387,25 +562,114 @@ const ProjectDetail = () => {
                 <p>{formatDate(currentProject.due_date)}</p>
               </div>
 
+              {/* ✅ UPDATED: Organization Display with Debug */}
               <div className="info-card">
-                <h3>Client</h3>
-                <p>{getUserName(currentProject.client)}</p>
+                <h3>Organisation</h3>
+                {loadingDetails ? (
+                  <p className="loading-text">Chargement...</p>
+                ) : getOrgName() ? (
+                  <div className="organization-info">
+                    <p className="org-name">{getOrgName()}</p>
+                    {organizationData.org_type && (
+                      <span className="org-type-badge">{organizationData.org_type}</span>
+                    )}
+                  </div>
+                ) : organizationData ? (
+                  <div className="organization-info">
+                    <p className="org-name">Organisation sans nom</p>
+                    {/* ✅ Debug section */}
+                    <details style={{ marginTop: '10px', fontSize: '0.75rem', color: '#666' }}>
+                      <summary style={{ cursor: 'pointer' }}>🔍 Debug: Voir les données</summary>
+                      <pre style={{ background: '#f5f5f5', padding: '10px', borderRadius: '5px', overflow: 'auto', maxHeight: '200px', fontSize: '0.7rem' }}>
+                        {JSON.stringify(organizationData, null, 2)}
+                      </pre>
+                    </details>
+                  </div>
+                ) : currentProject.org_id ? (
+                  <>
+                    <p>Organisation ID: {currentProject.org_id}</p>
+                    <p style={{ fontSize: '0.85rem', color: '#999', marginTop: '5px' }}>⚠️ Données non chargées - Vérifiez la console (F12)</p>
+                  </>
+                ) : (
+                  <p>Non définie</p>
+                )}
               </div>
 
+              {/* ✅ Creator Display */}
               <div className="info-card">
-                <h3>Assigné à</h3>
-                <div className="assigned-users">
-                  {currentProject.assigned_to?.length > 0 ? (
-                    currentProject.assigned_to.map(userId => (
-                      <span key={userId} className="user-tag">
-                        {getUserName(userId)}
-                      </span>
-                    ))
-                  ) : (
-                    <p>Aucun utilisateur assigné</p>
+                <h3>Créé par</h3>
+                {loadingDetails ? (
+                  <p className="loading-text">Chargement...</p>
+                ) : creatorData ? (
+                  <div className="client-info">
+                    <p className="client-name">{creatorData.full_name}</p>
+                    <p className="client-email">{creatorData.email}</p>
+                  </div>
+                ) : currentProject.created_by ? (
+                  <p>Utilisateur ID: {currentProject.created_by}</p>
+                ) : (
+                  <p>Non défini</p>
+                )}
+              </div>
+
+              {/* ✅ Organization Clients Display with Expand/Collapse */}
+              <div className="info-card">
+                <div className="info-card-header-with-count">
+                  <h3>Clients de l'organisation</h3>
+                  {orgClients.length > 0 && (
+                    <span className="clients-count-badge">{orgClients.length}</span>
                   )}
                 </div>
+                {loadingDetails ? (
+                  <p className="loading-text">Chargement...</p>
+                ) : orgClients.length > 0 ? (
+                  <>
+                    <div className="assigned-users">
+                      {visibleClients.map((client, index) => (
+                        <div key={client.user_id || index} className="user-tag">
+                          <span className="user-name">{client.full_name || client.name}</span>
+                          <span className="user-email">{client.email}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {hasMoreClients && (
+                      <button 
+                        className="btn-show-more"
+                        onClick={() => setShowAllClients(!showAllClients)}
+                      >
+                        {showAllClients ? (
+                          <>
+                            <ExpandLessIcon />
+                            <span>Voir moins</span>
+                          </>
+                        ) : (
+                          <>
+                            <ExpandMoreIcon />
+                            <span>Voir tous ({orgClients.length - MAX_VISIBLE_CLIENTS} de plus)</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </>
+                ) : (
+                  <p>Aucun client dans cette organisation</p>
+                )}
               </div>
+
+              {/* ✅ Assigned Staff/Collaborators Display */}
+              {assignedUsers.length > 0 && (
+                <div className="info-card">
+                  <h3>Personnel assigné</h3>
+                  <div className="assigned-users">
+                    {assignedUsers.map((assignedUser, index) => (
+                      <div key={assignedUser.user_id || index} className="user-tag">
+                        <span className="user-name">{assignedUser.full_name}</span>
+                        <span className="user-email">{assignedUser.email}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="info-card">
                 <h3>Créé le</h3>
@@ -508,7 +772,6 @@ const ProjectDetail = () => {
           <div className="reports-tab tab-panel">
             <h3>Générer des rapports</h3>
             
-            {/* ✅ NEW: Report Summary Card */}
             <div className="report-summary-card">
               <h4>Aperçu du rapport</h4>
               <div className="summary-stats">
@@ -552,28 +815,25 @@ const ProjectDetail = () => {
                 </button>
               </div>
               
-                          <div className="report-card">
-              <div className="report-icon">📊</div>
-              <h4>Rapport Excel</h4>
-              <p>Exportez les données du projet et des actifs au format Excel pour une analyse approfondie.</p>
-              <button
-                className="btn-primary"
-                onClick={() => handleDownloadReport('xlsx')}
-                disabled={reportGenerating}  // ✅ Changed from true
-              >
-                {reportGenerating ? (
-                  <>
-                    <span className="spinner-small"></span>
-                    Génération...
-                  </>
-                ) : (
-                  'Télécharger Excel'
-                )}
-              </button>
-              {/* ❌ Remove this line: */}
-              {/* <span className="badge-coming-soon">Bientôt disponible</span> */}
-            </div>
-
+              <div className="report-card">
+                <div className="report-icon">📊</div>
+                <h4>Rapport Excel</h4>
+                <p>Exportez les données du projet et des actifs au format Excel pour une analyse approfondie.</p>
+                <button
+                  className="btn-primary"
+                  onClick={() => handleDownloadReport('xlsx')}
+                  disabled={reportGenerating}
+                >
+                  {reportGenerating ? (
+                    <>
+                      <span className="spinner-small"></span>
+                      Génération...
+                    </>
+                  ) : (
+                    'Télécharger Excel'
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
