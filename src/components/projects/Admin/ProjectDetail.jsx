@@ -318,7 +318,7 @@ const ProjectDetail = () => {
     try {
       toast.info(`Génération du rapport ${format.toUpperCase()} en cours...`);
       
-      const blob = await projectService.getReport(id, format);
+      const blob = await projectService.getProjectReport(id, format);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
