@@ -55,12 +55,12 @@ export const AssetList = ({ assets }) => {
                     </td>
                     <td className="align-right">
                     <span className="asset-value asset-value-new">
-                      {asset.valeur_neuf.toLocaleString()} €
+                      {asset.valeur_neuf.toLocaleString()} TND
                     </span>
                     </td>
                     <td className="align-right">
                     <span className="asset-value asset-value-depreciated">
-                      {asset.valeur_depreciee.toLocaleString()} €
+                      {asset.valeur_depreciee.toLocaleString()} TND
                     </span>
                     </td>
                     <td className="align-right">

@@ -311,6 +311,36 @@
   transform: translateX(-50%) scale(1);
 }
 
+.notification-dropdown-topnav {
+  position: relative;
+}
+
+.notification-dropdown-topnav .notification-button {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(18, 58, 99, 0.04);
+  border: 1px solid rgba(18, 58, 99, 0.08);
+  border-radius: 12px;
+  color: #123a63;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.notification-dropdown-topnav .notification-button:hover {
+  background: rgba(18, 58, 99, 0.08);
+  border-color: rgba(18, 58, 99, 0.15);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(18, 58, 99, 0.12);
+}
+
+.notification-dropdown-topnav .notification-button svg {
+  width: 20px;
+  height: 20px;
+}
+
 .notification-btn {
   position: relative;
 }

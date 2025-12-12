@@ -445,6 +445,16 @@ export const adminService = {
   },
 
   // Run classification on a file (admin only)
+  getClassificationStatus: async (projectId, fileId) => {
+    try {
+      const response = await api.get(`/admin/projects/${projectId}/files/${fileId}/classification-status`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching classification status:', error);
+      throw error;
+    }
+  },
+
   runClassification: async (projectId, fileId, autoImport = true) => {
     try {
       const response = await api.post(

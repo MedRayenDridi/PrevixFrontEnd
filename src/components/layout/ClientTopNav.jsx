@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { NotificationDropdown } from '../common/NotificationDropdown';
 import './ClientTopNav.css';
 
 // Premium Icons
@@ -203,11 +204,7 @@ export const ClientTopNav = ({ user, onLogout }) => {
           </div>
 
           {/* Notifications */}
-          <button type="button" className="action-button notification-btn">
-            <BellIcon />
-            <span className="notification-dot"></span>
-            <span className="action-tooltip">Notifications</span>
-          </button>
+          <NotificationDropdown className="notification-dropdown-topnav" />
 
           {/* User Menu */}
           <div className="user-menu-wrapper" ref={userMenuRef}>

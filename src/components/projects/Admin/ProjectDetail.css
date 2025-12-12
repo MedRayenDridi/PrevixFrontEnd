@@ -409,6 +409,91 @@
 }
 
 /* ========================================
+   🎯 CLASSIFY BUTTON - Enhanced Design
+   ======================================== */
+.btn-classify {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.3px;
+  box-shadow: 0 3px 12px rgba(28, 145, 175, 0.3);
+  white-space: nowrap;
+}
+
+.btn-classify::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left var(--transition-slow);
+}
+
+.btn-classify:hover::before {
+  left: 100%;
+}
+
+.btn-classify svg {
+  width: 16px;
+  height: 16px;
+  transition: transform var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.btn-classify:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(28, 145, 175, 0.4);
+}
+
+.btn-classify:hover svg {
+  transform: scale(1.15) rotate(5deg);
+}
+
+.btn-classify:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(28, 145, 175, 0.3);
+}
+
+.btn-classify:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 2px 8px rgba(28, 145, 175, 0.2);
+}
+
+.btn-classify:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(28, 145, 175, 0.2);
+}
+
+.btn-classify:disabled svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ========================================
    📑 TABS - Modern Underline Design
    ======================================== */
 .project-tabs {
@@ -798,44 +883,111 @@
 }
 
 /* ========================================
-   📊 TABLES - Professional Design
+   📁 FILES SECTION HEADER
+   ======================================== */
+.files-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid rgba(7, 49, 92, 0.08);
+}
+
+.files-header h3 {
+  margin: 0;
+  color: var(--text-primary);
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.files-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 16px;
+  background: rgba(28, 145, 175, 0.1);
+  color: var(--primary-blue);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(28, 145, 175, 0.2);
+}
+
+/* ========================================
+   📊 TABLES - Professional Enhanced Design
    ======================================== */
 .files-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   margin-top: 24px;
   background: white;
   border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid rgba(7, 49, 92, 0.08);
 }
 
 .files-table thead {
   background: var(--gradient-primary);
   color: white;
+  position: relative;
+}
+
+.files-table thead::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .files-table th {
-  padding: 18px 24px;
+  padding: 20px 24px;
   text-align: left;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   white-space: nowrap;
+  position: relative;
+}
+
+.files-table th:last-child {
+  text-align: center;
+}
+
+.files-table th:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 25%;
+  height: 50%;
+  width: 1px;
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .files-table td {
-  padding: 18px 24px;
-  border-bottom: 1px solid rgba(7, 49, 92, 0.08);
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(7, 49, 92, 0.06);
   color: var(--text-secondary);
   font-size: 14px;
   font-weight: 500;
+  vertical-align: middle;
 }
 
 .files-table tbody tr {
-  transition: all var(--transition-fast);
+  transition: all var(--transition-normal);
   position: relative;
+  background: white;
 }
 
 .files-table tbody tr::before {
@@ -843,22 +995,44 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 0;
+  width: 4px;
   height: 100%;
-  background: rgba(28, 145, 175, 0.05);
-  transition: width var(--transition-fast);
+  background: var(--gradient-primary);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform var(--transition-normal);
 }
 
 .files-table tbody tr:hover::before {
-  width: 100%;
+  transform: scaleY(1);
 }
 
 .files-table tbody tr:hover {
-  background: rgba(28, 145, 175, 0.02);
+  background: rgba(28, 145, 175, 0.03);
+  transform: translateX(4px);
+  box-shadow: -4px 0 12px rgba(28, 145, 175, 0.1);
 }
 
 .files-table tbody tr:last-child td {
   border-bottom: none;
+}
+
+.files-table tbody tr td:first-child {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.files-table tbody tr td:last-child {
+  text-align: center;
+}
+
+/* File type badge styling */
+.files-table td:nth-child(2) {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
 }
 
 /* ========================================
@@ -966,11 +1140,30 @@
 }
 
 .report-icon {
-  font-size: 56px;
-  margin-bottom: 20px;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  color: var(--primary-blue);
+  filter: drop-shadow(0 4px 12px rgba(28, 145, 175, 0.25));
   position: relative;
   z-index: 1;
+  transition: all var(--transition-normal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.report-icon svg {
+  width: 100%;
+  height: 100%;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+}
+
+.report-card:hover .report-icon {
+  transform: scale(1.1) rotate(5deg);
+  filter: drop-shadow(0 6px 16px rgba(28, 145, 175, 0.35));
 }
 
 .report-card h4 {

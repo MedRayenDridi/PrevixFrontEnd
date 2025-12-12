@@ -50,6 +50,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 0 32px;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
   height: 100%;
   padding: 0 32px;
   gap: 20px;
@@ -89,6 +93,12 @@
 /* ========================================
    USER MENU - FIXED
    ======================================== */
+
+.admin-appbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
 .admin-user-menu {
   position: relative;

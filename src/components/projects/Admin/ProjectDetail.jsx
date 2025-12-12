@@ -7,6 +7,7 @@ import { adminService, clientProjectService, userService } from '../../../servic
 import organizationService from '../../../services/organizationService';
 import { useToast } from '../../common/Toast';
 import AssetDisplay from '../../assets/AssetDisplay';
+import ClassificationLoading from '../../animation/ClassificationLoading';
 import './ProjectDetail.css';
 
 // ✅ Icons
@@ -373,7 +374,13 @@ const ProjectDetail = () => {
     try {
       const result = await adminService.runClassification(id, fileId, true);
       
-      if (result.status === 'ok') {
+      // Don't close the loading screen here - let ClassificationLoading component handle it
+      // The component will poll for status and show results/errors
+      if (result.status === 'processing') {
+        // Classification started in background, loading screen will poll for status
+        toast.info('Classification démarrée. Suivi en cours...');
+      } else if (result.status === 'ok') {
+        // This shouldn't happen as classification runs in background, but handle it anyway
         const summary = result.mapping_summary;
         const importStats = result.import_stats;
         
@@ -390,8 +397,10 @@ const ProjectDetail = () => {
         const files = await adminService.getProjectFiles(id);
         setProjectFiles(files);
       } else {
+        // Error occurred, but keep loading screen open so user can see details
         setClassificationError('Une erreur est survenue pendant la classification.');
         toast.error('Erreur pendant la classification');
+        // Don't close - let user see the error in the loading screen
       }
     } catch (err) {
       const errorMsg = err.response?.data?.detail || 
@@ -399,9 +408,10 @@ const ProjectDetail = () => {
                       'Une erreur est survenue pendant la classification.';
       setClassificationError(errorMsg);
       toast.error(errorMsg);
-    } finally {
-      setClassifyingFileId(null);
+      // Don't close - let user see the error in the loading screen
+      // The ClassificationLoading component will handle displaying the error
     }
+    // Removed finally block - let ClassificationLoading component manage when to close
   };
 
   const getStatusLabel = (status) => {
@@ -681,13 +691,18 @@ const ProjectDetail = () => {
 
         {activeTab === 'assets' && (
           <div className="tab-panel">
-            <AssetDisplay projectId={id} />
+            <AssetDisplay projectId={id} isAdminUser={isAdmin && isAdmin()} />
           </div>
         )}
 
         {activeTab === 'files' && (
           <div className="files-tab tab-panel">
-            <h3>Fichiers du projet</h3>
+            <div className="files-header">
+              <h3>Fichiers du projet</h3>
+              {projectFiles.length > 0 && (
+                <span className="files-count">{projectFiles.length} fichier{projectFiles.length > 1 ? 's' : ''}</span>
+              )}
+            </div>
             
             {classificationError && (
               <div className="alert alert-error">
@@ -746,7 +761,7 @@ const ProjectDetail = () => {
                       <td>
                         {isAdmin && isAdmin() && (
                           <button
-                            className="btn-primary btn-sm"
+                            className="btn-classify"
                             onClick={() => handleRunClassification(file.file_id)}
                             disabled={
                               classifyingFileId === file.file_id ||
@@ -754,9 +769,15 @@ const ProjectDetail = () => {
                               file.processing_status === 'completed'
                             }
                           >
-                            {classifyingFileId === file.file_id
-                              ? 'Classification...'
-                              : 'Classifier'}
+                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M9 11L12 14L22 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              <path d="M21 12V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <span>
+                              {classifyingFileId === file.file_id
+                                ? 'Classification...'
+                                : 'Classifier'}
+                            </span>
                           </button>
                         )}
                       </td>
@@ -796,7 +817,15 @@ const ProjectDetail = () => {
 
             <div className="report-options">
               <div className="report-card">
-                <div className="report-icon">📄</div>
+                <div className="report-icon">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V8L14 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14 2V8H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16 13H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M16 17H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M10 9H9H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
                 <h4>Rapport PDF</h4>
                 <p>Générez un rapport PDF complet avec tous les détails du projet et des actifs.</p>
                 <button
@@ -816,7 +845,15 @@ const ProjectDetail = () => {
               </div>
               
               <div className="report-card">
-                <div className="report-icon">📊</div>
+                <div className="report-icon">
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 2H6C5.46957 2 4.96086 2.21071 4.58579 2.58579C4.21071 2.96086 4 3.46957 4 4V20C4 20.5304 4.21071 21.0391 4.58579 21.4142C4.96086 21.7893 5.46957 22 6 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V4C20 3.46957 19.7893 2.96086 19.4142 2.58579C19.0391 2.21071 18.5304 2 18 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 6H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M8 10H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M8 14H12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                    <path d="M8 18H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                </div>
                 <h4>Rapport Excel</h4>
                 <p>Exportez les données du projet et des actifs au format Excel pour une analyse approfondie.</p>
                 <button
@@ -838,6 +875,18 @@ const ProjectDetail = () => {
           </div>
         )}
       </div>
+      
+      {/* Classification Loading Screen */}
+      <ClassificationLoading 
+        isVisible={classifyingFileId !== null} 
+        onClose={() => {
+          setClassifyingFileId(null);
+          // Refresh files list after classification
+          loadProjectFiles();
+        }}
+        projectId={id}
+        fileId={classifyingFileId}
+      />
     </div>
   );
 };

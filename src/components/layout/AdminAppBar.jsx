@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { NotificationDropdown } from '../common/NotificationDropdown';
 import './AdminAppBar.css';
 
 const PersonIcon = () => (
@@ -76,6 +77,10 @@ export const AdminAppBar = ({ sidebarExpanded, user, onLogout }) => {
             <img src="/Logo-Prevex-Africa.png" alt="Prev-IX Logo" className="admin-app-logo" />
             <span className="admin-app-title-glow"></span>
            </h1>
+
+        <div className="admin-appbar-actions">
+          <NotificationDropdown />
+        </div>
 
         <div className="admin-user-menu" ref={userMenuRef}>
           <button 

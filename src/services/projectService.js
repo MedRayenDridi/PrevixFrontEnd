@@ -279,6 +279,49 @@ getProjectAssets: async (projectId) => {
   }
 },
 
+  // PDF extracted items
+  getPdfItems: async (projectId, includeRemoved = false) => {
+    const response = await api.get(`/pdf/projects/${projectId}/items`, {
+      params: { include_removed: includeRemoved }
+    });
+    return response.data;
+  },
+
+  confirmPdfItems: async (projectId, fileId, keptImages, keptContent) => {
+    const response = await api.post(
+      `/pdf/projects/${projectId}/files/${fileId}/items/confirm`,
+      {
+        keptImages,
+        keptContent,
+      }
+    );
+    return response.data;
+  },
+
+  deletePdfImage: async (projectId, fileId, imageName) => {
+    const response = await api.delete(
+      `/pdf/projects/${projectId}/files/${fileId}/items/image/${imageName}`
+    );
+    return response.data;
+  },
+
+  deletePdfContent: async (projectId, fileId, contentName) => {
+    const response = await api.delete(
+      `/pdf/projects/${projectId}/files/${fileId}/items/content/${contentName}`
+    );
+    return response.data;
+  },
+
+  // AutoCAD extracted items
+  getAutocadItems: async (projectId) => {
+    const response = await api.get(`/ezdxf/projects/${projectId}/items`);
+    return response.data;
+  },
+  getAutocadMetadata: async (projectId, fileId) => {
+    const response = await api.get(`/ezdxf/projects/${projectId}/files/${fileId}/metadata`);
+    return response.data;
+  },
+
   // Get project report
   getReport: async (projectId, format = 'pdf') => {
     try {
