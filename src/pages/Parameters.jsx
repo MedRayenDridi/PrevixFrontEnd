@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import './Parameters.css';
 
@@ -85,16 +85,38 @@ const TableSkeleton = () => (
 );
 
 export const Parameters = () => {
-  const [activeTab, setActiveTab] = useState('quality');
+  const [activeTab, setActiveTab] = useState('wear');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
   // Data states
-  const [qualityGrades, setQualityGrades] = useState([]);
-  const [vetustGrades, setVetustGrades] = useState([]);
-  const [riskWeightings, setRiskWeightings] = useState([]);
-  const [rouxCoefficients, setRouxCoefficients] = useState([]);
+  const [wearCoefficients, setWearCoefficients] = useState([]);
+  const [allWearCoefficients, setAllWearCoefficients] = useState([]); // Store all data
+  const [constructionCosts, setConstructionCosts] = useState([]);
+  const [allConstructionCosts, setAllConstructionCosts] = useState([]); // Store all data
+  
+  // Construction cost calculation states
+  const [calculationForm, setCalculationForm] = useState({
+    surface: '',
+    category: 'Residential',
+    constructionType: '',
+    structure: '',
+    envelope: '',
+    selectedCost: null
+  });
+  const [calculationResults, setCalculationResults] = useState(null);
+  
+  // Filter states for wear coefficients
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [selectedMaintenanceState, setSelectedMaintenanceState] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  
+  // Filter states for construction costs
+  const [selectedCostCategory, setSelectedCostCategory] = useState('');
+  const [searchCostTerm, setSearchCostTerm] = useState('');
+  const [debouncedSearchCostTerm, setDebouncedSearchCostTerm] = useState('');
 
   // Edit mode states
   const [editingId, setEditingId] = useState(null);
@@ -103,7 +125,107 @@ export const Parameters = () => {
 
   useEffect(() => {
     fetchData();
+    // Reset filters when switching tabs
+    setSelectedCategory('');
+    setSelectedMaintenanceState('');
+    setSearchTerm('');
+    setDebouncedSearchTerm('');
+    setSelectedCostCategory('');
+    setSearchCostTerm('');
+    setDebouncedSearchCostTerm('');
+    setEditingId(null);
+    setIsAdding(false);
+    setEditForm({});
   }, [activeTab]);
+
+  // Debounce search term (wait 1.5 seconds after user stops typing)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Debounce search term for construction costs (wait 1.5 seconds after user stops typing)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchCostTerm(searchCostTerm);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, [searchCostTerm]);
+
+  // Update selectedCost when construction form selections change
+  useEffect(() => {
+    if (activeTab !== 'construction') return;
+
+    const matchingCost = calculationForm.constructionType && calculationForm.structure && calculationForm.envelope
+      ? allConstructionCosts.find(c => 
+          c.category === calculationForm.category &&
+          c.construction_type === calculationForm.constructionType &&
+          c.structure === calculationForm.structure &&
+          c.envelope === calculationForm.envelope
+        )
+      : null;
+
+    if (matchingCost && matchingCost !== calculationForm.selectedCost) {
+      setCalculationForm(prev => ({ ...prev, selectedCost: matchingCost }));
+    } else if (!matchingCost && calculationForm.selectedCost) {
+      setCalculationForm(prev => ({ ...prev, selectedCost: null }));
+    }
+  }, [calculationForm.category, calculationForm.constructionType, calculationForm.structure, calculationForm.envelope, allConstructionCosts, activeTab]);
+
+  // Filter coefficients based on selected filters and search term
+  useEffect(() => {
+    let filtered = [...allWearCoefficients];
+
+    // Filter by category
+    if (selectedCategory) {
+      filtered = filtered.filter(wear => wear.equipment_category === selectedCategory);
+    }
+
+    // Filter by maintenance state
+    if (selectedMaintenanceState) {
+      filtered = filtered.filter(wear => wear.maintenance_state === selectedMaintenanceState);
+    }
+
+    // Filter by search term (search in category, subcategory, and notes)
+    if (debouncedSearchTerm) {
+      const searchLower = debouncedSearchTerm.toLowerCase();
+      filtered = filtered.filter(wear => 
+        (wear.equipment_category && wear.equipment_category.toLowerCase().includes(searchLower)) ||
+        (wear.equipment_subcategory && wear.equipment_subcategory.toLowerCase().includes(searchLower)) ||
+        (wear.notes && wear.notes.toLowerCase().includes(searchLower))
+      );
+    }
+
+    setWearCoefficients(filtered);
+  }, [selectedCategory, selectedMaintenanceState, debouncedSearchTerm, allWearCoefficients]);
+
+  // Filter construction costs based on selected filters and search term
+  useEffect(() => {
+    let filtered = [...allConstructionCosts];
+
+    // Filter by category
+    if (selectedCostCategory) {
+      filtered = filtered.filter(cost => cost.category === selectedCostCategory);
+    }
+
+    // Filter by search term
+    if (debouncedSearchCostTerm) {
+      const searchLower = debouncedSearchCostTerm.toLowerCase();
+      filtered = filtered.filter(cost => 
+        (cost.construction_type && cost.construction_type.toLowerCase().includes(searchLower)) ||
+        (cost.structure && cost.structure.toLowerCase().includes(searchLower)) ||
+        (cost.envelope && cost.envelope.toLowerCase().includes(searchLower)) ||
+        (cost.technical_lots && cost.technical_lots.toLowerCase().includes(searchLower)) ||
+        (cost.security && cost.security.toLowerCase().includes(searchLower))
+      );
+    }
+
+    setConstructionCosts(filtered);
+  }, [selectedCostCategory, debouncedSearchCostTerm, allConstructionCosts]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -112,25 +234,14 @@ export const Parameters = () => {
       const token = localStorage.getItem('access_token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      switch (activeTab) {
-        case 'quality':
-          const qRes = await axios.get(`${API_BASE_URL}/parameters/quality-grades`, config);
-          setQualityGrades(qRes.data);
-          break;
-        case 'vetust':
-          const vRes = await axios.get(`${API_BASE_URL}/parameters/vetust-grades`, config);
-          setVetustGrades(vRes.data);
-          break;
-        case 'risk':
-          const rRes = await axios.get(`${API_BASE_URL}/parameters/risk-weightings`, config);
-          setRiskWeightings(rRes.data);
-          break;
-        case 'roux':
-          const rouxRes = await axios.get(`${API_BASE_URL}/parameters/roux-coefficients`, config);
-          setRouxCoefficients(rouxRes.data);
-          break;
-        default:
-          break;
+      if (activeTab === 'wear') {
+        const wearRes = await axios.get(`${API_BASE_URL}/parameters/wear-coefficients`, config);
+        setAllWearCoefficients(wearRes.data);
+        setWearCoefficients(wearRes.data);
+      } else if (activeTab === 'construction') {
+        const costRes = await axios.get(`${API_BASE_URL}/parameters/construction-costs`, config);
+        setAllConstructionCosts(costRes.data);
+        setConstructionCosts(costRes.data);
       }
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors du chargement des données');
@@ -140,7 +251,7 @@ export const Parameters = () => {
   };
 
   const handleEdit = (item) => {
-    setEditingId(item.grade_id || item.vetust_id || item.weighting_id || item.roux_id);
+    setEditingId(item.wear_id);
     setEditForm(item);
     setIsAdding(false);
   };
@@ -149,72 +260,45 @@ export const Parameters = () => {
     setIsAdding(true);
     setEditingId(null);
     
-    // Initialize form based on active tab
-    switch (activeTab) {
-      case 'quality':
-        setEditForm({ grade_name: '', grade_order: 0, max_value: 0, min_value: 0, note_ponderee: 0, coef_pond: 0 });
-        break;
-      case 'vetust':
-        setEditForm({ grade_name: '', grade_order: 0, max_value: 0, min_value: 0, note_ponderee: 0, coef_pond: 0 });
-        break;
-      case 'risk':
-        setEditForm({ category_name: '', obsolescence: 0, entretien: 0, maintenance: 0, energie: 0, environnement: 0, facteur_humain: 0 });
-        break;
-      case 'roux':
-        setEditForm({ year: new Date().getFullYear(), coef_materiel: 0, coef_batiment: 0 });
-        break;
-      default:
-        break;
-    }
+    // Initialize form for wear coefficients
+    setEditForm({ 
+      equipment_category: '', 
+      equipment_subcategory: '', 
+      age_min: 0, 
+      age_max: null, 
+      maintenance_state: 'bon',
+      coefficient: 0,
+      useful_life_years: null,
+      annual_wear_rate: null,
+      notes: ''
+    });
   };
 
   const handleSave = async () => {
     setLoading(true);
     setError(null);
     setSuccess(null);
-    
+
     try {
       const token = localStorage.getItem('access_token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      if (isAdding) {
-        // Create new
-        switch (activeTab) {
-          case 'quality':
-            await axios.post(`${API_BASE_URL}/api/parameters/quality-grades`, editForm, config);
-            break;
-          case 'vetust':
-            await axios.post(`${API_BASE_URL}/api/parameters/vetust-grades`, editForm, config);
-            break;
-          case 'risk':
-            await axios.post(`${API_BASE_URL}/api/parameters/risk-weightings`, editForm, config);
-            break;
-          case 'roux':
-            await axios.post(`${API_BASE_URL}/api/parameters/roux-coefficients`, editForm, config);
-            break;
-          default:
-            break;
+      if (activeTab === 'wear') {
+        if (isAdding) {
+          await axios.post(`${API_BASE_URL}/parameters/wear-coefficients`, editForm, config);
+          setSuccess('Coefficient d\'usure ajouté avec succès');
+        } else {
+          await axios.put(`${API_BASE_URL}/parameters/wear-coefficients/${editingId}`, editForm, config);
+          setSuccess('Coefficient d\'usure modifié avec succès');
         }
-        setSuccess('Paramètre ajouté avec succès');
-      } else {
-        // Update existing
-        switch (activeTab) {
-          case 'quality':
-            await axios.put(`${API_BASE_URL}/api/parameters/quality-grades/${editingId}`, editForm, config);
-            break;
-          case 'vetust':
-            await axios.put(`${API_BASE_URL}/api/parameters/vetust-grades/${editingId}`, editForm, config);
-            break;
-          case 'risk':
-            await axios.put(`${API_BASE_URL}/api/parameters/risk-weightings/${editingId}`, editForm, config);
-            break;
-          case 'roux':
-            await axios.put(`${API_BASE_URL}/api/parameters/roux-coefficients/${editForm.year}`, editForm, config);
-            break;
-          default:
-            break;
+      } else if (activeTab === 'construction') {
+        if (isAdding) {
+          await axios.post(`${API_BASE_URL}/parameters/construction-costs`, editForm, config);
+          setSuccess('Coût de construction ajouté avec succès');
+        } else {
+          await axios.put(`${API_BASE_URL}/parameters/construction-costs/${editingId}`, editForm, config);
+          setSuccess('Coût de construction modifié avec succès');
         }
-        setSuccess('Paramètre mis à jour avec succès');
       }
 
       setEditingId(null);
@@ -239,24 +323,13 @@ export const Parameters = () => {
       const token = localStorage.getItem('access_token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      switch (activeTab) {
-        case 'quality':
-          await axios.delete(`${API_BASE_URL}/api/parameters/quality-grades/${id}`, config);
-          break;
-        case 'vetust':
-          await axios.delete(`${API_BASE_URL}/api/parameters/vetust-grades/${id}`, config);
-          break;
-        case 'risk':
-          await axios.delete(`${API_BASE_URL}/api/parameters/risk-weightings/${id}`, config);
-          break;
-        case 'roux':
-          await axios.delete(`${API_BASE_URL}/api/parameters/roux-coefficients/${id}`, config);
-          break;
-        default:
-          break;
+      if (activeTab === 'wear') {
+        await axios.delete(`${API_BASE_URL}/parameters/wear-coefficients/${id}`, config);
+        setSuccess('Coefficient d\'usure supprimé avec succès');
+      } else if (activeTab === 'construction') {
+        await axios.delete(`${API_BASE_URL}/parameters/construction-costs/${id}`, config);
+        setSuccess('Coût de construction supprimé avec succès');
       }
-
-      setSuccess('Paramètre supprimé avec succès');
       fetchData();
     } catch (err) {
       setError(err.response?.data?.detail || 'Erreur lors de la suppression');
@@ -271,264 +344,525 @@ export const Parameters = () => {
     setEditForm({});
   };
 
-  const renderTable = () => {
-    switch (activeTab) {
-      case 'quality':
-        return renderQualityGradesTable();
-      case 'vetust':
-        return renderVetustGradesTable();
-      case 'risk':
-        return renderRiskWeightingsTable();
-      case 'roux':
-        return renderRouxCoefficientsTable();
-      default:
-        return null;
+  const handleCalculate = () => {
+    if (!calculationForm.surface || !calculationForm.selectedCost) {
+      setError('Veuillez remplir tous les champs requis et sélectionner un type de construction');
+      return;
     }
+
+    const surface = parseFloat(calculationForm.surface);
+    if (isNaN(surface) || surface <= 0) {
+      setError('La surface doit être un nombre positif');
+      return;
+    }
+
+    const cost = calculationForm.selectedCost;
+
+    // Calculate total cost per m² (base cost + additional costs)
+    const calculateTotalPerM2 = (baseCost) => {
+      const studies = parseFloat(cost.cost_studies) || 0;
+      const vrd = parseFloat(cost.cost_vrd) || 0;
+      const fees = parseFloat(cost.cost_fees) || 0;
+      const misc = parseFloat(cost.cost_miscellaneous) || 0;
+      return parseFloat(baseCost) + studies + vrd + fees + misc;
+    };
+
+    // Handle both old (cost_low, cost_standard) and new (cost_bon, cost_haut, cost_luxe) field names
+    const costBon = cost.cost_bon || cost.cost_low || 0;
+    const costHaut = cost.cost_haut || cost.cost_standard || 0;
+    // For luxe, use cost_luxe if available, otherwise calculate as 20% premium over haut
+    const costLuxe = cost.cost_luxe || (costHaut * 1.2);
+
+    const results = {
+      surface: surface,
+      costPerM2: {
+        bon: calculateTotalPerM2(costBon),
+        haut: calculateTotalPerM2(costHaut),
+        luxe: calculateTotalPerM2(costLuxe)
+      },
+      totalCost: {
+        bon: surface * calculateTotalPerM2(costBon),
+        haut: surface * calculateTotalPerM2(costHaut),
+        luxe: surface * calculateTotalPerM2(costLuxe)
+      },
+      details: {
+        studies: parseFloat(cost.cost_studies) || 0,
+        vrd: parseFloat(cost.cost_vrd) || 0,
+        fees: parseFloat(cost.cost_fees) || 0,
+        miscellaneous: parseFloat(cost.cost_miscellaneous) || 0
+      }
+    };
+
+    setCalculationResults(results);
+    setError(null);
+    setSuccess('Calcul effectué avec succès');
   };
 
-  const renderQualityGradesTable = () => (
-    <div className="params-table-container">
-      <table className="params-table">
-        <thead>
-          <tr>
-            <th>Ordre</th>
-            <th>Grade</th>
-            <th>Max</th>
-            <th>Min</th>
-            <th>Note Pondérée</th>
-            <th>Coef. Pond.</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isAdding && (
-            <tr className="edit-row">
-              <td><input type="number" value={editForm.grade_order || ''} onChange={(e) => setEditForm({...editForm, grade_order: parseInt(e.target.value)})} /></td>
-              <td><input type="text" value={editForm.grade_name || ''} onChange={(e) => setEditForm({...editForm, grade_name: e.target.value})} /></td>
-              <td><input type="number" step="0.01" value={editForm.max_value || ''} onChange={(e) => setEditForm({...editForm, max_value: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.01" value={editForm.min_value || ''} onChange={(e) => setEditForm({...editForm, min_value: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.001" value={editForm.note_ponderee || ''} onChange={(e) => setEditForm({...editForm, note_ponderee: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.01" value={editForm.coef_pond || ''} onChange={(e) => setEditForm({...editForm, coef_pond: parseFloat(e.target.value)})} /></td>
-              <td>
-                <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-              </td>
-            </tr>
-          )}
-          {qualityGrades.map(grade => (
-            editingId === grade.grade_id ? (
-              <tr key={grade.grade_id} className="edit-row">
-                <td><input type="number" value={editForm.grade_order || ''} onChange={(e) => setEditForm({...editForm, grade_order: parseInt(e.target.value)})} /></td>
-                <td><input type="text" value={editForm.grade_name || ''} onChange={(e) => setEditForm({...editForm, grade_name: e.target.value})} /></td>
-                <td><input type="number" step="0.01" value={editForm.max_value || ''} onChange={(e) => setEditForm({...editForm, max_value: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.01" value={editForm.min_value || ''} onChange={(e) => setEditForm({...editForm, min_value: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.001" value={editForm.note_ponderee || ''} onChange={(e) => setEditForm({...editForm, note_ponderee: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.01" value={editForm.coef_pond || ''} onChange={(e) => setEditForm({...editForm, coef_pond: parseFloat(e.target.value)})} /></td>
-                <td>
-                  <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                  <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-                </td>
-              </tr>
-            ) : (
-              <tr key={grade.grade_id}>
-                <td>{grade.grade_order}</td>
-                <td>{grade.grade_name}</td>
-                <td>{parseFloat(grade.max_value).toFixed(2)}</td>
-                <td>{parseFloat(grade.min_value).toFixed(2)}</td>
-                <td>{parseFloat(grade.note_ponderee).toFixed(3)}</td>
-                <td>{parseFloat(grade.coef_pond).toFixed(2)}</td>
-                <td>
-                  <button className="btn-icon btn-edit" onClick={() => handleEdit(grade)}><EditIcon /></button>
-                  <button className="btn-icon btn-delete" onClick={() => handleDelete(grade.grade_id)}><DeleteIcon /></button>
-                </td>
-              </tr>
-            )
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  const renderTable = () => {
+    if (activeTab === 'wear') {
+      return renderWearCoefficientsTable();
+    } else if (activeTab === 'construction') {
+      return renderConstructionCostsTable();
+    }
+    return null;
+  };
 
-  const renderVetustGradesTable = () => (
-    <div className="params-table-container">
-      <table className="params-table">
-        <thead>
-          <tr>
-            <th>Ordre</th>
-            <th>Grade</th>
-            <th>Max</th>
-            <th>Min</th>
-            <th>Note Pondérée</th>
-            <th>Coef. Pond.</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isAdding && (
-            <tr className="edit-row">
-              <td><input type="number" value={editForm.grade_order || ''} onChange={(e) => setEditForm({...editForm, grade_order: parseInt(e.target.value)})} /></td>
-              <td><input type="text" value={editForm.grade_name || ''} onChange={(e) => setEditForm({...editForm, grade_name: e.target.value})} /></td>
-              <td><input type="number" step="0.01" value={editForm.max_value || ''} onChange={(e) => setEditForm({...editForm, max_value: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.01" value={editForm.min_value || ''} onChange={(e) => setEditForm({...editForm, min_value: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.001" value={editForm.note_ponderee || ''} onChange={(e) => setEditForm({...editForm, note_ponderee: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.01" value={editForm.coef_pond || ''} onChange={(e) => setEditForm({...editForm, coef_pond: parseFloat(e.target.value)})} /></td>
-              <td>
-                <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-              </td>
-            </tr>
-          )}
-          {vetustGrades.map(grade => (
-            editingId === grade.vetust_id ? (
-              <tr key={grade.vetust_id} className="edit-row">
-                <td><input type="number" value={editForm.grade_order || ''} onChange={(e) => setEditForm({...editForm, grade_order: parseInt(e.target.value)})} /></td>
-                <td><input type="text" value={editForm.grade_name || ''} onChange={(e) => setEditForm({...editForm, grade_name: e.target.value})} /></td>
-                <td><input type="number" step="0.01" value={editForm.max_value || ''} onChange={(e) => setEditForm({...editForm, max_value: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.01" value={editForm.min_value || ''} onChange={(e) => setEditForm({...editForm, min_value: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.001" value={editForm.note_ponderee || ''} onChange={(e) => setEditForm({...editForm, note_ponderee: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.01" value={editForm.coef_pond || ''} onChange={(e) => setEditForm({...editForm, coef_pond: parseFloat(e.target.value)})} /></td>
-                <td>
-                  <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                  <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-                </td>
-              </tr>
-            ) : (
-              <tr key={grade.vetust_id}>
-                <td>{grade.grade_order}</td>
-                <td>{grade.grade_name}</td>
-                <td>{grade.max_value ? parseFloat(grade.max_value).toFixed(2) : '-'}</td>
-                <td>{grade.min_value ? parseFloat(grade.min_value).toFixed(2) : '-'}</td>
-                <td>{grade.note_ponderee ? parseFloat(grade.note_ponderee).toFixed(3) : '-'}</td>
-                <td>{parseFloat(grade.coef_pond).toFixed(2)}</td>
-                <td>
-                  <button className="btn-icon btn-edit" onClick={() => handleEdit(grade)}><EditIcon /></button>
-                  <button className="btn-icon btn-delete" onClick={() => handleDelete(grade.vetust_id)}><DeleteIcon /></button>
-                </td>
-              </tr>
-            )
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+  const renderWearCoefficientsTable = () => {
+    // Group coefficients by category
+    const groupedByCategory = wearCoefficients.reduce((acc, wear) => {
+      const category = wear.equipment_category || 'Autres';
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(wear);
+      return acc;
+    }, {});
 
-  const renderRiskWeightingsTable = () => (
-    <div className="params-table-container params-risk-table">
-      <table className="params-table">
-        <thead>
-          <tr>
-            <th>Catégorie</th>
-            <th>Obsolescence</th>
-            <th>Entretien</th>
-            <th>Maintenance</th>
-            <th>Énergie</th>
-            <th>Environnement</th>
-            <th>Facteur Humain</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isAdding && (
-            <tr className="edit-row">
-              <td><input type="text" value={editForm.category_name || ''} onChange={(e) => setEditForm({...editForm, category_name: e.target.value})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.obsolescence || ''} onChange={(e) => setEditForm({...editForm, obsolescence: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.entretien || ''} onChange={(e) => setEditForm({...editForm, entretien: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.maintenance || ''} onChange={(e) => setEditForm({...editForm, maintenance: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.energie || ''} onChange={(e) => setEditForm({...editForm, energie: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.environnement || ''} onChange={(e) => setEditForm({...editForm, environnement: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.facteur_humain || ''} onChange={(e) => setEditForm({...editForm, facteur_humain: parseFloat(e.target.value)})} /></td>
-              <td>
-                <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-              </td>
-            </tr>
-          )}
-          {riskWeightings.map(risk => (
-            editingId === risk.weighting_id ? (
-              <tr key={risk.weighting_id} className="edit-row">
-                <td><input type="text" value={editForm.category_name || ''} onChange={(e) => setEditForm({...editForm, category_name: e.target.value})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.obsolescence || ''} onChange={(e) => setEditForm({...editForm, obsolescence: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.entretien || ''} onChange={(e) => setEditForm({...editForm, entretien: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.maintenance || ''} onChange={(e) => setEditForm({...editForm, maintenance: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.energie || ''} onChange={(e) => setEditForm({...editForm, energie: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.environnement || ''} onChange={(e) => setEditForm({...editForm, environnement: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.facteur_humain || ''} onChange={(e) => setEditForm({...editForm, facteur_humain: parseFloat(e.target.value)})} /></td>
-                <td>
-                  <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                  <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-                </td>
-              </tr>
-            ) : (
-              <tr key={risk.weighting_id}>
-                <td>{risk.category_name}</td>
-                <td>{parseFloat(risk.obsolescence).toFixed(6)}</td>
-                <td>{parseFloat(risk.entretien).toFixed(6)}</td>
-                <td>{parseFloat(risk.maintenance).toFixed(6)}</td>
-                <td>{parseFloat(risk.energie).toFixed(6)}</td>
-                <td>{parseFloat(risk.environnement).toFixed(6)}</td>
-                <td>{parseFloat(risk.facteur_humain).toFixed(6)}</td>
-                <td>
-                  <button className="btn-icon btn-edit" onClick={() => handleEdit(risk)}><EditIcon /></button>
-                  <button className="btn-icon btn-delete" onClick={() => handleDelete(risk.weighting_id)}><DeleteIcon /></button>
-                </td>
-              </tr>
-            )
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+    // Group each category by subcategory
+    const groupBySubcategory = (items) => {
+      return items.reduce((acc, wear) => {
+        const subcategory = wear.equipment_subcategory || 'Général';
+        if (!acc[subcategory]) {
+          acc[subcategory] = [];
+        }
+        acc[subcategory].push(wear);
+        return acc;
+      }, {});
+    };
 
-  const renderRouxCoefficientsTable = () => (
-    <div className="params-table-container">
-      <table className="params-table">
-        <thead>
-          <tr>
-            <th>Année</th>
-            <th>Coef. Matériel</th>
-            <th>Coef. Bâtiment</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isAdding && (
-            <tr className="edit-row">
-              <td><input type="number" value={editForm.year || ''} onChange={(e) => setEditForm({...editForm, year: parseInt(e.target.value)})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.coef_materiel || ''} onChange={(e) => setEditForm({...editForm, coef_materiel: parseFloat(e.target.value)})} /></td>
-              <td><input type="number" step="0.000001" value={editForm.coef_batiment || ''} onChange={(e) => setEditForm({...editForm, coef_batiment: parseFloat(e.target.value)})} /></td>
-              <td>
-                <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-              </td>
-            </tr>
-          )}
-          {rouxCoefficients.map(roux => (
-            editingId === roux.roux_id ? (
-              <tr key={roux.roux_id} className="edit-row">
-                <td><input type="number" value={editForm.year || ''} onChange={(e) => setEditForm({...editForm, year: parseInt(e.target.value)})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.coef_materiel || ''} onChange={(e) => setEditForm({...editForm, coef_materiel: parseFloat(e.target.value)})} /></td>
-                <td><input type="number" step="0.000001" value={editForm.coef_batiment || ''} onChange={(e) => setEditForm({...editForm, coef_batiment: parseFloat(e.target.value)})} /></td>
-                <td>
-                  <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
-                  <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
-                </td>
-              </tr>
-            ) : (
-              <tr key={roux.roux_id}>
-                <td>{roux.year}</td>
-                <td>{parseFloat(roux.coef_materiel).toFixed(6)}</td>
-                <td>{parseFloat(roux.coef_batiment).toFixed(6)}</td>
-                <td>
-                  <button className="btn-icon btn-edit" onClick={() => handleEdit(roux)}><EditIcon /></button>
-                  <button className="btn-icon btn-delete" onClick={() => handleDelete(roux.year)}><DeleteIcon /></button>
-                </td>
-              </tr>
-            )
+    // Group by maintenance state
+    const groupByMaintenanceState = (items) => {
+      const states = ['bon', 'moyen', 'mauvais'];
+      const grouped = items.reduce((acc, wear) => {
+        const state = wear.maintenance_state || 'moyen';
+        if (!acc[state]) {
+          acc[state] = [];
+        }
+        acc[state].push(wear);
+        return acc;
+      }, {});
+      
+      // Sort by age_min within each state
+      states.forEach(state => {
+        if (grouped[state]) {
+          grouped[state].sort((a, b) => a.age_min - b.age_min);
+        }
+      });
+      
+      return grouped;
+    };
+
+    const getMaintenanceStateLabel = (state) => {
+      const labels = {
+        'bon': 'Bon Entretien',
+        'moyen': 'Entretien Moyen',
+        'mauvais': 'Mauvais Entretien'
+      };
+      return labels[state] || state;
+    };
+
+    const renderCategoryTable = (category, items) => {
+      const subcategories = groupBySubcategory(items);
+      
+      return (
+        <div key={category} className="wear-category-section">
+          <h3 className="wear-category-title">
+            {category}
+          </h3>
+          
+          {Object.entries(subcategories).map(([subcategory, subItems]) => (
+            <div key={subcategory} className="wear-subcategory-section">
+              {subcategory !== 'Général' && (
+                <h4 className="wear-subcategory-title">
+                  {subcategory}
+                </h4>
+              )}
+              
+              {(() => {
+                const byState = groupByMaintenanceState(subItems);
+                const states = ['bon', 'moyen', 'mauvais'];
+                
+                return states.map(state => {
+                  const stateItems = byState[state] || [];
+                  if (stateItems.length === 0 && !isAdding) return null;
+                  
+                  return (
+                    <div key={state} className={`maintenance-state-section maintenance-state-${state}`}>
+                      <h5 className={`maintenance-state-title maintenance-state-${state}-title`}>
+                        {getMaintenanceStateLabel(state)}
+                      </h5>
+                      
+                      <div className="params-table-container params-wear-table">
+                        <table className="params-table">
+                          <thead>
+                            <tr>
+                              <th>Âge Min</th>
+                              <th>Âge Max</th>
+                              <th>Coefficient</th>
+                              <th>Durée Vie (ans)</th>
+                              <th>Taux Usure Annuel (%)</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {isAdding && editForm.equipment_category === category && editForm.equipment_subcategory === subcategory && editForm.maintenance_state === state && (
+                              <tr className="edit-row">
+                                <td><input type="number" value={editForm.age_min || ''} onChange={(e) => setEditForm({...editForm, age_min: parseInt(e.target.value)})} /></td>
+                                <td><input type="number" value={editForm.age_max || ''} onChange={(e) => setEditForm({...editForm, age_max: e.target.value ? parseInt(e.target.value) : null})} /></td>
+                                <td><input type="number" step="0.0001" value={editForm.coefficient || ''} onChange={(e) => setEditForm({...editForm, coefficient: parseFloat(e.target.value)})} /></td>
+                                <td><input type="number" value={editForm.useful_life_years || ''} onChange={(e) => setEditForm({...editForm, useful_life_years: e.target.value ? parseInt(e.target.value) : null})} /></td>
+                                <td><input type="number" step="0.01" value={editForm.annual_wear_rate || ''} onChange={(e) => setEditForm({...editForm, annual_wear_rate: e.target.value ? parseFloat(e.target.value) : null})} /></td>
+                                <td>
+                                  <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
+                                  <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
+                                </td>
+                              </tr>
+                            )}
+                            {stateItems.map(wear => (
+                              editingId === wear.wear_id ? (
+                                <tr key={wear.wear_id} className="edit-row">
+                                  <td><input type="number" value={editForm.age_min || ''} onChange={(e) => setEditForm({...editForm, age_min: parseInt(e.target.value)})} /></td>
+                                  <td><input type="number" value={editForm.age_max || ''} onChange={(e) => setEditForm({...editForm, age_max: e.target.value ? parseInt(e.target.value) : null})} /></td>
+                                  <td><input type="number" step="0.0001" value={editForm.coefficient || ''} onChange={(e) => setEditForm({...editForm, coefficient: parseFloat(e.target.value)})} /></td>
+                                  <td><input type="number" value={editForm.useful_life_years || ''} onChange={(e) => setEditForm({...editForm, useful_life_years: e.target.value ? parseInt(e.target.value) : null})} /></td>
+                                  <td><input type="number" step="0.01" value={editForm.annual_wear_rate || ''} onChange={(e) => setEditForm({...editForm, annual_wear_rate: e.target.value ? parseFloat(e.target.value) : null})} /></td>
+                                  <td>
+                                    <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
+                                    <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
+                                  </td>
+                                </tr>
+                              ) : (
+                                <tr key={wear.wear_id}>
+                                  <td>{wear.age_min}</td>
+                                  <td>{wear.age_max || '∞'}</td>
+                                  <td>{parseFloat(wear.coefficient).toFixed(4)}</td>
+                                  <td>{wear.useful_life_years || '-'}</td>
+                                  <td>{wear.annual_wear_rate ? `${parseFloat(wear.annual_wear_rate).toFixed(2)}%` : '-'}</td>
+                                  <td>
+                                    <button className="btn-icon btn-edit" onClick={() => handleEdit(wear)}><EditIcon /></button>
+                                    <button className="btn-icon btn-delete" onClick={() => handleDelete(wear.wear_id)}><DeleteIcon /></button>
+                                  </td>
+                                </tr>
+                              )
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
           ))}
-        </tbody>
-      </table>
-    </div>
-  );
+        </div>
+      );
+    };
+
+    return (
+      <div className="wear-coefficients-container">
+        {isAdding && !editForm.equipment_category && (
+          <div className="params-table-container params-wear-table" style={{ marginBottom: '30px' }}>
+            <table className="params-table">
+              <thead>
+                <tr>
+                  <th>Catégorie</th>
+                  <th>Sous-catégorie</th>
+                  <th>Âge Min</th>
+                  <th>Âge Max</th>
+                  <th>État Entretien</th>
+                  <th>Coefficient</th>
+                  <th>Durée Vie (ans)</th>
+                  <th>Taux Usure Annuel (%)</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="edit-row">
+                  <td><input type="text" value={editForm.equipment_category || ''} onChange={(e) => setEditForm({...editForm, equipment_category: e.target.value})} placeholder="Catégorie" /></td>
+                  <td><input type="text" value={editForm.equipment_subcategory || ''} onChange={(e) => setEditForm({...editForm, equipment_subcategory: e.target.value})} placeholder="Sous-catégorie" /></td>
+                  <td><input type="number" value={editForm.age_min || ''} onChange={(e) => setEditForm({...editForm, age_min: parseInt(e.target.value)})} /></td>
+                  <td><input type="number" value={editForm.age_max || ''} onChange={(e) => setEditForm({...editForm, age_max: e.target.value ? parseInt(e.target.value) : null})} /></td>
+                  <td>
+                    <select value={editForm.maintenance_state || 'moyen'} onChange={(e) => setEditForm({...editForm, maintenance_state: e.target.value})}>
+                      <option value="bon">Bon</option>
+                      <option value="moyen">Moyen</option>
+                      <option value="mauvais">Mauvais</option>
+                    </select>
+                  </td>
+                  <td><input type="number" step="0.0001" value={editForm.coefficient || ''} onChange={(e) => setEditForm({...editForm, coefficient: parseFloat(e.target.value)})} /></td>
+                  <td><input type="number" value={editForm.useful_life_years || ''} onChange={(e) => setEditForm({...editForm, useful_life_years: e.target.value ? parseInt(e.target.value) : null})} /></td>
+                  <td><input type="number" step="0.01" value={editForm.annual_wear_rate || ''} onChange={(e) => setEditForm({...editForm, annual_wear_rate: e.target.value ? parseFloat(e.target.value) : null})} /></td>
+                  <td>
+                    <button className="btn-icon btn-save" onClick={handleSave}><SaveIcon /></button>
+                    <button className="btn-icon btn-cancel" onClick={handleCancel}><CancelIcon /></button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        )}
+        
+        {Object.entries(groupedByCategory).map(([category, items]) => 
+          renderCategoryTable(category, items)
+        )}
+      </div>
+    );
+  };
+
+  const renderConstructionCostsTable = () => {
+    // Get available construction types for the selected category
+    const availableTypes = allConstructionCosts
+      .filter(c => c.category === calculationForm.category)
+      .map(c => c.construction_type)
+      .filter((v, i, a) => a.indexOf(v) === i);
+
+    // Get available structures for selected type
+    const availableStructures = calculationForm.constructionType
+      ? allConstructionCosts
+          .filter(c => 
+            c.category === calculationForm.category &&
+            c.construction_type === calculationForm.constructionType
+          )
+          .map(c => c.structure)
+          .filter((v, i, a) => a.indexOf(v) === i)
+      : [];
+
+    // Get available envelopes for selected type and structure
+    const availableEnvelopes = calculationForm.constructionType && calculationForm.structure
+      ? allConstructionCosts
+          .filter(c => 
+            c.category === calculationForm.category &&
+            c.construction_type === calculationForm.constructionType &&
+            c.structure === calculationForm.structure
+          )
+          .map(c => c.envelope)
+          .filter((v, i, a) => a.indexOf(v) === i)
+      : [];
+
+    // Find matching cost when all selections are made
+    const matchingCost = calculationForm.constructionType && calculationForm.structure && calculationForm.envelope
+      ? allConstructionCosts.find(c => 
+          c.category === calculationForm.category &&
+          c.construction_type === calculationForm.constructionType &&
+          c.structure === calculationForm.structure &&
+          c.envelope === calculationForm.envelope
+        )
+      : null;
+
+    return (
+      <div className="construction-costs-container">
+        <div className="construction-calculator-form">
+          <h2 className="calculator-title">Calculateur de Coûts de Construction</h2>
+          
+          <div className="calculator-inputs">
+            <div className="calculator-input-group">
+              <label className="calculator-label">
+                Surface (m²) <span className="required">*</span>
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                className="calculator-input"
+                placeholder="Ex: 150.5"
+                value={calculationForm.surface}
+                onChange={(e) => setCalculationForm({...calculationForm, surface: e.target.value})}
+              />
+            </div>
+
+            <div className="calculator-input-group">
+              <label className="calculator-label">
+                Catégorie <span className="required">*</span>
+              </label>
+              <select
+                className="calculator-select"
+                value={calculationForm.category}
+                onChange={(e) => {
+                  setCalculationForm({
+                    ...calculationForm,
+                    category: e.target.value,
+                    constructionType: '',
+                    structure: '',
+                    envelope: '',
+                    selectedCost: null
+                  });
+                }}
+              >
+                <option value="Residential">Résidentiel</option>
+                <option value="Industrial">Industriel</option>
+              </select>
+            </div>
+
+            <div className="calculator-input-group">
+              <label className="calculator-label">
+                Type de Construction <span className="required">*</span>
+              </label>
+              <select
+                className="calculator-select"
+                value={calculationForm.constructionType}
+                onChange={(e) => {
+                  const selectedType = e.target.value;
+                  const firstCost = allConstructionCosts.find(c => 
+                    c.category === calculationForm.category &&
+                    c.construction_type === selectedType
+                  );
+                  setCalculationForm({
+                    ...calculationForm,
+                    constructionType: selectedType,
+                    structure: firstCost?.structure || '',
+                    envelope: firstCost?.envelope || '',
+                    selectedCost: firstCost || null
+                  });
+                }}
+                disabled={!calculationForm.category || availableTypes.length === 0}
+              >
+                <option value="">Sélectionner un type</option>
+                {availableTypes.map(type => (
+                  <option key={type} value={type}>{type}</option>
+                ))}
+              </select>
+            </div>
+
+            {calculationForm.constructionType && availableStructures.length > 0 && (
+              <div className="calculator-input-group">
+                <label className="calculator-label">
+                  Structure
+                </label>
+                <select
+                  className="calculator-select"
+                  value={calculationForm.structure}
+                  onChange={(e) => {
+                    const selectedStructure = e.target.value;
+                    const matching = allConstructionCosts.find(c => 
+                      c.category === calculationForm.category &&
+                      c.construction_type === calculationForm.constructionType &&
+                      c.structure === selectedStructure
+                    );
+                    setCalculationForm({
+                      ...calculationForm,
+                      structure: selectedStructure,
+                      envelope: matching?.envelope || '',
+                      selectedCost: matching || null
+                    });
+                  }}
+                >
+                  <option value="">Sélectionner une structure</option>
+                  {availableStructures.map(structure => (
+                    <option key={structure} value={structure}>{structure}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            {calculationForm.structure && availableEnvelopes.length > 0 && (
+              <div className="calculator-input-group">
+                <label className="calculator-label">
+                  Enveloppe
+                </label>
+                <select
+                  className="calculator-select"
+                  value={calculationForm.envelope}
+                  onChange={(e) => {
+                    const selectedEnvelope = e.target.value;
+                    const matching = allConstructionCosts.find(c => 
+                      c.category === calculationForm.category &&
+                      c.construction_type === calculationForm.constructionType &&
+                      c.structure === calculationForm.structure &&
+                      c.envelope === selectedEnvelope
+                    );
+                    setCalculationForm({
+                      ...calculationForm,
+                      envelope: selectedEnvelope,
+                      selectedCost: matching || null
+                    });
+                  }}
+                >
+                  <option value="">Sélectionner une enveloppe</option>
+                  {availableEnvelopes.map(envelope => (
+                    <option key={envelope} value={envelope}>{envelope}</option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+
+          <button
+            className="calculator-button"
+            onClick={handleCalculate}
+            disabled={!calculationForm.surface || !calculationForm.selectedCost || parseFloat(calculationForm.surface) <= 0}
+          >
+            Calculer les Coûts
+          </button>
+
+          {calculationResults && (
+            <div className="calculator-results">
+              <h3 className="results-title">Résultats du Calcul</h3>
+              <div className="results-info">
+                <p><strong>Surface:</strong> {calculationResults.surface} m²</p>
+                <p><strong>Type:</strong> {calculationForm.constructionType}</p>
+                {calculationForm.structure && <p><strong>Structure:</strong> {calculationForm.structure}</p>}
+                {calculationForm.envelope && <p><strong>Enveloppe:</strong> {calculationForm.envelope}</p>}
+              </div>
+              
+              <div className="results-grid">
+                <div className="result-card">
+                  <div className="result-card-header">Cout Standing Bon</div>
+                  <div className="result-card-value">
+                    {calculationResults.costPerM2.bon.toFixed(2)} TND/m²
+                  </div>
+                  <div className="result-card-total">
+                    Total: {calculationResults.totalCost.bon.toFixed(2)} TND
+                  </div>
+                </div>
+                
+                <div className="result-card">
+                  <div className="result-card-header">Cout Standing Haut</div>
+                  <div className="result-card-value">
+                    {calculationResults.costPerM2.haut.toFixed(2)} TND/m²
+                  </div>
+                  <div className="result-card-total">
+                    Total: {calculationResults.totalCost.haut.toFixed(2)} TND
+                  </div>
+                </div>
+                
+                <div className="result-card">
+                  <div className="result-card-header">Cout Standing Luxe</div>
+                  <div className="result-card-value">
+                    {calculationResults.costPerM2.luxe.toFixed(2)} TND/m²
+                  </div>
+                  <div className="result-card-total">
+                    Total: {calculationResults.totalCost.luxe.toFixed(2)} TND
+                  </div>
+                </div>
+              </div>
+
+              <div className="results-details">
+                <h4>Détails des Coûts Additionnels (par m²)</h4>
+                <div className="details-grid">
+                  <div className="detail-item">
+                    <span className="detail-label">Études:</span>
+                    <span className="detail-value">{calculationResults.details.studies.toFixed(2)} TND/m²</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">VRD:</span>
+                    <span className="detail-value">{calculationResults.details.vrd.toFixed(2)} TND/m²</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Honoraires:</span>
+                    <span className="detail-value">{calculationResults.details.fees.toFixed(2)} TND/m²</span>
+                  </div>
+                  <div className="detail-item">
+                    <span className="detail-label">Divers:</span>
+                    <span className="detail-value">{calculationResults.details.miscellaneous.toFixed(2)} TND/m²</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="parameters-page">
@@ -542,41 +876,152 @@ export const Parameters = () => {
 
       <div className="params-tabs">
         <button 
-          className={`tab-btn ${activeTab === 'quality' ? 'active' : ''}`}
-          onClick={() => setActiveTab('quality')}
+          className={`tab-btn ${activeTab === 'wear' ? 'active' : ''}`}
+          onClick={() => setActiveTab('wear')}
         >
-          Qualité (Durée de vie)
+          Coefficients d'Usure
         </button>
         <button 
-          className={`tab-btn ${activeTab === 'vetust' ? 'active' : ''}`}
-          onClick={() => setActiveTab('vetust')}
+          className={`tab-btn ${activeTab === 'construction' ? 'active' : ''}`}
+          onClick={() => setActiveTab('construction')}
         >
-          Vétusté
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'risk' ? 'active' : ''}`}
-          onClick={() => setActiveTab('risk')}
-        >
-          Pondération Risque
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'roux' ? 'active' : ''}`}
-          onClick={() => setActiveTab('roux')}
-        >
-          Coefficients Roux
+          Coûts de Construction
         </button>
       </div>
 
       <div className="params-content">
-        <div className="params-toolbar">
-          <button className="btn-add" onClick={handleAdd} disabled={isAdding || editingId}>
-            <AddIcon /> Ajouter
-          </button>
-        </div>
+        {activeTab === 'wear' && (
+          <div className="params-filters-container">
+            <div className="params-filters-header">
+              <h2 className="filters-title">Filtres et Recherche</h2>
+              <button className="btn-add" onClick={handleAdd} disabled={isAdding || editingId}>
+                <AddIcon /> Ajouter un Coefficient
+              </button>
+            </div>
+
+            <div className="params-filters-grid">
+              {/* Search Bar */}
+              <div className="filter-group search-group">
+                <label className="filter-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                  </svg>
+                  Recherche
+                </label>
+                <input
+                  type="text"
+                  className="filter-input search-input"
+                  placeholder="Rechercher par catégorie, sous-catégorie ou notes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                {searchTerm && (
+                  <span className="search-debounce-indicator">
+                    {debouncedSearchTerm !== searchTerm ? '⏳ Recherche en cours...' : '✓'}
+                  </span>
+                )}
+              </div>
+
+              {/* Category Filter */}
+              <div className="filter-group">
+                <label className="filter-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                    <path d="M4 7h16M4 12h16M4 17h16"></path>
+                  </svg>
+                  Catégorie
+                </label>
+                <select
+                  className="filter-select"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Toutes les catégories</option>
+                  {[...new Set(allWearCoefficients.map(w => w.equipment_category).filter(Boolean))].sort().map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Maintenance State Filter */}
+              <div className="filter-group">
+                <label className="filter-label">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                    <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
+                  </svg>
+                  État d'Entretien
+                </label>
+                <select
+                  className="filter-select"
+                  value={selectedMaintenanceState}
+                  onChange={(e) => setSelectedMaintenanceState(e.target.value)}
+                >
+                  <option value="">Tous les états</option>
+                  <option value="bon">Bon Entretien</option>
+                  <option value="moyen">Entretien Moyen</option>
+                  <option value="mauvais">Mauvais Entretien</option>
+                </select>
+              </div>
+
+              {/* Clear Filters Button */}
+              {(selectedCategory || selectedMaintenanceState || searchTerm) && (
+                <div className="filter-group filter-actions">
+                  <button
+                    className="btn-clear-filters"
+                    onClick={() => {
+                      setSelectedCategory('');
+                      setSelectedMaintenanceState('');
+                      setSearchTerm('');
+                      setDebouncedSearchTerm('');
+                    }}
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '6px' }}>
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Réinitialiser
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Results count */}
+            {!loading && (
+              <div className="results-count">
+                <div className="results-count-main">
+                  <span className="results-number">{wearCoefficients.length}</span>
+                  <span className="results-text">
+                    coefficient{wearCoefficients.length !== 1 ? 's' : ''} trouvé{wearCoefficients.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                {(selectedCategory || selectedMaintenanceState || debouncedSearchTerm) && (
+                  <div className="results-count-filtered">
+                    sur {allWearCoefficients.length} au total
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
 
         {/* ✅ UPDATED: Use TableSkeleton instead of simple spinner */}
         {loading ? (
           <TableSkeleton />
+        ) : activeTab === 'wear' ? (
+          (wearCoefficients.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">🔍</div>
+              <div className="empty-state-title">
+                {allWearCoefficients.length === 0 ? 'Aucun coefficient d\'usure trouvé' : 'Aucun résultat ne correspond aux filtres'}
+              </div>
+              <div className="empty-state-message">
+                {allWearCoefficients.length === 0 ? 'Commencez par ajouter des coefficients d\'usure' : 'Essayez de modifier vos critères de recherche'}
+              </div>
+            </div>
+          ) : (
+            renderTable()
+          ))
         ) : (
           renderTable()
         )}

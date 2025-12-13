@@ -570,150 +570,149 @@ const AssetDisplay = ({ projectId, isAdminUser = false }) => {
             </tbody>
           </table>
         </div>
-      )}
 
-      {Object.entries(assets).map(([type, items]) => {
-        if (type === 'total' || !Array.isArray(items) || items.length === 0) return null;
+              {Object.entries(assets).map(([type, items]) => {
+                if (type === 'total' || !Array.isArray(items) || items.length === 0) return null;
 
-        return (
-          <div key={type} className="asset-type-section">
-            <div 
-              className="asset-type-header" 
-              onClick={() => toggleType(type)}
-            >
-              <span className="type-icon">{getTypeIcon(type)}</span>
-              <h3>{getTypeLabel(type)}</h3>
-              <span className="asset-count">{items.length}</span>
-              <span className={`expand-icon ${expandedTypes[type] ? 'expanded' : ''}`}>
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
-                </svg>
-              </span>
-            </div>
+                return (
+                  <div key={type} className="asset-type-section">
+                    <div 
+                      className="asset-type-header" 
+                      onClick={() => toggleType(type)}
+                    >
+                      <span className="type-icon">{getTypeIcon(type)}</span>
+                      <h3>{getTypeLabel(type)}</h3>
+                      <span className="asset-count">{items.length}</span>
+                      <span className={`expand-icon ${expandedTypes[type] ? 'expanded' : ''}`}>
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>
+                        </svg>
+                      </span>
+                    </div>
 
-            {expandedTypes[type] && (
-              <div className="assets-table-container">
-                <table className="assets-table">
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Désignation</th>
-                      <th>Description</th>
-                      <th>Valeur d'Acquisition</th>
-                      <th>Date d'Acquisition</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((asset) => {
-                      const isEditing = editingRows[asset.asset_id];
-                      const isSaving = savingRows[asset.asset_id];
-                      const editData = editedData[asset.asset_id] || {};
+                    {expandedTypes[type] && (
+                      <div className="assets-table-container">
+                        <table className="assets-table">
+                          <thead>
+                            <tr>
+                              <th>Code</th>
+                              <th>Désignation</th>
+                              <th>Description</th>
+                              <th>Valeur d'Acquisition</th>
+                              <th>Date d'Acquisition</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {items.map((asset) => {
+                              const isEditing = editingRows[asset.asset_id];
+                              const isSaving = savingRows[asset.asset_id];
+                              const editData = editedData[asset.asset_id] || {};
 
-                      return (
-                        <tr key={asset.asset_id} className={isEditing ? 'editing-row' : ''}>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                className="edit-input"
-                                value={editData.code_immobilisation || ''}
-                                onChange={(e) => handleChange(asset.asset_id, 'code_immobilisation', e.target.value)}
-                              />
-                            ) : (
-                              <span className="asset-code">{asset.code_immobilisation}</span>
-                            )}
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                className="edit-input"
-                                value={editData.designation || ''}
-                                onChange={(e) => handleChange(asset.asset_id, 'designation', e.target.value)}
-                              />
-                            ) : (
-                              <strong>{asset.designation}</strong>
-                            )}
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="text"
-                                className="edit-input"
-                                value={editData.description || ''}
-                                onChange={(e) => handleChange(asset.asset_id, 'description', e.target.value)}
-                              />
-                            ) : (
-                              <span className="asset-description" title={asset.description}>
-                                {asset.description || 'N/A'}
-                              </span>
-                            )}
-                          </td>
-                          <td className="text-right">
-                            {isEditing ? (
-                              <input
-                                type="number"
-                                className="edit-input"
-                                step="0.01"
-                                value={editData.valeur_aquisition_init || ''}
-                                onChange={(e) => handleChange(asset.asset_id, 'valeur_aquisition_init', e.target.value)}
-                              />
-                            ) : (
-                              formatCurrency(asset.valeur_aquisition_init)
-                            )}
-                          </td>
-                          <td>
-                            {isEditing ? (
-                              <input
-                                type="date"
-                                className="edit-input"
-                                value={editData.date_acquisition || ''}
-                                onChange={(e) => handleChange(asset.asset_id, 'date_acquisition', e.target.value)}
-                              />
-                            ) : (
-                              formatDate(asset.date_acquisition)
-                            )}
-                          </td>
-                          <td>
-                            <div className="action-buttons">
-                              {isEditing ? (
-                                <>
-                                  <button
-                                    className="btn-save"
-                                    onClick={() => handleSave(asset.asset_id, type)}
-                                    disabled={isSaving}
-                                  >
-                                    {isSaving ? 'Enregistrement...' : 'Enregistrer'}
-                                  </button>
-                                  <button
-                                    className="btn-cancel"
-                                    onClick={() => handleCancel(asset.asset_id)}
-                                    disabled={isSaving}
-                                  >
-                                    Annuler
-                                  </button>
-                                </>
-                              ) : (
-                                <button
-                                  className="btn-edit"
-                                  onClick={() => handleEdit(asset.asset_id, asset)}
-                                >
-                                  Modifier
-                                </button>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        );
-      })}
+                              return (
+                                <tr key={asset.asset_id} className={isEditing ? 'editing-row' : ''}>
+                              <td>
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    className="edit-input"
+                                    value={editData.code_immobilisation || ''}
+                                    onChange={(e) => handleChange(asset.asset_id, 'code_immobilisation', e.target.value)}
+                                  />
+                                ) : (
+                                  <span className="asset-code">{asset.code_immobilisation}</span>
+                                )}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    className="edit-input"
+                                    value={editData.designation || ''}
+                                    onChange={(e) => handleChange(asset.asset_id, 'designation', e.target.value)}
+                                  />
+                                ) : (
+                                  <strong>{asset.designation}</strong>
+                                )}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <input
+                                    type="text"
+                                    className="edit-input"
+                                    value={editData.description || ''}
+                                    onChange={(e) => handleChange(asset.asset_id, 'description', e.target.value)}
+                                  />
+                                ) : (
+                                  <span className="asset-description" title={asset.description}>
+                                    {asset.description || 'N/A'}
+                                  </span>
+                                )}
+                              </td>
+                              <td className="text-right">
+                                {isEditing ? (
+                                  <input
+                                    type="number"
+                                    className="edit-input"
+                                    step="0.01"
+                                    value={editData.valeur_aquisition_init || ''}
+                                    onChange={(e) => handleChange(asset.asset_id, 'valeur_aquisition_init', e.target.value)}
+                                  />
+                                ) : (
+                                  formatCurrency(asset.valeur_aquisition_init)
+                                )}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <input
+                                    type="date"
+                                    className="edit-input"
+                                    value={editData.date_acquisition || ''}
+                                    onChange={(e) => handleChange(asset.asset_id, 'date_acquisition', e.target.value)}
+                                  />
+                                ) : (
+                                  formatDate(asset.date_acquisition)
+                                )}
+                              </td>
+                              <td>
+                                <div className="action-buttons">
+                                  {isEditing ? (
+                                    <>
+                                      <button
+                                        className="btn-save"
+                                        onClick={() => handleSave(asset.asset_id, type)}
+                                        disabled={isSaving}
+                                      >
+                                        {isSaving ? 'Enregistrement...' : 'Enregistrer'}
+                                      </button>
+                                      <button
+                                        className="btn-cancel"
+                                        onClick={() => handleCancel(asset.asset_id)}
+                                        disabled={isSaving}
+                                      >
+                                        Annuler
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <button
+                                      className="btn-edit"
+                                      onClick={() => handleEdit(asset.asset_id, asset)}
+                                    >
+                                      Modifier
+                                    </button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </>
           )}
         </div>
