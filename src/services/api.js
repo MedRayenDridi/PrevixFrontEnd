@@ -546,5 +546,42 @@ export const clientProjectService = {
     },
   };
 
+// AI Assistant Service
+export const aiAssistantService = {
+  sendMessage: async (message, files = []) => {
+    try {
+      const formData = new FormData();
+      formData.append('message', message);
+      
+      // Add files if any
+      if (files && files.length > 0) {
+        files.forEach((file) => {
+          formData.append('files', file.file || file);
+        });
+      }
+      
+      const response = await api.post('/ai-assistant/chat', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error sending message to AI Assistant:', error);
+      throw error;
+    }
+  },
+
+  checkHealth: async () => {
+    try {
+      const response = await api.get('/ai-assistant/health');
+      return response.data;
+    } catch (error) {
+      console.error('Error checking AI Assistant health:', error);
+      return { status: 'error', error: error.message };
+    }
+  },
+};
 
 export { api };

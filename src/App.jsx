@@ -16,6 +16,7 @@ import AITransformationAnimation from "./components/animation/AITransformationAn
 import LoadingScreen from "./components/animation/LoadingScreen";
 import Organizations from './pages/Organizations';
 import { Parameters } from './pages/Parameters';  // ✅ ADD THIS IMPORT
+import { AIAssistant } from './pages/AIAssistant';  // ✅ ADD THIS IMPORT
 import './App.css';
 import { useEffect, useState } from 'react';
 
@@ -181,8 +182,8 @@ function App() {
     const location = useLocation();
     const [loadingComplete, setLoadingComplete] = useState(false);
 
-    // ✅ UPDATED: Added /parameters to full-screen routes
-    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations', '/parameters'].includes(location.pathname) ||
+    // ✅ UPDATED: Added /parameters and /aiAssistant to full-screen routes
+    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations', '/parameters', '/aiAssistant'].includes(location.pathname) ||
                               location.pathname.startsWith('/projects/');
 
     const handleLoadingComplete = () => {
@@ -258,6 +259,18 @@ function App() {
                                 <PrivateRoute>
                                     <Layout>
                                         <Parameters />
+                                    </Layout>
+                                </PrivateRoute>
+                            }
+                        />
+
+                        {/* ✅ ADD THIS: AI Assistant Route */}
+                        <Route
+                            path="/aiAssistant"
+                            element={
+                                <PrivateRoute>
+                                    <Layout>
+                                        <AIAssistant />
                                     </Layout>
                                 </PrivateRoute>
                             }
