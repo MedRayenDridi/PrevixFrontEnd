@@ -17,6 +17,7 @@ import LoadingScreen from "./components/animation/LoadingScreen";
 import Organizations from './pages/Organizations';
 import { Parameters } from './pages/Parameters';  // ✅ ADD THIS IMPORT
 import { AIAssistant } from './pages/AIAssistant';  // ✅ ADD THIS IMPORT
+import { ManusReport } from './pages/ManusReport';  // ✅ ADD THIS IMPORT
 import './App.css';
 import { useEffect, useState } from 'react';
 
@@ -182,8 +183,8 @@ function App() {
     const location = useLocation();
     const [loadingComplete, setLoadingComplete] = useState(false);
 
-    // ✅ UPDATED: Added /parameters and /aiAssistant to full-screen routes
-    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations', '/parameters', '/aiAssistant'].includes(location.pathname) ||
+    // ✅ UPDATED: Added /parameters, /aiAssistant, and /manus to full-screen routes
+    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations', '/parameters', '/aiAssistant', '/manus'].includes(location.pathname) ||
                               location.pathname.startsWith('/projects/');
 
     const handleLoadingComplete = () => {
@@ -271,6 +272,18 @@ function App() {
                                 <PrivateRoute>
                                     <Layout>
                                         <AIAssistant />
+                                    </Layout>
+                                </PrivateRoute>
+                            }
+                        />
+
+                        {/* ✅ ADD THIS: Manus Report Route */}
+                        <Route
+                            path="/manus"
+                            element={
+                                <PrivateRoute>
+                                    <Layout>
+                                        <ManusReport />
                                     </Layout>
                                 </PrivateRoute>
                             }

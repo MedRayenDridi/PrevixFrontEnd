@@ -548,25 +548,58 @@ export const clientProjectService = {
 
 // AI Assistant Service
 export const aiAssistantService = {
-  sendMessage: async (message, files = []) => {
+  sendMessage: async (message, files = [], conversationHistory = null) => {
     try {
-      const formData = new FormData();
-      formData.append('message', message);
-      
-      // Add files if any
+      // If files are present, use multipart form data
       if (files && files.length > 0) {
+        const formData = new FormData();
+        formData.append('message', message);
+        
         files.forEach((file) => {
           formData.append('files', file.file || file);
         });
+        
+        // Add conversation history as JSON string if available
+        if (conversationHistory && conversationHistory.length > 0) {
+          const historyJson = JSON.stringify(
+            conversationHistory.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            }))
+          );
+          formData.append('conversation_history', historyJson);
+        }
+        
+        const response = await api.post('/ai-assistant/chat', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        
+        return response.data;
+      } else {
+        // No files: use JSON with conversation history
+        const formData = new FormData();
+        formData.append('message', message);
+        
+        if (conversationHistory && conversationHistory.length > 0) {
+          const historyJson = JSON.stringify(
+            conversationHistory.map(msg => ({
+              role: msg.role,
+              content: msg.content
+            }))
+          );
+          formData.append('conversation_history', historyJson);
+        }
+        
+        const response = await api.post('/ai-assistant/chat', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        
+        return response.data;
       }
-      
-      const response = await api.post('/ai-assistant/chat', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      
-      return response.data;
     } catch (error) {
       console.error('Error sending message to AI Assistant:', error);
       throw error;
@@ -579,6 +612,61 @@ export const aiAssistantService = {
       return response.data;
     } catch (error) {
       console.error('Error checking AI Assistant health:', error);
+      return { status: 'error', error: error.message };
+    }
+  },
+};
+
+export const manusService = {
+  /**
+   * Generate Valuation IA Excel report from uploaded files
+   * @param {File[]} files - Array of files (PDF, Excel, AutoCAD)
+   * @param {string} projectName - Optional project name
+   * @param {number} projectId - Optional project ID
+   * @returns {Promise<Blob>} Excel file blob
+   */
+  generateReport: async (files, projectName = null, projectId = null) => {
+    try {
+      const formData = new FormData();
+      
+      // Add all files
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+      
+      // Add optional parameters
+      if (projectName) {
+        formData.append('project_name', projectName);
+      }
+      if (projectId) {
+        formData.append('project_id', projectId.toString());
+      }
+      
+      const response = await api.post('/manus/report-from-files', formData, {
+        // Override default JSON header so backend sees multipart/form-data
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        responseType: 'blob', // Important for file download
+        timeout: 300000, // 5 minutes timeout for large files
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error generating Valuation IA report:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Check Valuation IA service health
+   */
+  checkHealth: async () => {
+    try {
+      const response = await api.get('/manus/health');
+      return response.data;
+    } catch (error) {
+      console.error('Error checking Valuation IA health:', error);
       return { status: 'error', error: error.message };
     }
   },

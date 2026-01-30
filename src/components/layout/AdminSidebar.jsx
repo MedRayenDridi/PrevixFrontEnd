@@ -74,6 +74,13 @@ const AIIcon = () => (
   </svg>
 );
 
+const ValuationIAIcon = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor">
+    {/* Bar chart representing valuation analysis */}
+    <path d="M3 18h18v2H3v-2zm2-8h2v6H5v-6zm4-4h2v10H9V6zm4 2h2v8h-2V8zm4-6h2v14h-2V2z"/>
+  </svg>
+);
+
 
 export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded, onExpandChange }) => {
   const navigate = useNavigate();
@@ -82,13 +89,14 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
   const [isPinned, setIsPinned] = useState(false);
 
 
-  // ✅ UPDATED: Added Parameters menu item and AI Assistant
+  // ✅ UPDATED: Added Parameters menu item, AI Assistant, and Valuation IA Report
   const menuItems = [
     { text: 'Tableau de Bord', icon: <DashboardIcon />, path: '/dashboard', id: 'home' },
     { text: 'Projets', icon: <FolderIcon />, path: '/projects', id: 'projects' },
     { text: 'Organisations', icon: <OrganizationIcon />, path: '/organizations', id: 'organizations' },
     { text: 'Gestion des utilisateurs', icon: <GroupIcon />, path: '/admin', id: 'users' },
-    { text: 'Assistant IA', icon: <AIIcon />, path: '/aiAssistant', id: 'aiAssistant' },
+    { text: 'Previx IA', icon: <AIIcon />, path: '/aiAssistant', id: 'aiAssistant' },
+    { text: 'Valuation IA', icon: <ValuationIAIcon />, path: '/manus', id: 'manus' },
     { text: 'Paramètres système', icon: <ParametersIcon />, path: '/parameters', id: 'parameters' },
     { text: 'Profil', icon: <PersonIcon />, path: '/profile', id: 'profile' },
     { text: 'Paramètres', icon: <SettingsIcon />, path: '/settings', id: 'settings' },
