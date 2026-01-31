@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { aiAssistantService, manusService } from '../services/api';
+import { aiAssistantService, api } from '../services/api';
 import './AIAssistant.css';
 
 const SendIcon = () => (
@@ -63,124 +63,139 @@ const SparklesIcon = () => (
   </svg>
 );
 
-const DownloadIcon = () => (
+const HistoryIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+    <path d="M3 3v5h5"/>
+  </svg>
+);
+
+const NewConvoIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/>
+    <line x1="5" y1="12" x2="19" y2="12"/>
+  </svg>
+);
+
+const MessageSquareIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+  </svg>
+);
+
+const PencilIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+  </svg>
+);
+
+const TrashIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6"/>
+    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+    <line x1="10" y1="11" x2="10" y2="17"/>
+    <line x1="14" y1="11" x2="14" y2="17"/>
+  </svg>
+);
+
+const ArrowRightIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="5" y1="12" x2="19" y2="12"/>
+    <polyline points="12 5 19 12 12 19"/>
+  </svg>
+);
+
+const ExcelIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="report-file-icon">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <path d="M8 13h2M8 17h2M14 13h2M14 17h2"/>
+    <line x1="8" y1="9" x2="16" y2="9"/>
+  </svg>
+);
+
+const PDFIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="report-file-icon">
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+    <polyline points="14 2 14 8 20 8"/>
+    <path d="M8 12h8M8 16h5M8 9h1"/>
+  </svg>
+);
+
+const DownloadIcon = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="report-download-arrow">
     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
     <polyline points="7 10 12 15 17 10"/>
     <line x1="12" y1="15" x2="12" y2="3"/>
   </svg>
 );
 
+function getReportFileIcon(filename) {
+  if (!filename) return <FileIcon />;
+  const ext = filename.split('.').pop()?.toLowerCase();
+  if (ext === 'xlsx' || ext === 'xls') return <ExcelIcon />;
+  if (ext === 'pdf') return <PDFIcon />;
+  return <FileIcon />;
+}
+
+// Suggestion messages for chatbot users (shown when chat is empty)
+const SUGGESTION_MESSAGES = [
+  {
+    id: 's1',
+    icon: '💡',
+    title: 'Évaluer un actif',
+    description: 'Obtenir une estimation de valeur ou un rapport',
+    text: "Comment évaluer la valeur d'un actif ? Pouvez-vous m'aider à préparer un rapport d'évaluation ?"
+  },
+  {
+    id: 's2',
+    icon: '📊',
+    title: 'Analyse de projet',
+    description: 'Résumé et points clés d\'un projet',
+    text: "Peux-tu analyser ce projet et me donner un résumé avec les points clés et les recommandations ?"
+  },
+  {
+    id: 's3',
+    icon: '📁',
+    title: 'Extraire des données',
+    description: 'Tables ou données depuis un document',
+    text: "Peux-tu extraire les tableaux et données importantes de ce document ?"
+  },
+  {
+    id: 's4',
+    icon: '❓',
+    title: 'Question générale',
+    description: 'Posez une question sur Previx ou l\'évaluation',
+    text: "Quelles sont les bonnes pratiques pour l'évaluation d'actifs dans Previx ?"
+  }
+];
+
+const WELCOME_MESSAGE = {
+  id: 1,
+  role: 'assistant',
+  content: 'Bonjour ! Je suis Previx IA. Comment puis-je vous aider aujourd\'hui ? Vous pouvez me poser des questions, partager des fichiers ou des images.',
+  timestamp: new Date()
+};
+
 export const AIAssistant = () => {
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      role: 'assistant',
-      content: 'Bonjour ! Je suis Previx IA. Comment puis-je vous aider aujourd\'hui ?\n\n💬 Vous pouvez me poser des questions\n📎 Partager des fichiers ou des images\n📊 Générer des rapports de valorisation (IFRS 13) : envoyez-moi vos fichiers PDF, Excel ou AutoCAD avec un message comme "génère un rapport de valorisation"',
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState([{ ...WELCOME_MESSAGE }]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [attachments, setAttachments] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [showFileMenu, setShowFileMenu] = useState(false);
   const [isServiceAvailable, setIsServiceAvailable] = useState(true);
-  const [showSuggestions, setShowSuggestions] = useState(true);
-  const [conversationId, setConversationId] = useState(null);
+  const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [showHistorySidebar, setShowHistorySidebar] = useState(false);
   const [conversations, setConversations] = useState([]);
-  const [showConversationHistory, setShowConversationHistory] = useState(false);
+  const [conversationsLoading, setConversationsLoading] = useState(false);
+  const [editingConversationId, setEditingConversationId] = useState(null);
+  const [editingTitle, setEditingTitle] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
-
-  // Conversation storage keys
-  const STORAGE_KEY_CONVERSATIONS = 'previx_ai_conversations';
-  const STORAGE_KEY_CURRENT_CONVERSATION = 'previx_ai_current_conversation';
-
-  // Suggested messages/prompts
-  const suggestedMessages = [
-    {
-      id: 'suggest-1',
-      text: 'Génère un rapport de valorisation IFRS 13',
-      icon: '📊',
-      description: 'Analysez mes fichiers et créez un rapport Excel'
-    },
-    {
-      id: 'suggest-2',
-      text: 'Explique-moi la norme IFRS 13',
-      icon: '📚',
-      description: 'En savoir plus sur la valorisation d\'actifs'
-    },
-    {
-      id: 'suggest-3',
-      text: 'Comment calculer la dépréciation d\'un actif ?',
-      icon: '🧮',
-      description: 'Méthodologie de calcul'
-    },
-    {
-      id: 'suggest-4',
-      text: 'Quels sont les coefficients Roux ?',
-      icon: '📈',
-      description: 'Coefficients d\'inflation'
-    }
-  ];
-
-  const handleSuggestionClick = (suggestionText) => {
-    setInput(suggestionText);
-    setShowSuggestions(false);
-    // Focus on input so user can review/edit before sending
-    setTimeout(() => {
-      inputRef.current?.focus();
-      inputRef.current?.setSelectionRange(suggestionText.length, suggestionText.length);
-    }, 100);
-  };
-
-  // Hide suggestions when user starts typing
-  useEffect(() => {
-    if (input.trim().length > 0 || attachments.length > 0) {
-      setShowSuggestions(false);
-    } else if (messages.length <= 1) {
-      setShowSuggestions(true);
-    }
-  }, [input, attachments, messages.length]);
-
-  // Helper function to detect if user wants valuation report
-  const shouldGenerateValuationReport = (message, files) => {
-    if (!files || files.length === 0) return false;
-    
-    const valuationKeywords = [
-      'valorisation', 'valuation', 'ifrs 13', 'ifrs13', 'rapport de valorisation',
-      'génère un rapport', 'générer rapport', 'calcul valorisation', 'valoriser',
-      'rapport excel', 'rapport valorisation', 'évaluation actifs', 'valorisation actifs'
-    ];
-    
-    const messageLower = message.toLowerCase();
-    const hasKeyword = valuationKeywords.some(keyword => messageLower.includes(keyword));
-    
-    // Check if files are valuation-compatible (PDF, Excel, AutoCAD)
-    const valuationFileTypes = [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'application/vnd.ms-excel',
-      'application/acad',
-      'application/x-dwg',
-      'image/vnd.dwg'
-    ];
-    const valuationExtensions = ['.pdf', '.xlsx', '.xls', '.dwg', '.dxf'];
-    
-    const hasValuationFiles = files.some(file => {
-      const fileObj = file.file || file;
-      const fileName = fileObj.name?.toLowerCase() || '';
-      const fileType = fileObj.type || '';
-      
-      return valuationFileTypes.includes(fileType) ||
-             valuationExtensions.some(ext => fileName.endsWith(ext));
-    });
-    
-    return hasKeyword || (hasValuationFiles && messageLower.length < 50); // Short message with valuation files = likely valuation request
-  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -190,303 +205,213 @@ export const AIAssistant = () => {
     scrollToBottom();
   }, [messages]);
 
-  // Load conversations from localStorage on mount
   useEffect(() => {
-    loadConversations();
-    loadCurrentConversation();
-  }, []);
-
-  // Save messages to localStorage whenever they change
-  useEffect(() => {
-    if (messages.length > 1) { // More than just the welcome message
-      saveCurrentConversation();
-    }
-  }, [messages, conversationId]);
-
-  // Conversation management functions
-  const loadConversations = () => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_CONVERSATIONS);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setConversations(parsed);
-      }
-    } catch (error) {
-      console.error('Error loading conversations:', error);
-    }
-  };
-
-  const saveConversations = (convs) => {
-    try {
-      localStorage.setItem(STORAGE_KEY_CONVERSATIONS, JSON.stringify(convs));
-      setConversations(convs);
-    } catch (error) {
-      console.error('Error saving conversations:', error);
-    }
-  };
-
-  const loadCurrentConversation = () => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_CURRENT_CONVERSATION);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.id && parsed.messages && parsed.messages.length > 0) {
-          setConversationId(parsed.id);
-          
-          // Restore messages with proper Date objects
-          const restoredMessages = parsed.messages.map(msg => ({
-            ...msg,
-            timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
-          }));
-          
-          setMessages(restoredMessages);
-          setShowSuggestions(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error loading current conversation:', error);
-    }
-  };
-
-  const saveCurrentConversation = () => {
-    try {
-      const convId = conversationId || `conv_${Date.now()}`;
-      if (!conversationId) {
-        setConversationId(convId);
-      }
-
-      // Serialize messages, excluding non-serializable data (like blob URLs)
-      const serializableMessages = messages.map(msg => {
-        const serialized = {
-          id: msg.id,
-          role: msg.role,
-          content: msg.content,
-          timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : msg.timestamp
-        };
-        
-        // Preserve excelFile info but not the blob/URL (will be regenerated if needed)
-        if (msg.excelFile) {
-          serialized.excelFile = {
-            fileName: msg.excelFile.fileName,
-            // Don't save blob/url as they're not serializable and will be regenerated
-          };
-        }
-        
-        // Preserve attachments info but not file objects
-        if (msg.attachments) {
-          serialized.attachments = msg.attachments.map(att => ({
-            id: att.id,
-            name: att.name,
-            size: att.size,
-            type: att.type,
-            // Don't save file object or preview URL
-          }));
-        }
-        
-        return serialized;
-      });
-
-      const conversationData = {
-        id: convId,
-        title: generateConversationTitle(messages),
-        messages: serializableMessages,
-        lastUpdated: new Date().toISOString(),
-        createdAt: conversationId ? 
-          (conversations.find(c => c.id === convId)?.createdAt || new Date().toISOString()) :
-          new Date().toISOString()
-      };
-
-      // Save current conversation
-      localStorage.setItem(STORAGE_KEY_CURRENT_CONVERSATION, JSON.stringify(conversationData));
-
-      // Update conversations list
-      const updatedConversations = conversations.filter(c => c.id !== convId);
-      updatedConversations.unshift(conversationData);
-      // Keep only last 20 conversations
-      const limitedConversations = updatedConversations.slice(0, 20);
-      saveConversations(limitedConversations);
-    } catch (error) {
-      console.error('Error saving current conversation:', error);
-    }
-  };
-
-  const generateConversationTitle = (msgs) => {
-    // Try to generate a title from the first user message
-    const firstUserMessage = msgs.find(m => m.role === 'user');
-    if (firstUserMessage && firstUserMessage.content) {
-      const content = firstUserMessage.content.trim();
-      if (content.length > 50) {
-        return content.substring(0, 50) + '...';
-      }
-      return content;
-    }
-    return `Conversation du ${new Date().toLocaleDateString('fr-FR')}`;
-  };
-
-  const startNewConversation = () => {
-    setConversationId(null);
-    setMessages([
-      {
-        id: 1,
-        role: 'assistant',
-        content: 'Bonjour ! Je suis Previx IA. Comment puis-je vous aider aujourd\'hui ?\n\n💬 Vous pouvez me poser des questions\n📎 Partager des fichiers ou des images\n📊 Générer des rapports de valorisation (IFRS 13) : envoyez-moi vos fichiers PDF, Excel ou AutoCAD avec un message comme "génère un rapport de valorisation"',
-        timestamp: new Date()
-      }
-    ]);
-    setShowSuggestions(true);
-    localStorage.removeItem(STORAGE_KEY_CURRENT_CONVERSATION);
-  };
-
-  const loadConversation = (convId) => {
-    const conversation = conversations.find(c => c.id === convId);
-    if (conversation) {
-      setConversationId(conversation.id);
-      
-      // Restore messages with proper Date objects
-      const restoredMessages = conversation.messages.map(msg => ({
-        ...msg,
-        timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date()
-      }));
-      
-      setMessages(restoredMessages);
-      setShowSuggestions(false);
-      setShowConversationHistory(false);
-      
-      // Update current conversation in localStorage
-      localStorage.setItem(STORAGE_KEY_CURRENT_CONVERSATION, JSON.stringify(conversation));
-    }
-  };
-
-  const deleteConversation = (convId) => {
-    const updated = conversations.filter(c => c.id !== convId);
-    saveConversations(updated);
-    if (conversationId === convId) {
-      startNewConversation();
-    }
-  };
-
-  useEffect(() => {
-    // Check AI service availability on mount
-    const checkService = async () => {
+    const checkHealth = async () => {
       try {
         const health = await aiAssistantService.checkHealth();
         setIsServiceAvailable(health.status === 'ok');
       } catch (error) {
-        console.error('Error checking AI service:', error);
+        console.error('Error initializing AI assistant:', error);
         setIsServiceAvailable(false);
       }
     };
-    checkService();
+    checkHealth();
   }, []);
 
-  const handleSend = async (e) => {
-    e.preventDefault();
-    if ((!input.trim() && attachments.length === 0) || isLoading) return;
+  const loadConversations = async () => {
+    setConversationsLoading(true);
+    try {
+      const list = await aiAssistantService.getConversations();
+      setConversations(list);
+    } catch (e) {
+      setConversations([]);
+    } finally {
+      setConversationsLoading(false);
+    }
+  };
+
+  const handleHistoryClick = () => {
+    setShowHistorySidebar(prev => {
+      if (!prev) loadConversations();
+      return !prev;
+    });
+  };
+
+  const handleNewConvoClick = () => {
+    setCurrentConversationId(null);
+    setMessages([{ ...WELCOME_MESSAGE, id: Date.now() }]);
+    setShowHistorySidebar(false);
+  };
+
+  const handleSelectConversation = async (conversationId) => {
+    try {
+      const list = await aiAssistantService.getConversationMessages(conversationId);
+      const loaded = list.length
+        ? list.map((m, i) => ({
+            id: m.id ?? i + 1,
+            role: m.role || 'user',
+            content: m.content || '',
+            metadata: m.metadata || {},
+            timestamp: m.timestamp ? new Date(m.timestamp) : new Date(),
+          }))
+        : [{ ...WELCOME_MESSAGE, id: Date.now() }];
+      setMessages(loaded);
+      setCurrentConversationId(conversationId);
+      setShowHistorySidebar(false);
+    } catch (e) {
+      console.error('Error loading conversation:', e);
+    }
+  };
+
+  const handleStartRename = (e, c) => {
+    e.stopPropagation();
+    setEditingConversationId(c.id);
+    setEditingTitle(c.title || '');
+  };
+
+  const handleSaveRename = async (conversationId) => {
+    const title = editingTitle.trim();
+    if (!title) {
+      setEditingConversationId(null);
+      return;
+    }
+    try {
+      await aiAssistantService.updateConversation(conversationId, { title });
+      setConversations(prev =>
+        prev.map(c => (c.id === conversationId ? { ...c, title } : c))
+      );
+    } catch (e) {
+      console.error('Error renaming conversation:', e);
+    }
+    setEditingConversationId(null);
+  };
+
+  const handleDeleteConversation = async (e, conversationId) => {
+    e.stopPropagation();
+    if (!window.confirm('Supprimer cette conversation ?')) return;
+    try {
+      await aiAssistantService.deleteConversation(conversationId);
+      setConversations(prev => prev.filter(c => c.id !== conversationId));
+      if (currentConversationId === conversationId) {
+        setCurrentConversationId(null);
+        setMessages([{ ...WELCOME_MESSAGE, id: Date.now() }]);
+      }
+    } catch (e) {
+      console.error('Error deleting conversation:', e);
+    }
+  };
+
+  const sendMessageWithPayload = async (messageText, filesToSend = [], attachmentsForDisplay = []) => {
+    if (!messageText.trim() && filesToSend.length === 0) return;
+
+    // Conversation history for the AI "mind" (current convo context). Backend also persists per user.
+    const conversationHistory = messages.map(m => ({ role: m.role, content: m.content }));
 
     const userMessage = {
       id: messages.length + 1,
       role: 'user',
-      content: input.trim(),
-      attachments: [...attachments],
+      content: messageText.trim(),
+      attachments: attachmentsForDisplay,
       timestamp: new Date()
     };
 
     setMessages(prev => [...prev, userMessage]);
-    const messageText = input.trim();
-    const filesToSend = attachments.map(att => att.file);
     setInput('');
     setAttachments([]);
     setIsLoading(true);
-    setShowSuggestions(false); // Hide suggestions after first message
 
     try {
-      // Check if user wants a valuation report
-      const wantsValuation = shouldGenerateValuationReport(messageText, attachments);
-      
-      if (wantsValuation && filesToSend.length > 0) {
-        // Extract project name from message if mentioned
-        let projectName = null;
-        const projectNameMatch = messageText.match(/(?:projet|project)[\s:]+([^\n,\.]+)/i);
-        if (projectNameMatch) {
-          projectName = projectNameMatch[1].trim();
-        }
-        
-        // Generate Valuation IA report
-        try {
-          const excelBlob = await manusService.generateReport(filesToSend, projectName, null);
-          
-          // Create download URL
-          const url = window.URL.createObjectURL(excelBlob);
-          const fileName = `rapport_valuation_ia_${new Date().toISOString().split('T')[0]}.xlsx`;
-          
-          const projectInfo = projectName ? ` pour le projet "${projectName}"` : '';
-          const assistantMessage = {
-            id: messages.length + 2,
-            role: 'assistant',
-            content: `✅ Rapport de valorisation généré avec succès${projectInfo} !\n\n📊 J'ai analysé ${filesToSend.length} fichier(s) et généré un rapport Excel complet conforme IFRS 13 avec tous les calculs de valorisation.\n\n📥 Cliquez sur le bouton ci-dessous pour télécharger le rapport.`,
-            timestamp: new Date(),
-            excelFile: {
-              url: url,
-              fileName: fileName,
-              blob: excelBlob
-            }
-          };
-          
-          setMessages(prev => [...prev, assistantMessage]);
-        } catch (valuationError) {
-          console.error('Error generating valuation report:', valuationError);
-          const errorMessage = {
-            id: messages.length + 2,
-            role: 'assistant',
-            content: `Désolé, une erreur s'est produite lors de la génération du rapport de valorisation. ${valuationError.response?.data?.detail || valuationError.message || 'Veuillez réessayer.'}`,
-            timestamp: new Date()
-          };
-          setMessages(prev => [...prev, errorMessage]);
-        }
-      } else {
-        // Normal AI Assistant chat
-        // Prepare conversation history (exclude welcome message and current user message)
-        // Include both user and assistant messages for full context
-        const historyForBackend = messages
-          .filter(m => m.id !== 1) // Exclude welcome message
-          .slice(-10) // Last 10 messages for context (5 exchanges typically)
-          .map(m => ({
-            role: m.role,
-            content: m.content
-          }));
-
-        const response = await aiAssistantService.sendMessage(
-          messageText, 
-          filesToSend,
-          historyForBackend.length > 0 ? historyForBackend : null
-        );
-
-        // Backend returns `{ content, metadata }`
-        const assistantContent =
-          (response && (response.content || response.response)) ||
-          'Je n\'ai pas pu générer de réponse.';
-
-        const assistantMessage = {
-          id: messages.length + 2,
-          role: 'assistant',
-          content: assistantContent,
-          timestamp: new Date()
-        };
-        
-        setMessages(prev => [...prev, assistantMessage]);
-      }
+      const response = await aiAssistantService.sendMessage(
+        messageText.trim(),
+        filesToSend,
+        conversationHistory,
+        currentConversationId
+      );
+      if (response?.conversation_id != null) setCurrentConversationId(response.conversation_id);
+      const assistantContent =
+        (response && (response.content || response.response)) ||
+        'Je n\'ai pas pu générer de réponse.';
+      const assistantMessage = {
+        id: messages.length + 2,
+        role: 'assistant',
+        content: assistantContent,
+        timestamp: new Date(),
+        metadata: response?.metadata || {}
+      };
+      setMessages(prev => [...prev, assistantMessage]);
+      if (showHistorySidebar) loadConversations();
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage = {
         id: messages.length + 2,
         role: 'assistant',
-        content: 'Désolé, une erreur s\'est produite. Veuillez vérifier que le service est en cours d\'exécution et réessayer.',
+        content: 'Désolé, une erreur s\'est produite. Veuillez vérifier que le service Ollama est en cours d\'exécution et réessayer.',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if ((!input.trim() && attachments.length === 0) || isLoading) return;
+    const filesToSend = attachments.map(att => att.file);
+    await sendMessageWithPayload(input.trim(), filesToSend, attachments);
+  };
+
+  const handleSuggestionClick = (suggestion) => {
+    if (isLoading) return;
+    sendMessageWithPayload(suggestion.text, [], []);
+  };
+
+  const handleDownloadReport = async (reportId, filename) => {
+    const suggestedName = filename || `rapport_valuation_${reportId.slice(0, 8)}.xlsx`;
+    const triggerDownload = (blob, name) => {
+      if (!blob || blob.size === 0) {
+        alert('Le rapport est vide ou indisponible.');
+        return;
+      }
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 300);
+    };
+
+    const ragPrevixUrl = import.meta.env?.VITE_APP_RAGPREVIX_URL || 'http://localhost:8100';
+    const backendUrl = api.defaults?.baseURL || 'http://localhost:8000';
+
+    const tryRagPrevix = async () => {
+      const res = await fetch(`${ragPrevixUrl}/ai-assistant/report/${reportId}`);
+      if (!res.ok) return false;
+      const blob = await res.blob();
+      const cd = res.headers.get('content-disposition') || '';
+      const name = (cd.match(/filename[*]?=(?:UTF-8'')?"?([^";\n]+)"?/i) || [])[1]?.trim() || suggestedName;
+      triggerDownload(blob, name);
+      return true;
+    };
+
+    const tryBackend = async () => {
+      const r = await api.get(`/ai-assistant/report/${reportId}`, { responseType: 'blob' });
+      if (r.status !== 200) return false;
+      const blob = r.data instanceof Blob ? r.data : new Blob([r.data]);
+      const cd = r.headers?.['content-disposition'] || r.headers?.['Content-Disposition'] || '';
+      const name = (cd.match(/filename[*]?=(?:UTF-8'')?"?([^";\n]+)"?/i) || [])[1]?.trim() || suggestedName;
+      triggerDownload(blob, name);
+      return true;
+    };
+
+    let done = false;
+    try { done = await tryRagPrevix(); } catch (_) {}
+    if (!done) try { done = await tryBackend(); } catch (_) {}
+    if (done) return;
+
+    alert('Le téléchargement a échoué. Rapport introuvable ou expiré.');
   };
 
   const handleStop = () => {
@@ -575,7 +500,7 @@ export const AIAssistant = () => {
   }, []);
 
   return (
-    <div className={`ai-assistant-container ${showConversationHistory ? 'history-open' : ''}`}>
+    <div className="ai-assistant-container">
       {/* Floating Shapes Background */}
       <div className="ai-assistant-floating-shapes">
         <div className="ai-assistant-floating-shape ai-assistant-shape-1"></div>
@@ -585,87 +510,6 @@ export const AIAssistant = () => {
       
       {/* Grid Overlay */}
       <div className="ai-assistant-grid-overlay"></div>
-
-      {/* Conversation History Overlay */}
-      {showConversationHistory && (
-        <div 
-          className="ai-assistant-history-overlay"
-          onClick={() => setShowConversationHistory(false)}
-        />
-      )}
-
-      {/* Conversation History Sidebar - Left */}
-      {showConversationHistory && (
-        <div 
-          className="ai-assistant-history-panel"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="ai-assistant-history-header">
-            <div className="ai-assistant-history-header-title">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px', marginRight: '8px' }}>
-                <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
-              </svg>
-              <h3>Historique</h3>
-              {conversations.length > 0 && (
-                <span className="ai-assistant-history-count">({conversations.length})</span>
-              )}
-            </div>
-            <button 
-              className="ai-assistant-history-close"
-              onClick={() => setShowConversationHistory(false)}
-              title="Fermer"
-            >
-              <XIcon />
-            </button>
-          </div>
-          <div className="ai-assistant-history-list">
-            {conversations.length === 0 ? (
-              <div className="ai-assistant-history-empty">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '48px', height: '48px', marginBottom: '16px', opacity: 0.3 }}>
-                  <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                </svg>
-                <p>Aucune conversation sauvegardée</p>
-                <span>Vos conversations seront sauvegardées automatiquement</span>
-              </div>
-            ) : (
-              conversations.map((conv) => (
-                <div
-                  key={conv.id}
-                  className={`ai-assistant-history-item ${conversationId === conv.id ? 'active' : ''}`}
-                  onClick={() => loadConversation(conv.id)}
-                >
-                  <div className="ai-assistant-history-item-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                  </div>
-                  <div className="ai-assistant-history-item-content">
-                    <div className="ai-assistant-history-item-title">{conv.title}</div>
-                    <div className="ai-assistant-history-item-meta">
-                      <span>{new Date(conv.lastUpdated).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                      <span>•</span>
-                      <span>{conv.messages?.length || 0} messages</span>
-                    </div>
-                  </div>
-                  <button
-                    className="ai-assistant-history-item-delete"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (window.confirm('Supprimer cette conversation ?')) {
-                        deleteConversation(conv.id);
-                      }
-                    }}
-                    title="Supprimer"
-                  >
-                    <XIcon />
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      )}
 
       <div className="ai-assistant-header">
         <div className="ai-assistant-header-content">
@@ -686,32 +530,121 @@ export const AIAssistant = () => {
               <p className="ai-assistant-subtitle">Posez vos questions, partagez des fichiers et obtenez des réponses intelligentes</p>
             </div>
           </div>
-          <div className="ai-assistant-header-actions">
-            <button 
-              className={`ai-assistant-action-btn history-btn ${showConversationHistory ? 'active' : ''}`}
-              title="Historique des conversations"
-              onClick={() => setShowConversationHistory(!showConversationHistory)}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/>
-                <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>
-              </svg>
-              {conversations.length > 0 && (
-                <span className="ai-assistant-history-badge">{conversations.length}</span>
-              )}
-            </button>
-            <button 
-              className="ai-assistant-action-btn" 
-              title="Nouvelle conversation"
-              onClick={startNewConversation}
-            >
-              <SparklesIcon />
-            </button>
-          </div>
+        </div>
+      </div>
+
+      <div className="ai-assistant-toolbar">
+        <div className="ai-assistant-toolbar-inner">
+          <button
+            type="button"
+            className={`ai-assistant-toolbar-btn ${showHistorySidebar ? 'active' : ''}`}
+            title="Historique des conversations"
+            onClick={handleHistoryClick}
+          >
+            <HistoryIcon />
+            <span>Historique</span>
+          </button>
+          <button
+            type="button"
+            className="ai-assistant-toolbar-btn ai-assistant-toolbar-btn-primary"
+            title="Nouvelle conversation"
+            onClick={handleNewConvoClick}
+          >
+            <NewConvoIcon />
+            <span>Nouveau chat</span>
+          </button>
         </div>
       </div>
 
       <div className="ai-assistant-chat-container">
+        {showHistorySidebar && (
+          <aside className="ai-assistant-sidebar">
+            <div className="ai-assistant-sidebar-header">
+              <span className="ai-assistant-sidebar-title">Conversations</span>
+              <button
+                type="button"
+                className="ai-assistant-sidebar-close"
+                onClick={() => setShowHistorySidebar(false)}
+                aria-label="Fermer"
+              >
+                <XIcon />
+              </button>
+            </div>
+            <div className="ai-assistant-sidebar-list">
+              {conversationsLoading ? (
+                <p className="ai-assistant-sidebar-loading">Chargement…</p>
+              ) : conversations.length === 0 ? (
+                <p className="ai-assistant-sidebar-empty">Aucune conversation</p>
+              ) : (
+                conversations.map((c) => (
+                  <div
+                    key={c.id}
+                    className={`ai-assistant-sidebar-item-wrap ${currentConversationId === c.id ? 'active' : ''}`}
+                  >
+                    {editingConversationId === c.id ? (
+                      <div className="ai-assistant-sidebar-item-edit" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="text"
+                          className="ai-assistant-sidebar-item-input"
+                          value={editingTitle}
+                          onChange={(e) => setEditingTitle(e.target.value)}
+                          onBlur={() => handleSaveRename(c.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleSaveRename(c.id);
+                            if (e.key === 'Escape') setEditingConversationId(null);
+                          }}
+                          autoFocus
+                          aria-label="Nom de la conversation"
+                        />
+                      </div>
+                    ) : (
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        className="ai-assistant-sidebar-item"
+                        onClick={() => handleSelectConversation(c.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            handleSelectConversation(c.id);
+                          }
+                        }}
+                        aria-label={`Conversation: ${c.title}`}
+                      >
+                        <span className="ai-assistant-sidebar-item-row">
+                          <MessageSquareIcon />
+                          <span className="ai-assistant-sidebar-item-title">{c.title}</span>
+                          <span className="ai-assistant-sidebar-item-actions">
+                            <button
+                              type="button"
+                              className="ai-assistant-sidebar-item-action"
+                              title="Renommer"
+                              onClick={(e) => handleStartRename(e, c)}
+                              aria-label="Renommer"
+                            >
+                              <PencilIcon />
+                            </button>
+                            <button
+                              type="button"
+                              className="ai-assistant-sidebar-item-action ai-assistant-sidebar-item-action-delete"
+                              title="Supprimer"
+                              onClick={(e) => handleDeleteConversation(e, c.id)}
+                              aria-label="Supprimer"
+                            >
+                              <TrashIcon />
+                            </button>
+                          </span>
+                        </span>
+                        {c.snippet && <span className="ai-assistant-sidebar-item-snippet">{c.snippet}</span>}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
+        )}
+        <div className="ai-assistant-chat-main">
         <div className="ai-assistant-messages">
           {messages.map((message) => (
             <div
@@ -750,54 +683,32 @@ export const AIAssistant = () => {
                 )}
                 {message.content && (
                   <div className="ai-assistant-message-text">
-                        {message.content.split('\n').map((line, idx) => (
-                      <React.Fragment key={idx}>
-                        {line}
-                        {idx < message.content.split('\n').length - 1 && <br />}
-                      </React.Fragment>
-                    ))}
+                    {message.content}
                   </div>
                 )}
-                {message.excelFile && (
-                  <div className="ai-assistant-excel-download">
-                    <div className="ai-assistant-excel-preview">
-                      <FileIcon />
-                      <div className="ai-assistant-excel-info">
-                        <span className="ai-assistant-excel-name">{message.excelFile.fileName}</span>
-                        <span className="ai-assistant-excel-type">Rapport Excel de valorisation</span>
-                      </div>
-                    </div>
+                {message.metadata?.manus_report_id && (
+                  <div className="ai-assistant-report-download">
                     <button
-                      className="ai-assistant-download-btn"
-                      onClick={() => {
-                        const link = document.createElement('a');
-                        link.href = message.excelFile.url;
-                        link.download = message.excelFile.fileName;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        // Clean up URL after a delay
-                        setTimeout(() => {
-                          window.URL.revokeObjectURL(message.excelFile.url);
-                        }, 100);
-                      }}
+                      type="button"
+                      className="ai-assistant-download-report-btn"
+                      onClick={() => handleDownloadReport(
+                        message.metadata.manus_report_id,
+                        message.metadata.manus_report_filename
+                      )}
                     >
+                      <span className="ai-assistant-report-file-icon">
+                        {getReportFileIcon(message.metadata.manus_report_filename)}
+                      </span>
+                      <span className="ai-assistant-report-btn-label">Télécharger le rapport</span>
                       <DownloadIcon />
-                      <span>Télécharger le rapport</span>
                     </button>
                   </div>
                 )}
                 <div className="ai-assistant-message-time">
-                  {message.timestamp instanceof Date 
-                    ? message.timestamp.toLocaleTimeString('fr-FR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })
-                    : new Date(message.timestamp).toLocaleTimeString('fr-FR', { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })
-                  }
+                  {message.timestamp.toLocaleTimeString('fr-FR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                  })}
                 </div>
               </div>
             </div>
@@ -819,38 +730,35 @@ export const AIAssistant = () => {
           )}
           
           <div ref={messagesEndRef} />
-          
-          {/* Suggested Messages */}
-          {showSuggestions && messages.length <= 1 && !isLoading && (
-            <div className="ai-assistant-suggestions">
-              <div className="ai-assistant-suggestions-header">
-                <span className="ai-assistant-suggestions-title">💡 Suggestions</span>
-              </div>
-              <div className="ai-assistant-suggestions-grid">
-                {suggestedMessages.map((suggestion) => (
-                  <button
-                    key={suggestion.id}
-                    className="ai-assistant-suggestion-card"
-                    onClick={() => handleSuggestionClick(suggestion.text)}
-                    type="button"
-                  >
-                    <div className="ai-assistant-suggestion-icon">{suggestion.icon}</div>
-                    <div className="ai-assistant-suggestion-content">
-                      <div className="ai-assistant-suggestion-text">{suggestion.text}</div>
-                      <div className="ai-assistant-suggestion-desc">{suggestion.description}</div>
-                    </div>
-                    <div className="ai-assistant-suggestion-arrow">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="5" y1="12" x2="19" y2="12"/>
-                        <polyline points="12 5 19 12 12 19"/>
-                      </svg>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
+
+        {/* Suggestion messages - shown when chat has only the welcome message */}
+        {messages.length === 1 && !isLoading && (
+          <div className="ai-assistant-suggestions">
+            <div className="ai-assistant-suggestions-header">
+              <h3 className="ai-assistant-suggestions-title">Suggestions pour commencer</h3>
+            </div>
+            <div className="ai-assistant-suggestions-grid">
+              {SUGGESTION_MESSAGES.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  type="button"
+                  className="ai-assistant-suggestion-card"
+                  onClick={() => handleSuggestionClick(suggestion)}
+                >
+                  <span className="ai-assistant-suggestion-icon" aria-hidden>{suggestion.icon}</span>
+                  <div className="ai-assistant-suggestion-content">
+                    <span className="ai-assistant-suggestion-text">{suggestion.title}</span>
+                    <span className="ai-assistant-suggestion-desc">{suggestion.description}</span>
+                  </div>
+                  <span className="ai-assistant-suggestion-arrow" aria-hidden>
+                    <ArrowRightIcon />
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="ai-assistant-input-container" ref={dropZoneRef}>
           {isDragging && (
@@ -965,6 +873,7 @@ export const AIAssistant = () => {
               </div>
             </div>
           </form>
+        </div>
         </div>
       </div>
     </div>

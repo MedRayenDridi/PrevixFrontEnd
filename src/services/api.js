@@ -548,58 +548,25 @@ export const clientProjectService = {
 
 // AI Assistant Service
 export const aiAssistantService = {
-  sendMessage: async (message, files = [], conversationHistory = null) => {
+  sendMessage: async (message, files = [], conversationHistory = null, conversationId = null) => {
     try {
-      // If files are present, use multipart form data
+      const formData = new FormData();
+      formData.append('message', message);
+      if (conversationId != null) formData.append('conversation_id', String(conversationId));
       if (files && files.length > 0) {
-        const formData = new FormData();
-        formData.append('message', message);
-        
         files.forEach((file) => {
           formData.append('files', file.file || file);
         });
-        
-        // Add conversation history as JSON string if available
-        if (conversationHistory && conversationHistory.length > 0) {
-          const historyJson = JSON.stringify(
-            conversationHistory.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            }))
-          );
-          formData.append('conversation_history', historyJson);
-        }
-        
-        const response = await api.post('/ai-assistant/chat', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        
-        return response.data;
-      } else {
-        // No files: use JSON with conversation history
-        const formData = new FormData();
-        formData.append('message', message);
-        
-        if (conversationHistory && conversationHistory.length > 0) {
-          const historyJson = JSON.stringify(
-            conversationHistory.map(msg => ({
-              role: msg.role,
-              content: msg.content
-            }))
-          );
-          formData.append('conversation_history', historyJson);
-        }
-        
-        const response = await api.post('/ai-assistant/chat', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        
-        return response.data;
       }
+      if (conversationHistory && conversationHistory.length > 0) {
+        formData.append('conversation_history', JSON.stringify(
+          conversationHistory.map(msg => ({ role: msg.role, content: msg.content }))
+        ));
+      }
+      const response = await api.post('/ai-assistant/chat', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      return response.data;
     } catch (error) {
       console.error('Error sending message to AI Assistant:', error);
       throw error;
@@ -614,6 +581,51 @@ export const aiAssistantService = {
       console.error('Error checking AI Assistant health:', error);
       return { status: 'error', error: error.message };
     }
+  },
+
+  /** Get current user's chat history for one conversation (legacy: single thread). */
+  getHistory: async (conversationId = null) => {
+    try {
+      if (conversationId == null) return [];
+      const response = await api.get(`/ai-assistant/conversations/${conversationId}/messages`);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error loading AI Assistant history:', error);
+      return [];
+    }
+  },
+
+  /** List current user's conversations (for history sidebar). */
+  getConversations: async () => {
+    try {
+      const response = await api.get('/ai-assistant/conversations');
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error loading AI Assistant conversations:', error);
+      return [];
+    }
+  },
+
+  /** Get messages for one conversation. */
+  getConversationMessages: async (conversationId) => {
+    try {
+      const response = await api.get(`/ai-assistant/conversations/${conversationId}/messages`);
+      return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+      console.error('Error loading conversation messages:', error);
+      return [];
+    }
+  },
+
+  /** Update conversation (e.g. rename title). */
+  updateConversation: async (conversationId, { title }) => {
+    const response = await api.patch(`/ai-assistant/conversations/${conversationId}`, { title });
+    return response.data;
+  },
+
+  /** Delete a conversation and all its messages. */
+  deleteConversation: async (conversationId) => {
+    await api.delete(`/ai-assistant/conversations/${conversationId}`);
   },
 };
 
