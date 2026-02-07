@@ -11,7 +11,7 @@ export const Layout = ({ children }) => {
   const location = useLocation();
   const { user, logout, isAdmin } = useAuth();
   const mainContentRef = useRef(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false); // Start collapsed - hover will expand
 
   const userIsAdmin = isAdmin();
@@ -47,6 +47,8 @@ export const Layout = ({ children }) => {
           sidebarExpanded={sidebarExpanded}
           user={user}
           onLogout={logout}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
         />
 
         <AdminSidebar

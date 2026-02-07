@@ -60,6 +60,37 @@
 }
 
 /* ========================================
+   MOBILE SIDEBAR TOGGLE (hamburger)
+   ======================================== */
+
+.admin-sidebar-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  margin: 0;
+  background: rgba(18, 58, 99, 0.08);
+  border: 1px solid rgba(18, 58, 99, 0.15);
+  border-radius: 12px;
+  cursor: pointer;
+  color: #123a63;
+  flex-shrink: 0;
+  transition: background 0.2s, color 0.2s;
+}
+
+.admin-sidebar-toggle:hover {
+  background: rgba(18, 58, 99, 0.12);
+  color: #0e3a5c;
+}
+
+.admin-sidebar-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* ========================================
    APP TITLE
    ======================================== */
 
@@ -288,6 +319,10 @@
   .admin-appbar.sidebar-expanded,
   .admin-appbar.sidebar-collapsed {
     left: 0;
+  }
+  
+  .admin-sidebar-toggle {
+    display: flex;
   }
   
   .admin-appbar-content {
