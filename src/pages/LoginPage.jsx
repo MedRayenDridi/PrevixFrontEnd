@@ -64,7 +64,7 @@ export default function LoginPage() {
         <div className="login-left-panel">
           <div className="brand-content">
             <div className="brand-logo-large">
-              <img src="/PREVIX_homePage-Photoroom.png" alt="Logo QuantoBridge" className="logo-img" />
+              <img src="/PREVIX_homePage-Photoroom.png" alt="Logo Agentic Metrics" className="logo-img" />
             </div>
             <h1 className="brand-title">
               Bienvenue sur Prev-IX
@@ -208,7 +208,7 @@ export default function LoginPage() {
 
       <div className="powered-by-container">
         <span>Powered by</span>
-        <img src="QuantoLogo.png" alt="QuantoBridge" className="powered-logo" />
+        <img src="QuantoLogo.png" alt="Agentic Metrics" className="powered-logo" />
       </div>
     </div>
   );
