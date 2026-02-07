@@ -1,0 +1,13 @@
+# Render Blueprint for Previx Frontend (Static Site)
+# https://render.com/docs/static-sites
+services:
+  - type: web
+    name: previx-frontend
+    env: static
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+      - key: VITE_APP_RAGPREVIX_URL
+        sync: false

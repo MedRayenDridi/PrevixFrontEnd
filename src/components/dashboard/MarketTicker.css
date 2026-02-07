@@ -160,12 +160,22 @@
 }
 
 /* Loading State */
-.ticker-loading {
+.ticker-loading,
+.ticker-empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
   width: 100%;
+  min-height: 60px;
+}
+
+.ticker-empty-state {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.ticker-loading {
   height: 100%;
   color: #07315c;
   font-size: 13px;

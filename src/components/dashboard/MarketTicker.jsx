@@ -19,23 +19,35 @@ const MarketTicker = () => {
   }, []);
 
   const fetchMarketData = async () => {
-    try {
-      const token = localStorage.getItem('access_token');
-      const config = { headers: { Authorization: `Bearer ${token}` } };
+    const token = localStorage.getItem('access_token');
+    const config = { headers: { Authorization: `Bearer ${token}` } };
+    const base = `${API_BASE_URL}/market-data`;
 
-      const [constructionRes, materialRes, landRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/market-data/construction-prices?country=Tunisia`, config),
-        axios.get(`${API_BASE_URL}/market-data/material-prices?country=Tunisia`, config),
-        axios.get(`${API_BASE_URL}/market-data/land-prices?country=Tunisia`, config)
+    try {
+      const [constructionRes, materialRes, landRes] = await Promise.allSettled([
+        axios.get(`${base}/construction-prices?country=Tunisia`, config),
+        axios.get(`${base}/material-prices?country=Tunisia`, config),
+        axios.get(`${base}/land-prices?country=Tunisia`, config)
       ]);
 
-      // Take first few items from each category
-      setConstructionPrices(constructionRes.data.slice(0, 3));
-      setMaterialPrices(materialRes.data.slice(0, 4));
-      setLandPrices(landRes.data.slice(0, 3));
-      setLoading(false);
+      setConstructionPrices(
+        constructionRes.status === 'fulfilled' && Array.isArray(constructionRes.value?.data)
+          ? constructionRes.value.data.slice(0, 3)
+          : []
+      );
+      setMaterialPrices(
+        materialRes.status === 'fulfilled' && Array.isArray(materialRes.value?.data)
+          ? materialRes.value.data.slice(0, 4)
+          : []
+      );
+      setLandPrices(
+        landRes.status === 'fulfilled' && Array.isArray(landRes.value?.data)
+          ? landRes.value.data.slice(0, 3)
+          : []
+      );
     } catch (error) {
       console.error('Failed to fetch market data:', error);
+    } finally {
       setLoading(false);
     }
   };
@@ -110,22 +122,30 @@ const MarketTicker = () => {
   }
 
   const tickerItems = renderTickerItems();
+  const hasAnyData = tickerItems.length > 0;
 
   return (
     <div className="market-ticker-container">
       <div className="ticker-header">
         <span className="ticker-title"><BarChart /> Données du Marché - 2025</span>
-        <span className="ticker-live">
-          <span className="live-dot"></span>
-          EN DIRECT
-        </span>
+        {hasAnyData && (
+          <span className="ticker-live">
+            <span className="live-dot"></span>
+            EN DIRECT
+          </span>
+        )}
       </div>
       <div className="ticker-track">
-        <div className="ticker-content">
-          {/* Duplicate items for seamless loop */}
-          {tickerItems}
-          {tickerItems}
-        </div>
+        {hasAnyData ? (
+          <div className="ticker-content">
+            {tickerItems}
+            {tickerItems}
+          </div>
+        ) : (
+          <div className="ticker-loading ticker-empty-state">
+            <span>Aucune donnée de marché disponible pour le moment.</span>
+          </div>
+        )}
       </div>
     </div>
   );

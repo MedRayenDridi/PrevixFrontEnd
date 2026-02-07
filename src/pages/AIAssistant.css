@@ -387,8 +387,7 @@
   padding: 0.5rem;
 }
 
-.ai-assistant-sidebar-empty,
-.ai-assistant-sidebar-loading {
+.ai-assistant-sidebar-empty {
   padding: 1.5rem 1rem;
   text-align: center;
   color: #9ca3af;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useProject } from '../../context/ProjectContext';
 import ExchangeRateTable from '../ExchangeRateTable';
+import MarketTicker from '../../components/dashboard/MarketTicker';
 import './ClientDashboard.css';
 
 // Modern Icons
@@ -140,6 +141,8 @@ const ClientDashboard = () => {
           </div>
         </div>
       </div>
+
+      <MarketTicker />
 
       {/* Modern Stats Cards */}
       <div className="modern-stats-grid">

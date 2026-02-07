@@ -9,11 +9,12 @@ const DashboardStats = ({ projects }) => {
   const completedProjects = projects.filter(p => p.status === 'completed').length;
   const overdueProjects = projects.filter(p => new Date(p.due_date) < new Date() && p.status !== 'completed').length;
 
-  // Project type distribution
-  const typeData = [
-    { name: 'IFRS', value: projects.filter(p => p.type === 'IFRS').length },
-    { name: 'Assurance', value: projects.filter(p => p.type === 'Assurance').length }
-  ];
+  // Project type distribution (API field is type_project)
+  const typeLabels = { IFRS: 'IFRS', Assurance: 'Assurance', Risk_Survey: 'Enquête Risque', Other: 'Autre' };
+  const typeData = ['IFRS', 'Assurance', 'Risk_Survey', 'Other']
+    .map(t => ({ name: typeLabels[t] || t, value: projects.filter(p => (p.type_project || p.type) === t).length }))
+    .filter(d => d.value > 0);
+  const typeDataForChart = typeData.length > 0 ? typeData : [{ name: 'Aucun type', value: 1, fill: '#e2e8f0' }];
 
   // Status distribution
   const statusData = [
@@ -103,20 +104,21 @@ const DashboardStats = ({ projects }) => {
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={typeData}
+                data={typeDataForChart}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => (percent > 0 ? `${name} ${(percent * 100).toFixed(0)}%` : '')}
                 outerRadius={80}
                 fill="#1c91af"
                 dataKey="value"
               >
-                {typeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={index === 0 ? '#1c91af' : '#07315c'} />
+                {typeDataForChart.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill || (index === 0 ? '#1c91af' : ['#07315c', '#1c91af', '#06A77D', '#D8A34B'][index % 4])} />
                 ))}
               </Pie>
               <Tooltip
+                formatter={(value, name) => (typeData.length === 0 && name === 'Aucun type' ? ['Aucun projet', name] : [value, name])}
                 contentStyle={{
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
                   border: '1px solid rgba(7, 49, 92, 0.1)',

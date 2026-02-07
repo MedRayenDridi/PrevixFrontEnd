@@ -189,7 +189,6 @@ export const AIAssistant = () => {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [showHistorySidebar, setShowHistorySidebar] = useState(false);
   const [conversations, setConversations] = useState([]);
-  const [conversationsLoading, setConversationsLoading] = useState(false);
   const [editingConversationId, setEditingConversationId] = useState(null);
   const [editingTitle, setEditingTitle] = useState('');
   const messagesEndRef = useRef(null);
@@ -219,14 +218,11 @@ export const AIAssistant = () => {
   }, []);
 
   const loadConversations = async () => {
-    setConversationsLoading(true);
     try {
       const list = await aiAssistantService.getConversations();
       setConversations(list);
     } catch (e) {
       setConversations([]);
-    } finally {
-      setConversationsLoading(false);
     }
   };
 
@@ -571,9 +567,7 @@ export const AIAssistant = () => {
               </button>
             </div>
             <div className="ai-assistant-sidebar-list">
-              {conversationsLoading ? (
-                <p className="ai-assistant-sidebar-loading">Chargement…</p>
-              ) : conversations.length === 0 ? (
+              {conversations.length === 0 ? (
                 <p className="ai-assistant-sidebar-empty">Aucune conversation</p>
               ) : (
                 conversations.map((c) => (

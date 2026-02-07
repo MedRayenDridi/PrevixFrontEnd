@@ -41,7 +41,8 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
   const [metadata, setMetadata] = useState(null);
   const [selectedCurrencies] = useState(['EUR', 'USD', 'GBP', 'JPY', 'CAD', 'CHF']);
 
-  const API_BASE_URL = 'http://localhost:8000';
+  const API_BASE_URL =
+    import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
 
   const fetchRates = async () => {
     setLoading(true);
