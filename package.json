@@ -27,7 +27,8 @@
     "react-slick": "^0.31.0",
     "recharts": "^3.3.0",
     "slick-carousel": "^1.8.1",
-    "three": "^0.180.0"
+    "three": "^0.180.0",
+    "serve": "^14.2.4"
   },
   "scripts": {
     "dev": "vite",

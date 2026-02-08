@@ -1,16 +1,12 @@
-# Render Blueprint for Previx Frontend (Static Site)
-# https://render.com/docs/static-sites
+# Render Blueprint for Previx Frontend
+# Deployed as Node web service so SPA routes (e.g. /organizations) work on direct load and refresh.
+# https://render.com/docs/web-services
 services:
   - type: web
     name: previx-frontend
-    env: static
+    runtime: node
     buildCommand: npm ci && npm run build
-    staticPublishPath: dist
-    # SPA fallback: serve index.html for all paths so client-side routing works on reload/direct URLs
-    routes:
-      - type: rewrite
-        source: "/*"
-        destination: /index.html
+    startCommand: npx serve -s dist -l $PORT
     envVars:
       - key: VITE_API_BASE_URL
         sync: false

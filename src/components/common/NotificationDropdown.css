@@ -310,11 +310,32 @@
   box-shadow: 0 4px 12px rgba(0, 31, 63, 0.3);
 }
 
-/* Responsive */
+/* Responsive - mobile */
 @media (max-width: 768px) {
   .notification-dropdown {
     width: 320px;
+    max-width: calc(100vw - 24px);
     right: -20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .notification-dropdown {
+    width: calc(100vw - 24px);
+    left: 12px;
+    right: 12px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  
+  .notification-header,
+  .notification-item {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .notification-footer {
+    padding: 12px 16px;
   }
 }
 
