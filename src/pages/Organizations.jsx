@@ -14,6 +14,9 @@ const Organizations = () => {
   const [selectedOrgForMembers, setSelectedOrgForMembers] = useState(null);
   const [memberCounts, setMemberCounts] = useState({});
   const [showLoadingAnimation, setShowLoadingAnimation] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [orgToDelete, setOrgToDelete] = useState(null);
+  const [deleteInProgress, setDeleteInProgress] = useState(false);
   const [formData, setFormData] = useState({
     organization_name: '',
     organization_isin: '',
@@ -94,18 +97,37 @@ const Organizations = () => {
     }
   };
 
-  const handleDelete = async (orgId) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette organisation ?')) {
-      return;
+  const openDeleteConfirm = (org) => {
+    setOrgToDelete(org);
+    setShowDeleteConfirm(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    if (!deleteInProgress) {
+      setShowDeleteConfirm(false);
+      setOrgToDelete(null);
     }
+  };
 
-    const result = await organizationService.deleteOrganization(orgId);
-
-    if (result.success) {
-      alert('Organisation supprimée avec succès!');
-      loadOrganizations();
-    } else {
-      alert(`Erreur: ${result.error}`);
+  const handleConfirmDeleteOrg = async () => {
+    if (!orgToDelete) return;
+    setDeleteInProgress(true);
+    try {
+      const result = await organizationService.deleteOrganization(orgToDelete.org_id);
+      setShowDeleteConfirm(false);
+      setOrgToDelete(null);
+      if (result.success) {
+        alert('Organisation supprimée avec succès. Les projets ont été supprimés. Les utilisateurs restent dans le système et peuvent être réaffectés.');
+        loadOrganizations();
+      } else {
+        alert(`Erreur: ${result.error}`);
+      }
+    } catch (err) {
+      setShowDeleteConfirm(false);
+      setOrgToDelete(null);
+      alert(`Erreur: ${err.message || 'Impossible de supprimer l\'organisation.'}`);
+    } finally {
+      setDeleteInProgress(false);
     }
   };
 
@@ -279,7 +301,7 @@ const Organizations = () => {
                 </button>
                 <button
                   className="btn-action btn-delete"
-                  onClick={() => handleDelete(org.org_id)}
+                  onClick={() => openDeleteConfirm(org)}
                   title="Supprimer"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -625,6 +647,57 @@ const Organizations = () => {
             setSelectedOrgForMembers(null);
           }}
         />
+      )}
+
+      {/* Delete organization confirmation modal */}
+      {showDeleteConfirm && orgToDelete && (
+        <div className="modal-overlay" onClick={closeDeleteConfirm}>
+          <div className="modal-content modern-modal delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Supprimer l&apos;organisation</h2>
+              <button
+                type="button"
+                className="modal-close"
+                onClick={closeDeleteConfirm}
+                disabled={deleteInProgress}
+                aria-label="Fermer"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+              </button>
+            </div>
+            <div className="delete-confirm-body">
+              <p className="delete-confirm-warning">
+                <strong>Attention :</strong> Vous êtes sur le point de supprimer l&apos;organisation
+                <strong> « {orgToDelete.organization_name} »</strong>.
+              </p>
+              <ul>
+                <li>Tous les <strong>projets</strong> de cette organisation seront <strong>supprimés définitivement</strong>.</li>
+                <li>Les <strong>membres (utilisateurs)</strong> ne seront pas supprimés : ils seront simplement retirés de cette organisation. Vous pourrez ensuite les supprimer ou les ajouter à une autre organisation.</li>
+              </ul>
+              <p>Cette action est irréversible. Souhaitez-vous continuer ?</p>
+            </div>
+            <div className="form-actions">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={closeDeleteConfirm}
+                disabled={deleteInProgress}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                className="btn-submit btn-delete-confirm"
+                onClick={handleConfirmDeleteOrg}
+                disabled={deleteInProgress}
+              >
+                {deleteInProgress ? 'Suppression…' : 'Confirmer la suppression'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

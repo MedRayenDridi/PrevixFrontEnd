@@ -342,7 +342,7 @@ export const userService = {
 
   deleteUser: async (userId) => {
     try {
-      const response = await api.delete(`/users/${userId}`);
+      const response = await api.delete(`/admin/users/${userId}`);
       return response.data;
     } catch (error) {
       console.error(`Error deleting user ${userId}:`, error);

@@ -102,11 +102,16 @@ const organizationService = {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
-      
-      return { 
-        success: response.ok || response.status === 204,
-        error: response.ok ? null : 'Failed to delete organization'
-      };
+      const ok = response.ok || response.status === 204;
+      if (!ok && response.body) {
+        let detail = 'Failed to delete organization';
+        try {
+          const data = await response.json();
+          detail = data.detail || data.message || detail;
+        } catch (_) { /* ignore */ }
+        return { success: false, error: detail };
+      }
+      return { success: ok, error: null };
     } catch (error) {
       console.error('Error deleting organization:', error);
       return { success: false, error: error.message };

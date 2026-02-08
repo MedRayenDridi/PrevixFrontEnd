@@ -720,6 +720,37 @@
   box-shadow: 0 6px 20px rgba(239, 68, 68, 0.35);
 }
 
+/* Delete organization confirmation modal */
+.delete-confirm-modal .delete-confirm-body {
+  padding: 1rem 2rem 1.5rem;
+}
+.delete-confirm-modal .delete-confirm-warning {
+  margin: 0 0 1rem;
+  color: #1a1a1a;
+  font-size: 1rem;
+}
+.delete-confirm-modal .delete-confirm-body ul {
+  margin: 0 0 1rem;
+  padding-left: 1.5rem;
+  color: #333;
+}
+.delete-confirm-modal .delete-confirm-body li {
+  margin-bottom: 0.5rem;
+}
+.delete-confirm-modal .delete-confirm-body p:last-of-type {
+  margin: 0;
+  font-weight: 600;
+  color: #123a63;
+}
+.delete-confirm-modal .btn-delete-confirm {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  border-color: #dc2626;
+}
+.delete-confirm-modal .btn-delete-confirm:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
+}
+
 /* ============================================
    MODAL STYLES - ENHANCED
    ============================================ */
