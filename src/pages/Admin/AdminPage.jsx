@@ -136,19 +136,20 @@ export const AdminPage = () => {
   // ✅ CRUD Operations using userService
   const handleDeleteUser = async () => {
     if (!selectedUser) return;
-    
+    const userId = selectedUser.user_id;
     setActionLoading(true);
     try {
-      await userService.deleteUser(selectedUser.user_id);
-      await loadData();
+      await userService.deleteUser(userId);
       setShowDeleteModal(false);
       setSelectedUser(null);
+      setActionLoading(false);
+      await loadData();
       alert('✅ Utilisateur supprimé avec succès!');
     } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('❌ Failed to delete user: ' + (error.response?.data?.detail || error.message));
-    } finally {
       setActionLoading(false);
+      console.error('Error deleting user:', error);
+      const msg = error.response?.data?.detail ?? error.message;
+      alert('❌ Échec de la suppression : ' + (Array.isArray(msg) ? msg.join(', ') : msg));
     }
   };
 
