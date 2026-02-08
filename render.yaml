@@ -1,5 +1,6 @@
 # Render Blueprint for Previx Frontend
-# Deployed as Node web service so SPA routes (e.g. /organizations) work on direct load and refresh.
+# Must be a Web Service (Node), NOT Static Site — or /organizations, /dashboard etc. return 404 on reload.
+# If you already have a Static Site: create a NEW Web Service from this repo, then delete the old one.
 # https://render.com/docs/web-services
 services:
   - type: web
