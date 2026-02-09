@@ -733,7 +733,26 @@
   }
 
   .mobile-logo {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    padding: 0.75rem;
+    min-height: 56px;
+    /* Stable container so logo doesn’t shift or glitch on mobile */
+  }
+
+  .mobile-logo img {
+    height: 48px;
+    width: auto;
+    max-width: 180px;
+    object-fit: contain;
+    object-position: center;
+    image-rendering: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    pointer-events: none;
   }
 
   .login-right-panel {
@@ -742,6 +761,11 @@
 }
 
 @media (max-width: 480px) {
+  .mobile-logo img {
+    height: 44px;
+    max-width: 160px;
+  }
+
   .modern-login-page {
     padding: 1rem;
   }
@@ -844,5 +868,32 @@
   object-fit: contain;
   filter: brightness(0) invert(0.3); /* optionnel: adapte la luminosité pour fond clair */
   user-select: none;
+}
+
+/* Center \"Powered by\" block on mobile */
+@media (max-width: 768px) {
+  .powered-by-container {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    bottom: 14px;
+    justify-content: center;
+  }
+
+  .powered-logo {
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .powered-by-container {
+    bottom: 10px;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  .powered-logo {
+    height: 48px;
+  }
 }
 
