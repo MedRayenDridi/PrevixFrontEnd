@@ -15,8 +15,9 @@ import ProjectUpload from "./components/projects/Admin/ProjectUpload";
 import AITransformationAnimation from "./components/animation/AITransformationAnimation";
 import LoadingScreen from "./components/animation/LoadingScreen";
 import Organizations from './pages/Organizations';
-import { Parameters } from './pages/Parameters';  // ✅ ADD THIS IMPORT
-import { AIAssistant } from './pages/AIAssistant';  // ✅ ADD THIS IMPORT
+import { Parameters } from './pages/Parameters';
+import { SettingsPage } from './pages/SettingsPage';
+import { AIAssistant } from './pages/AIAssistant';
 import { ManusReport } from './pages/ManusReport';  // ✅ ADD THIS IMPORT
 import './App.css';
 import { useEffect, useState } from 'react';
@@ -183,8 +184,8 @@ function App() {
     const location = useLocation();
     const [loadingComplete, setLoadingComplete] = useState(false);
 
-    // ✅ UPDATED: Added /parameters, /aiAssistant, and /manus to full-screen routes
-    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations', '/parameters', '/aiAssistant', '/manus'].includes(location.pathname) ||
+    // ✅ UPDATED: Added /parameters, /settings, /aiAssistant, and /manus to full-screen routes
+    const isFullScreenRoute = ['/dashboard', '/profile', '/admin', '/projects', '/organizations', '/parameters', '/settings', '/aiAssistant', '/manus'].includes(location.pathname) ||
                               location.pathname.startsWith('/projects/');
 
     const handleLoadingComplete = () => {
@@ -253,13 +254,23 @@ function App() {
                             }
                         />
 
-                        {/* ✅ ADD THIS: Parameters Route */}
+                        {/* Parameters (system) and Settings (preferences) both use Parameters page */}
                         <Route
                             path="/parameters"
                             element={
                                 <PrivateRoute>
                                     <Layout>
                                         <Parameters />
+                                    </Layout>
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/settings"
+                            element={
+                                <PrivateRoute>
+                                    <Layout>
+                                        <SettingsPage />
                                     </Layout>
                                 </PrivateRoute>
                             }

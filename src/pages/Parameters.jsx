@@ -124,7 +124,10 @@ export const Parameters = () => {
   const [isAdding, setIsAdding] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    // Only fetch backend data for wear and construction tabs
+    if (activeTab === 'wear' || activeTab === 'construction') {
+      fetchData();
+    }
     // Reset filters when switching tabs
     setSelectedCategory('');
     setSelectedMaintenanceState('');
@@ -1005,7 +1008,6 @@ export const Parameters = () => {
         )}
 
 
-        {/* ✅ UPDATED: Use TableSkeleton instead of simple spinner */}
         {loading ? (
           <TableSkeleton />
         ) : activeTab === 'wear' ? (
