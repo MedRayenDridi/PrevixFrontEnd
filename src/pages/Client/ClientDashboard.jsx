@@ -237,7 +237,7 @@ const ClientDashboard = () => {
                 <div 
                   key={project.project_id} 
                   className="project-card-glass"
-                  onClick={() => navigate(`/projects/${project.project_id}`)}
+                  onClick={() => navigate(`/client/projects/${project.project_id}`)}
                 >
                   <div className="project-header-row">
                     <div className="project-main-info">
@@ -312,7 +312,7 @@ const ClientDashboard = () => {
                 <div 
                   key={project.project_id} 
                   className="deadline-item-modern"
-                  onClick={() => navigate(`/projects/${project.project_id}`)}
+                  onClick={() => navigate(`/client/projects/${project.project_id}`)}
                 >
                   <div className="deadline-icon-badge">
                     <CalendarIcon />

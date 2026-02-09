@@ -12,6 +12,7 @@ import ProjectList from "./components/projects/ProjectList";
 import ProjectForm from "./components/projects/Admin/ProjectForm";
 import ProjectDetail from "./components/projects/Admin/ProjectDetail";
 import ProjectUpload from "./components/projects/Admin/ProjectUpload";
+import ClientProjectDetail from "./components/projects/Clients/ClientProjectDetail";
 import AITransformationAnimation from "./components/animation/AITransformationAnimation";
 import LoadingScreen from "./components/animation/LoadingScreen";
 import Organizations from './pages/Organizations';
@@ -326,6 +327,16 @@ function App() {
                                 <PrivateRoute>
                                     <Layout>
                                         <ProjectDetail />
+                                    </Layout>
+                                </PrivateRoute>
+                            }
+                        />
+                        <Route
+                            path="/client/projects/:id"
+                            element={
+                                <PrivateRoute>
+                                    <Layout>
+                                        <ClientProjectDetail />
                                     </Layout>
                                 </PrivateRoute>
                             }

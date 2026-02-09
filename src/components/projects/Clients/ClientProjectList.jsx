@@ -124,7 +124,7 @@ const ClientProjectList = () => {
 
       // Navigate to the new project
       if (result.project_id) {
-        navigate(`/projects/${result.project_id}`);
+        navigate(`/client/projects/${result.project_id}`);
       }
 
       alert(`✅ Projet créé avec succès! ${result.files.length} fichier(s) téléchargé(s).`);
@@ -139,7 +139,7 @@ const ClientProjectList = () => {
   */
 
   const handleViewProject = (projectId) => {
-    navigate(`/projects/${projectId}`);
+    navigate(`/client/projects/${projectId}`);
   };
 
   const toggleProjectExpand = (projectId) => {
