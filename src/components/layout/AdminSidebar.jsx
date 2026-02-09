@@ -74,10 +74,10 @@ const AIIcon = () => (
   </svg>
 );
 
-const ValuationIAIcon = () => (
+// Valuation AI: assessment/report icon (document with chart lines)
+const ValuationAIIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor">
-    {/* Bar chart representing valuation analysis */}
-    <path d="M3 18h18v2H3v-2zm2-8h2v6H5v-6zm4-4h2v10H9V6zm4 2h2v8h-2V8zm4-6h2v14h-2V2z"/>
+    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" />
   </svg>
 );
 
@@ -96,7 +96,7 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
     { text: 'Organisations', icon: <OrganizationIcon />, path: '/organizations', id: 'organizations' },
     { text: 'Gestion des utilisateurs', icon: <GroupIcon />, path: '/admin', id: 'users' },
     { text: 'Previx IA', icon: <AIIcon />, path: '/aiAssistant', id: 'aiAssistant' },
-    { text: 'Valuation IA', icon: <ValuationIAIcon />, path: '/manus', id: 'manus' },
+    { text: 'Valuation IA', icon: <ValuationAIIcon />, path: '/manus', id: 'manus' },
     { text: 'Paramètres système', icon: <ParametersIcon />, path: '/parameters', id: 'parameters' },
     { text: 'Profil', icon: <PersonIcon />, path: '/profile', id: 'profile' },
     { text: 'Paramètres', icon: <SettingsIcon />, path: '/settings', id: 'settings' },

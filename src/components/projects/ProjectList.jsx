@@ -260,23 +260,33 @@ const ProjectList = () => {
 
   return (
     <div className="project-list-container">
-      {/* Header */}
-      <div className="project-list-header">
-        <div className="header-left">
-          <h1>Projets</h1>
-          <span className="project-count">{filteredProjects.length} projet{filteredProjects.length !== 1 ? 's' : ''}</span>
-        </div>
-        <div className="header-right">
-          {selectedProjects.length > 0 && (
-            <button className="btn-danger" onClick={handleBulkDelete}>
-              <DeleteIcon />
-              Supprimer ({selectedProjects.length})
-            </button>
-          )}
-          <button className="btn-primary" onClick={handleCreate}>
-            <PlusIcon />
-            Nouveau Projet
-          </button>
+      {/* Header - dashboard style */}
+      <div className="page-header-modern">
+        <div className="page-header-glass">
+          <div className="page-header-content">
+            <div className="page-header-text">
+              <div className="page-header-badge">
+                <FolderIcon />
+                <span>Projets</span>
+              </div>
+              <h1 className="page-header-title">Projets</h1>
+              <p className="page-header-subtitle">
+                {filteredProjects.length} projet{filteredProjects.length !== 1 ? 's' : ''} au total
+              </p>
+            </div>
+            <div className="page-header-actions">
+              {selectedProjects.length > 0 && (
+                <button type="button" className="page-header-cta btn-danger-cta" onClick={handleBulkDelete}>
+                  <DeleteIcon />
+                  Supprimer ({selectedProjects.length})
+                </button>
+              )}
+              <button type="button" className="page-header-cta" onClick={handleCreate}>
+                <PlusIcon />
+                Nouveau Projet
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 

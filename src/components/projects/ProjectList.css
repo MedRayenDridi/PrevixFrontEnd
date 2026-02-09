@@ -1,3 +1,5 @@
+@import '../../styles/PageHeader.css';
+
 /* ========================================
    PROJECT LIST - COMPLETE STYLES
    Navy Blue Theme
@@ -15,51 +17,7 @@
 }
 
 /* ========================================
-   HEADER SECTION
-   ======================================== */
-
-.project-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #e5e7eb;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.header-left h1 {
-  margin: 0;
-  font-weight: 700;
-  font-size: 32px;
-  background: linear-gradient(135deg, #07315c 0%, #1c91af 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.project-count {
-  background: rgba(28, 145, 175, 0.1);
-  color: #1c91af;
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* ========================================
-   BUTTONS
+   BUTTONS (header uses page-header-cta from PageHeader.css)
    ======================================== */
 
 .project-list-container button {
@@ -199,22 +157,29 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #f9fafb;
+  background: rgba(18, 58, 99, 0.02);
   padding: 4px 12px;
   border-radius: 10px;
-  border: 2px solid #e5e7eb;
+  border: 2px solid rgba(18, 58, 99, 0.08);
   transition: all 0.3s ease;
 }
 
+.filter-group:hover {
+  border-color: #123a63;
+  background: rgba(18, 58, 99, 0.06);
+  box-shadow: 0 0 0 3px rgba(18, 58, 99, 0.08);
+}
+
 .filter-group:focus-within {
-  border-color: #1c91af;
-  background: white;
+  border-color: #123a63;
+  background: rgba(18, 58, 99, 0.08);
+  box-shadow: 0 0 0 3px rgba(18, 58, 99, 0.14);
 }
 
 .filter-group svg {
   width: 18px;
   height: 18px;
-  color: #6b7280;
+  color: #123a63;
 }
 
 .filter-select {
@@ -222,7 +187,7 @@
   background: transparent;
   padding: 8px 4px;
   font-size: 14px;
-  color: #374151;
+  color: #123a63;
   font-weight: 500;
   cursor: pointer;
   font-family: inherit;
@@ -869,27 +834,6 @@
     padding: 20px 15px;
   }
 
-  .project-list-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .header-left {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .header-left h1 {
-    font-size: 24px;
-  }
-
-  .header-right {
-    width: 100%;
-    justify-content: space-between;
-  }
-
   .filters-section {
     padding: 16px;
   }
@@ -945,15 +889,6 @@
 @media (max-width: 480px) {
   .project-list-container {
     padding: 15px 10px;
-  }
-
-  .header-left h1 {
-    font-size: 20px;
-  }
-
-  .project-count {
-    font-size: 12px;
-    padding: 4px 10px;
   }
 
   .filters-section {

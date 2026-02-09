@@ -98,6 +98,7 @@ const Organizations = () => {
   };
 
   const openDeleteConfirm = (org) => {
+    window.scrollTo(0, 0);
     setOrgToDelete(org);
     setShowDeleteConfirm(true);
   };
@@ -159,20 +160,39 @@ const Organizations = () => {
 
   return (
     <div className="organizations-container">
-      <div className="organizations-header">
-        <div className="header-content">
-          <h1>Gestion des Organisations</h1>
-          <p className="header-subtitle">Gérez vos organisations et leurs membres</p>
+      {/* Header - dashboard style */}
+      <div className="page-header-modern">
+        <div className="page-header-glass">
+          <div className="page-header-content">
+            <div className="page-header-text">
+              <div className="page-header-badge">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
+                </svg>
+                <span>Organisations</span>
+              </div>
+              <h1 className="page-header-title">Organisations</h1>
+              <p className="page-header-subtitle">
+                {organizations.length} organisation{organizations.length !== 1 ? 's' : ''} — gérez vos structures et membres
+              </p>
+            </div>
+            <div className="page-header-actions">
+              <button
+                type="button"
+                className="page-header-cta"
+                onClick={() => {
+                  window.scrollTo(0, 0);
+                  setShowAddModal(true);
+                }}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
+                </svg>
+                Nouvelle Organisation
+              </button>
+            </div>
+          </div>
         </div>
-        <button
-          className="btn-add-org"
-          onClick={() => setShowAddModal(true)}
-        >
-          <svg viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
-          </svg>
-          Nouvelle Organisation
-        </button>
       </div>
 
       {organizations.length === 0 ? (
@@ -185,8 +205,11 @@ const Organizations = () => {
           <h2>Aucune organisation</h2>
           <p>Commencez par créer votre première organisation</p>
           <button
-            className="btn-add-org btn-primary"
-            onClick={() => setShowAddModal(true)}
+            className="btn-add-org btn-primary-org"
+            onClick={() => {
+              window.scrollTo(0, 0);
+              setShowAddModal(true);
+            }}
           >
             <svg viewBox="0 0 24 24" fill="currentColor">
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
@@ -212,7 +235,7 @@ const Organizations = () => {
                 </span>
               </div>
 
-              <div className="org-card-header" style={{ alignItems: 'center', display: 'flex', gap: 10 }}>
+              <div className="org-card-header">
                 <div className="org-icon">
                   <svg viewBox="0 0 24 24" fill="currentColor">
                     <path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z" />
@@ -278,7 +301,10 @@ const Organizations = () => {
               <div className="org-card-actions">
                 <button
                   className="btn-action btn-view"
-                  onClick={() => setSelectedOrg(org)}
+                  onClick={() => {
+                    window.scrollTo(0, 0);
+                    setSelectedOrg(org);
+                  }}
                   title="Voir les détails"
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor">
@@ -289,6 +315,7 @@ const Organizations = () => {
                 <button
                   className="btn-action btn-members"
                   onClick={() => {
+                    window.scrollTo(0, 0);
                     setSelectedOrgForMembers(org.org_id);
                     setShowMembersModal(true);
                   }}
@@ -623,6 +650,7 @@ const Organizations = () => {
                 <button
                   className="btn-add-org"
                   onClick={() => {
+                    window.scrollTo(0, 0);
                     setSelectedOrgForMembers(selectedOrg.org_id);
                     setShowMembersModal(true);
                   }}
