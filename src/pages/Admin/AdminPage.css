@@ -484,16 +484,16 @@
 }
 
 .action-btn {
-  width: 36px;
+  min-width: 36px;
   height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1px solid rgba(7, 49, 92, 0.08);
   border-radius: var(--radius-sm);
   cursor: pointer;
   transition: all var(--transition);
-  background: rgba(7, 49, 92, 0.05);
+  background: #ffffff;
   color: var(--text-secondary);
 }
 
@@ -508,13 +508,15 @@
 }
 
 .action-btn-transfer:hover {
-  background: rgba(28, 145, 175, 0.15);
+  background: rgba(28, 145, 175, 0.12);
   color: var(--primary-blue);
+  border-color: rgba(28, 145, 175, 0.4);
 }
 
 .action-btn-delete:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.12);
   color: var(--danger);
+  border-color: rgba(239, 68, 68, 0.4);
 }
 
 /* ========================================

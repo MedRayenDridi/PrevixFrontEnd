@@ -256,18 +256,34 @@ const ProjectForm = () => {
 
   return (
     <div className="project-form-container">
-      {/* ✅ UPDATED: Header with Back Button */}
+      {/* Header - aligned with dashboard style */}
       <div className="project-form-header">
-        <button 
-          className="btn-back" 
-          onClick={handleBackToProjects}
-          type="button"
-          title="Retour aux projets"
-        >
-          <BackIcon />
-          <span>Retour aux projets</span>
-        </button>
-        <h1>{isEdit ? 'Modifier le Projet' : 'Créer un Nouveau Projet'}</h1>
+        <div className="project-form-header-main">
+          <button 
+            className="btn-back" 
+            onClick={handleBackToProjects}
+            type="button"
+            title="Retour aux projets"
+          >
+            <BackIcon />
+            <span>Retour aux projets</span>
+          </button>
+
+          <div className="project-form-title-block">
+            <div className="project-form-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 4H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-8l-2-2z" />
+              </svg>
+              <span>Projets</span>
+            </div>
+            <h1 className="project-form-title">
+              {isEdit ? 'Modifier le projet' : 'Créer un nouveau projet'}
+            </h1>
+            <p className="project-form-subtitle">
+              Renseignez les informations clés du projet, choisissez son type et son organisation.
+            </p>
+          </div>
+        </div>
       </div>
 
       {error && (

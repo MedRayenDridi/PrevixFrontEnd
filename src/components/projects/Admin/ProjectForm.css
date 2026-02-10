@@ -39,26 +39,93 @@
   box-sizing: border-box;
 }
 
+.project-form-container::before,
+.project-form-container::after {
+  content: '';
+  position: fixed;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  backdrop-filter: blur(12px);
+}
+
+.project-form-container::before {
+  width: 160px;
+  height: 160px;
+  top: 12%;
+  left: 8%;
+  background: rgba(28, 145, 175, 0.06);
+}
+
+.project-form-container::after {
+  width: 110px;
+  height: 110px;
+  bottom: 12%;
+  right: 10%;
+  background: rgba(7, 49, 92, 0.04);
+}
+
 /* ========================================
    HEADER
    ======================================== */
 .project-form-header {
   margin-bottom: clamp(1.5rem, 5vw, 2.5rem);
   padding: 0 clamp(0.5rem, 2vw, 1rem);
+  position: relative;
+  z-index: 1;
 }
 
-.project-form-header h1 {
-  color: var(--color-dark);
+.project-form-header-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(1rem, 3vw, 1.5rem);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.project-form-title-block {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-form-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(28, 145, 175, 0.1);
+  color: var(--color-primary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.project-form-badge svg {
+  width: 16px;
+  height: 16px;
+}
+
+.project-form-title {
   margin: 0;
-  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-size: clamp(1.75rem, 6vw, 2.4rem);
   font-weight: 700;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.03em;
   line-height: 1.2;
   background: linear-gradient(135deg, var(--color-dark) 0%, var(--color-primary) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  word-break: break-word;
+}
+
+.project-form-subtitle {
+  margin: 6px 0 0 0;
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  max-width: 520px;
 }
 
 /* ========================================
@@ -258,9 +325,10 @@
    ======================================== */
 .form-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: clamp(8px, 2vw, 12px);
   justify-content: flex-end;
+  align-items: center;
   margin-top: clamp(1.5rem, 4vw, 2rem);
   padding-top: clamp(1rem, 2vw, 1.5rem);
   border-top: 1px solid rgba(7, 49, 92, 0.08);
@@ -272,8 +340,7 @@
 .btn-primary,
 .btn-secondary {
   padding: clamp(9px, 2vw, 11px) clamp(16px, 3vw, 24px);
-  border: none;
-  border-radius: var(--radius-sm);
+  border-radius: 14px;
   font-size: clamp(12px, 1.1vw, 14px);
   font-weight: 600;
   cursor: pointer;
@@ -282,21 +349,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: clamp(120px, 20vw, 140px);
+  /* Same size for both buttons on desktop/tablet */
+  width: 180px;
+  min-width: 180px;
+  height: 44px;
+  line-height: 1;
   white-space: nowrap;
   box-sizing: border-box;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  background: linear-gradient(135deg, #123a63 0%, #0d2c4e 100%);
   color: white;
-  box-shadow: 0 4px 15px rgba(28, 145, 175, 0.3);
+  box-shadow: 0 8px 24px rgba(18, 58, 99, 0.25);
+  /* Match secondary border thickness so heights are identical */
+  border: 1.5px solid transparent;
 }
 
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(28, 145, 175, 0.4);
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, #085d74 100%);
+  box-shadow: 0 12px 32px rgba(18, 58, 99, 0.35);
+  background: linear-gradient(135deg, #0d2c4e 0%, #08192c 100%);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -312,12 +385,12 @@
 .btn-secondary {
   background: rgba(7, 49, 92, 0.03);
   color: var(--color-dark);
-  border: 1.5px solid rgba(7, 49, 92, 0.15);
+  border: 1.5px solid rgba(7, 49, 92, 0.18);
 }
 
 .btn-secondary:hover:not(:disabled) {
   background: rgba(7, 49, 92, 0.08);
-  border-color: rgba(7, 49, 92, 0.25);
+  border-color: rgba(7, 49, 92, 0.3);
   transform: translateY(-2px);
 }
 
@@ -383,6 +456,7 @@
   .btn-secondary {
     width: 100%;
     min-width: unset;
+    height: auto;
     padding: 12px 16px;
   }
 

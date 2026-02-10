@@ -3,6 +3,7 @@ import organizationService from '../services/organizationService';
 import OrgMembersModal from './OrgMembersModal';
 
 import OrganizationsLoadingAnimation from '../components/animation/OrganizationsLoadingAnimation';
+import { useToast } from '../components/common/Toast';
 import './Organizations.css';
 
 const Organizations = () => {
@@ -17,6 +18,7 @@ const Organizations = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [orgToDelete, setOrgToDelete] = useState(null);
   const [deleteInProgress, setDeleteInProgress] = useState(false);
+  const toast = useToast();
   const [formData, setFormData] = useState({
     organization_name: '',
     organization_isin: '',
@@ -63,7 +65,7 @@ const Organizations = () => {
       };
       await fetchCounts();
     } else {
-      alert(`Erreur: ${result.error}`);
+      toast.error(result.error || 'Erreur lors du chargement des organisations');
     }
     
     setLoading(false);
@@ -84,7 +86,7 @@ const Organizations = () => {
     const result = await organizationService.createOrganization(formData);
 
     if (result.success) {
-      alert('Organisation créée avec succès!');
+      toast.success('Organisation créée avec succès');
       setShowAddModal(false);
       resetForm();
       loadOrganizations();
@@ -93,7 +95,7 @@ const Organizations = () => {
         typeof result.error === 'string'
           ? result.error
           : JSON.stringify(result.error, null, 2);
-      alert(`Erreur:\n${errorMsg}`);
+      toast.error(errorMsg || 'Erreur lors de la création de l’organisation');
     }
   };
 
@@ -118,15 +120,15 @@ const Organizations = () => {
       setShowDeleteConfirm(false);
       setOrgToDelete(null);
       if (result.success) {
-        alert('Organisation supprimée avec succès. Les projets ont été supprimés. Les utilisateurs restent dans le système et peuvent être réaffectés.');
+        toast.success('Organisation supprimée avec succès');
         loadOrganizations();
       } else {
-        alert(`Erreur: ${result.error}`);
+        toast.error(result.error || 'Erreur lors de la suppression de l’organisation');
       }
     } catch (err) {
       setShowDeleteConfirm(false);
       setOrgToDelete(null);
-      alert(`Erreur: ${err.message || 'Impossible de supprimer l\'organisation.'}`);
+      toast.error(err.message || 'Impossible de supprimer l’organisation');
     } finally {
       setDeleteInProgress(false);
     }

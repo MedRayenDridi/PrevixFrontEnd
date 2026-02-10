@@ -3,6 +3,7 @@ import { userService } from '../../services/api';
 import organizationService from '../../services/organizationService';
 import { useAuth } from '../../context/AuthContext';
 import AdminConsoleAnimation from '../../components/animation/AdminConsoleAnimation';
+import { useToast } from '../../components/common/Toast';
 import './AdminPage.css';
 
 // Icons as inline SVG components
@@ -57,6 +58,7 @@ export const AdminPage = () => {
   const [selectedOrgId, setSelectedOrgId] = useState('');
   const [selectedRoleId, setSelectedRoleId] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     if (!isAdmin()) {
@@ -144,12 +146,12 @@ export const AdminPage = () => {
       setSelectedUser(null);
       setActionLoading(false);
       await loadData();
-      alert('✅ Utilisateur supprimé avec succès!');
+      toast.success('Utilisateur supprimé avec succès');
     } catch (error) {
       setActionLoading(false);
       console.error('Error deleting user:', error);
       const msg = error.response?.data?.detail ?? error.message;
-      alert('❌ Échec de la suppression : ' + (Array.isArray(msg) ? msg.join(', ') : msg));
+      toast.error('Échec de la suppression : ' + (Array.isArray(msg) ? msg.join(', ') : msg));
     }
   };
 
@@ -183,10 +185,10 @@ export const AdminPage = () => {
       setSelectedUser(null);
       setSelectedOrgId('');
       setSelectedRoleId('');
-      alert('✅ Utilisateur transféré avec succès!');
+      toast.success('Utilisateur transféré avec succès');
     } catch (error) {
       console.error('❌ Error transferring user:', error);
-      alert('❌ Failed to transfer user: ' + (error.response?.data?.detail || error.message));
+      toast.error('Échec du transfert : ' + (error.response?.data?.detail || error.message));
     } finally {
       setActionLoading(false);
     }
