@@ -673,6 +673,49 @@ export const manusService = {
   },
 
   /**
+   * Generate Valuation IA PDF report from uploaded files
+   * @param {File[]} files
+   * @param {string} projectName
+   * @param {string} projectType
+   * @param {string} orgName
+   * @param {string} orgIndustry
+   * @returns {Promise<Blob>} PDF file blob
+   */
+  generatePdfReport: async (files, projectName = null, projectType = null, orgName = null, orgIndustry = null) => {
+    try {
+      const formData = new FormData();
+
+      files.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      if (projectName) {
+        formData.append('project_name', projectName);
+      }
+      if (projectType) {
+        formData.append('project_type', projectType);
+      }
+      if (orgName) {
+        formData.append('org_name', orgName);
+      }
+      if (orgIndustry) {
+        formData.append('org_industry', orgIndustry);
+      }
+
+      const response = await api.post('/manus/from-files-pdf', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        responseType: 'blob',
+        timeout: 300000,
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error generating Valuation IA PDF report:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Check Valuation IA service health
    */
   checkHealth: async () => {

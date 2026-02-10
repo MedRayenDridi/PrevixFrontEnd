@@ -40,6 +40,7 @@ export const ManusReport = () => {
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -123,7 +124,7 @@ export const ManusReport = () => {
     setFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleGenerate = async () => {
+  const handleGenerateExcel = async () => {
     if (files.length === 0) {
       setError('Veuillez sélectionner au moins un fichier');
       return;
@@ -134,7 +135,7 @@ export const ManusReport = () => {
     setSuccess(false);
 
     try {
-      // Generate report
+      // Generate Excel report
       const blob = await manusService.generateReport(
         files,
         projectName || null,
@@ -185,6 +186,47 @@ export const ManusReport = () => {
       setError(errorMessage);
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleGeneratePdf = async () => {
+    if (files.length === 0) {
+      setError('Veuillez sélectionner au moins un fichier');
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+    setError(null);
+    setSuccess(false);
+
+    try {
+      const blob = await manusService.generatePdfReport(
+        files,
+        projectName || null,
+        'IFRS',
+        null,
+        null,
+      );
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rapport_valuation_ia_${new Date().toISOString().split('T')[0]}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setSuccess(true);
+      setFiles([]);
+      setProjectName('');
+
+      setTimeout(() => setSuccess(false), 5000);
+    } catch (err) {
+      console.error('Error generating Valuation IA PDF report:', err);
+      setError('Une erreur est survenue lors de la génération du rapport PDF.');
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -329,22 +371,39 @@ export const ManusReport = () => {
           </div>
         )}
 
-        {/* Generate Button */}
+        {/* Generate Buttons */}
         <div className="manus-actions">
           <button
             className="manus-generate-btn"
-            onClick={handleGenerate}
-            disabled={files.length === 0 || isProcessing}
+            onClick={handleGenerateExcel}
+            disabled={files.length === 0 || isProcessing || isGeneratingPdf}
           >
             {isProcessing ? (
               <>
                 <div className="manus-spinner"></div>
-                <span>Génération en cours...</span>
+                <span>Génération Excel...</span>
               </>
             ) : (
               <>
                 <DownloadIcon />
-                <span>Générer le rapport Valuation IA</span>
+                <span>Générer le rapport Excel</span>
+              </>
+            )}
+          </button>
+          <button
+            className="manus-generate-btn manus-generate-btn-secondary"
+            onClick={handleGeneratePdf}
+            disabled={files.length === 0 || isProcessing || isGeneratingPdf}
+          >
+            {isGeneratingPdf ? (
+              <>
+                <div className="manus-spinner"></div>
+                <span>Génération PDF...</span>
+              </>
+            ) : (
+              <>
+                <DownloadIcon />
+                <span>Générer le rapport PDF</span>
               </>
             )}
           </button>
