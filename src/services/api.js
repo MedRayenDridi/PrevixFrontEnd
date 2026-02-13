@@ -681,6 +681,10 @@ export const manusService = {
    * @param {string} orgIndustry
    * @returns {Promise<Blob>} PDF file blob
    */
+  /**
+   * Generate Word report (same endpoint as before; server returns .docx).
+   * @returns {{ blob: Blob, filename?: string }} blob and optional filename from Content-Disposition
+   */
   generatePdfReport: async (files, projectName = null, projectType = null, orgName = null, orgIndustry = null) => {
     try {
       const formData = new FormData();
@@ -708,9 +712,15 @@ export const manusService = {
         timeout: 300000,
       });
 
-      return response.data;
+      let filename = null;
+      const cd = response.headers['content-disposition'];
+      if (cd && typeof cd === 'string') {
+        const match = cd.match(/filename="?([^";\n]+)"?/);
+        if (match) filename = match[1].trim();
+      }
+      return { blob: response.data, filename: filename || undefined };
     } catch (error) {
-      console.error('Error generating Valuation IA PDF report:', error);
+      console.error('Error generating Valuation IA Word report:', error);
       throw error;
     }
   },

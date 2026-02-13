@@ -200,7 +200,7 @@ export const ManusReport = () => {
     setSuccess(false);
 
     try {
-      const blob = await manusService.generatePdfReport(
+      const { blob, filename } = await manusService.generatePdfReport(
         files,
         projectName || null,
         'IFRS',
@@ -211,7 +211,7 @@ export const ManusReport = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `rapport_valuation_ia_${new Date().toISOString().split('T')[0]}.pdf`;
+      link.download = filename || `rapport_valuation_ia_${new Date().toISOString().split('T')[0]}.docx`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -224,7 +224,7 @@ export const ManusReport = () => {
       setTimeout(() => setSuccess(false), 5000);
     } catch (err) {
       console.error('Error generating Valuation IA PDF report:', err);
-      setError('Une erreur est survenue lors de la génération du rapport PDF.');
+      setError('Une erreur est survenue lors de la génération du rapport Word.');
     } finally {
       setIsGeneratingPdf(false);
     }
