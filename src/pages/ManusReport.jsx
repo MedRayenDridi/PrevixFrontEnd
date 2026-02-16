@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { manusService } from '../services/api';
+import { PlanViewer3D } from '../components/PlanViewer3D';
 import './ManusReport.css';
 
 const FileIcon = () => (
@@ -44,6 +45,7 @@ export const ManusReport = () => {
   const [isDescribingAutocad, setIsDescribingAutocad] = useState(false);
   const [autocadDescription, setAutocadDescription] = useState(null);
   const [autocadDescriptionError, setAutocadDescriptionError] = useState(null);
+  const [autocadScene3d, setAutocadScene3d] = useState(null);
   const [projectName, setProjectName] = useState('');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
@@ -128,9 +130,10 @@ export const ManusReport = () => {
 
   const removeFile = (index) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
-    if (autocadDescription !== null || autocadDescriptionError) {
+    if (autocadDescription !== null || autocadDescriptionError || autocadScene3d) {
       setAutocadDescription(null);
       setAutocadDescriptionError(null);
+      setAutocadScene3d(null);
     }
   };
 
@@ -139,9 +142,11 @@ export const ManusReport = () => {
     setIsDescribingAutocad(true);
     setAutocadDescription(null);
     setAutocadDescriptionError(null);
+    setAutocadScene3d(null);
     try {
       const result = await manusService.describeAutocad(firstAutocadFile);
       setAutocadDescription(result.description || '');
+      if (result.scene_3d) setAutocadScene3d(result.scene_3d);
     } catch (err) {
       console.error('AutoCAD describe error:', err);
       const msg = err.response?.data?.detail || err.message || 'Erreur lors de la description du fichier AutoCAD.';
@@ -154,6 +159,7 @@ export const ManusReport = () => {
   const closeAutocadModal = () => {
     setAutocadDescription(null);
     setAutocadDescriptionError(null);
+    setAutocadScene3d(null);
   };
 
   const handleGenerateExcel = async () => {
@@ -460,12 +466,12 @@ export const ManusReport = () => {
           </button>
         </div>
 
-        {/* Modal: AutoCAD description */}
+        {/* Modal: AutoCAD description + 3D plan */}
         {(autocadDescription !== null || autocadDescriptionError) && (
           <div className="manus-modal-overlay" onClick={closeAutocadModal} role="dialog" aria-modal="true">
-            <div className="manus-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="manus-modal manus-modal-with-3d" onClick={(e) => e.stopPropagation()}>
               <div className="manus-modal-header">
-                <h3>Description du fichier AutoCAD</h3>
+                <h3>Description et plan 3D – fichier AutoCAD</h3>
                 <button type="button" className="manus-modal-close" onClick={closeAutocadModal} aria-label="Fermer">
                   <XIcon />
                 </button>
@@ -474,7 +480,18 @@ export const ManusReport = () => {
                 {autocadDescriptionError ? (
                   <p className="manus-modal-error">{autocadDescriptionError}</p>
                 ) : (
-                  <div className="manus-description-text">{autocadDescription}</div>
+                  <>
+                    <div className="manus-modal-section">
+                      <h4 className="manus-modal-section-title">Description</h4>
+                      <div className="manus-description-text">{autocadDescription}</div>
+                    </div>
+                    {autocadScene3d && (
+                      <div className="manus-modal-section">
+                        <h4 className="manus-modal-section-title">Vue 3D du plan</h4>
+                        <PlanViewer3D scene_3d={autocadScene3d} />
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </div>
