@@ -41,11 +41,17 @@ export const ManusReport = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isDescribingAutocad, setIsDescribingAutocad] = useState(false);
+  const [autocadDescription, setAutocadDescription] = useState(null);
+  const [autocadDescriptionError, setAutocadDescriptionError] = useState(null);
   const [projectName, setProjectName] = useState('');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
+
+  const hasAutocadFile = files.some((f) => /\.(dwg|dxf)$/i.test(f.name));
+  const firstAutocadFile = hasAutocadFile ? files.find((f) => /\.(dwg|dxf)$/i.test(f.name)) : null;
 
   // Allowed file types
   const allowedTypes = [
@@ -122,6 +128,32 @@ export const ManusReport = () => {
 
   const removeFile = (index) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
+    if (autocadDescription !== null || autocadDescriptionError) {
+      setAutocadDescription(null);
+      setAutocadDescriptionError(null);
+    }
+  };
+
+  const handleDescribeAutocad = async () => {
+    if (!firstAutocadFile) return;
+    setIsDescribingAutocad(true);
+    setAutocadDescription(null);
+    setAutocadDescriptionError(null);
+    try {
+      const result = await manusService.describeAutocad(firstAutocadFile);
+      setAutocadDescription(result.description || '');
+    } catch (err) {
+      console.error('AutoCAD describe error:', err);
+      const msg = err.response?.data?.detail || err.message || 'Erreur lors de la description du fichier AutoCAD.';
+      setAutocadDescriptionError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setIsDescribingAutocad(false);
+    }
+  };
+
+  const closeAutocadModal = () => {
+    setAutocadDescription(null);
+    setAutocadDescriptionError(null);
   };
 
   const handleGenerateExcel = async () => {
@@ -407,7 +439,47 @@ export const ManusReport = () => {
               </>
             )}
           </button>
+          <button
+            type="button"
+            className="manus-generate-btn manus-describe-autocad-btn"
+            onClick={handleDescribeAutocad}
+            disabled={!hasAutocadFile || isDescribingAutocad || isProcessing || isGeneratingPdf}
+            title={hasAutocadFile ? 'Décrire le fichier AutoCAD (extraction + IA)' : 'Ajoutez un fichier .dwg ou .dxf pour activer'}
+          >
+            {isDescribingAutocad ? (
+              <>
+                <div className="manus-spinner"></div>
+                <span>Description en cours...</span>
+              </>
+            ) : (
+              <>
+                <SparklesIcon />
+                <span>Décrire le fichier AutoCAD</span>
+              </>
+            )}
+          </button>
         </div>
+
+        {/* Modal: AutoCAD description */}
+        {(autocadDescription !== null || autocadDescriptionError) && (
+          <div className="manus-modal-overlay" onClick={closeAutocadModal} role="dialog" aria-modal="true">
+            <div className="manus-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="manus-modal-header">
+                <h3>Description du fichier AutoCAD</h3>
+                <button type="button" className="manus-modal-close" onClick={closeAutocadModal} aria-label="Fermer">
+                  <XIcon />
+                </button>
+              </div>
+              <div className="manus-modal-body">
+                {autocadDescriptionError ? (
+                  <p className="manus-modal-error">{autocadDescriptionError}</p>
+                ) : (
+                  <div className="manus-description-text">{autocadDescription}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Info Section */}
         <div className="manus-info">

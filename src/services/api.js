@@ -737,6 +737,22 @@ export const manusService = {
       return { status: 'error', error: error.message };
     }
   },
+
+  /**
+   * Describe an AutoCAD file: code extraction (geometry, dimensions, annotations, layers)
+   * then LLM interpretation. Returns detailed French description.
+   * @param {File} file - Single .dwg or .dxf file
+   * @returns {Promise<{ description: string, metadata?: object }>}
+   */
+  describeAutocad: async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('/manus/autocad-describe', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 120000,
+    });
+    return response.data;
+  },
 };
 
 export { api };
