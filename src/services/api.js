@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Use env var in production, fall back to local dev URL
-const API_URL =
+export const API_URL =
   import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const api = axios.create({
@@ -9,6 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 30000,
 });
 
 // Add token to requests if available
@@ -322,8 +323,8 @@ export const userService = {
 
   getAllUsers: async () => {
     try {
-      const response = await api.get('/admin/users/');
-      return response.data.data || response.data;
+      const response = await api.get('/admin/users');
+      return response.data.data ?? response.data;
     } catch (error) {
       console.error('Error fetching all users:', error);
       throw error;
@@ -379,8 +380,8 @@ export const adminService = {
   // Get all users (admin only)
   getUsers: async () => {
     try {
-      const response = await api.get('/admin/users/');
-      return response.data.data || response.data;
+      const response = await api.get('/admin/users');
+      return response.data.data ?? response.data;
     } catch (error) {
       console.error('Error fetching users:', error);
       throw error;
@@ -390,8 +391,8 @@ export const adminService = {
   // Get all organizations (admin only)
   getOrganizations: async () => {
     try {
-      const response = await api.get('/admin/organizations/');
-      return response.data.data || response.data;
+      const response = await api.get('/admin/organizations');
+      return response.data.data ?? response.data;
     } catch (error) {
       console.error('Error fetching organizations:', error);
       throw error;

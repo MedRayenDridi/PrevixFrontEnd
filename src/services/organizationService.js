@@ -1,7 +1,6 @@
-import { api } from './api';
+import { api, API_URL } from './api';
 
-const API_BASE_URL =
-  import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL = API_URL;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('access_token');
@@ -12,17 +11,19 @@ const getAuthHeaders = () => {
 };
 
 const organizationService = {
-  // Get all organizations
+  // Get all organizations (uses shared api instance for same baseURL/auth)
   getAllOrganizations: async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/organizations/`, {
-        headers: getAuthHeaders(),
-      });
-      const data = await response.json();
-      return { success: response.ok, data: data.data || [], error: data.detail };
+      const response = await api.get('/organizations/');
+      const data = response.data;
+      return { success: true, data: data?.data ?? data ?? [] };
     } catch (error) {
       console.error('Error fetching organizations:', error);
-      return { success: false, data: [], error: error.message };
+      return {
+        success: false,
+        data: [],
+        error: error.response?.data?.detail ?? error.message,
+      };
     }
   },
 

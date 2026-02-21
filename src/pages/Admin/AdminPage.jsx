@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { userService } from '../../services/api';
+import { userService, API_URL } from '../../services/api';
 import organizationService from '../../services/organizationService';
 import { useAuth } from '../../context/AuthContext';
 import AdminConsoleAnimation from '../../components/animation/AdminConsoleAnimation';
@@ -30,7 +30,7 @@ const TransferIcon = () => (
 
 const SearchIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-    ircle cx="11" cy="11" r="8" />
+    <circle cx="11" cy="11" r="8" />
     <path d="m21 21-4.35-4.35" />
   </svg>
 );
@@ -87,7 +87,14 @@ export const AdminPage = () => {
       setOrganizations(orgsList);
     } catch (error) {
       console.error('❌ Error loading data:', error);
-      setError('Failed to load data');
+      const isNetworkError = error?.code === 'ERR_NETWORK' || error?.message === 'Network Error';
+      const detail = error?.response?.data?.detail;
+      const detailStr = Array.isArray(detail) ? detail.join(', ') : typeof detail === 'string' ? detail : detail ?? 'Failed to load data';
+      setError(
+        isNetworkError
+          ? `Impossible de joindre le serveur. Vérifiez que le backend est démarré et que l'URL est correcte (${API_URL}).`
+          : detailStr
+      );
     } finally {
       setLoading(false);
     }

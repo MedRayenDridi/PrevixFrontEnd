@@ -883,9 +883,7 @@
   .powered-logo {
     height: 60px;
   }
-}
-
-@media (max-width: 480px) {
+}@media (max-width: 480px) {
   .powered-by-container {
     bottom: 10px;
     gap: 0.25rem;

@@ -11,6 +11,14 @@ const LoginLoadingAnimation = ({ isLoading, onComplete }) => {
 
     const container = containerRef.current;
 
+    // Resolve targets from container only so GSAP never runs on missing elements (avoids "target not found" warning)
+    const logo = container.querySelector('.login-anim-logo');
+    const loaderCore = container.querySelector('.login-loader-core');
+    const lockIcon = container.querySelector('.login-lock-icon');
+    const loaderText = container.querySelector('.login-loader-text');
+    const progressRing = container.querySelector('.login-progress-ring');
+    if (!logo || !loaderCore || !lockIcon || !loaderText) return;
+
     // Create floating lock icons
     const lockIcons = [];
     for (let i = 0; i < 12; i++) {
@@ -29,79 +37,30 @@ const LoginLoadingAnimation = ({ isLoading, onComplete }) => {
     // Main login loading animation
     animationRef.current = gsap.timeline({
       onComplete: () => {
-        // Clean up icons
         lockIcons.forEach(icon => {
-          if (icon.parentNode) {
-            icon.parentNode.removeChild(icon);
-          }
+          if (icon.parentNode) icon.parentNode.removeChild(icon);
         });
         if (onComplete) onComplete();
       }
     });
 
-    // Logo and loader elements
-    gsap.set('.login-anim-logo', { scale: 0, opacity: 0 });
-    gsap.set('.login-loader-core', { scale: 0, opacity: 0 });
-    gsap.set('.login-lock-icon', { scale: 0, opacity: 0, rotation: -45 });
-    gsap.set('.login-loader-text', { opacity: 0, y: 30 });
-    gsap.set('.login-progress-ring', { strokeDashoffset: 283 });
+    gsap.set(logo, { scale: 0, opacity: 0 });
+    gsap.set(loaderCore, { scale: 0, opacity: 0 });
+    gsap.set(lockIcon, { scale: 0, opacity: 0, rotation: -45 });
+    gsap.set(loaderText, { opacity: 0, y: 30 });
+    if (progressRing) gsap.set(progressRing, { strokeDashoffset: 283 });
 
-    animationRef.current
-      .to('.login-anim-logo', {
-        duration: 0.8,
-        scale: 1,
-        opacity: 1,
-        ease: 'back.out(1.7)'
-      })
-      .to('.login-loader-core', {
-        duration: 0.8,
-        scale: 1,
-        opacity: 1,
-        ease: 'back.out(1.7)'
-      }, '-=0.4')
-      .to('.login-lock-icon', {
-        duration: 1,
-        scale: 1,
-        opacity: 1,
-        rotation: 0,
-        ease: 'elastic.out(1, 0.5)'
-      }, '-=0.4')
-      .to('.login-loader-text', {
-        duration: 0.6,
-        opacity: 1,
-        y: 0,
-        ease: 'power2.out'
-      }, '-=0.6')
-      // Progress ring animation
-      .to('.login-progress-ring', {
-        duration: 1.5,
-        strokeDashoffset: 0,
-        ease: 'power2.inOut'
-      }, '-=0.5')
-      // Lock unlock animation
-      .to('.login-lock-icon', {
-        duration: 0.4,
-        y: -5,
-        ease: 'power2.inOut',
-        yoyo: true,
-        repeat: 1
-      }, '-=0.8')
-      // Float animation
-      .to('.login-icon-float', {
-        duration: 2,
-        y: 'random(-50, 50)',
-        x: 'random(-50, 50)',
-        opacity: 0,
-        ease: 'power2.inOut',
-        stagger: 0.1
-      }, 0)
-      // Final fade out
-      .to('.login-loading-animation-container', {
-        duration: 0.8,
-        opacity: 0,
-        scale: 1.05,
-        ease: 'power2.in'
-      });
+    const tl = animationRef.current;
+    tl.to(logo, { duration: 0.8, scale: 1, opacity: 1, ease: 'back.out(1.7)' })
+      .to(loaderCore, { duration: 0.8, scale: 1, opacity: 1, ease: 'back.out(1.7)' }, '-=0.4')
+      .to(lockIcon, { duration: 1, scale: 1, opacity: 1, rotation: 0, ease: 'elastic.out(1, 0.5)' }, '-=0.4')
+      .to(loaderText, { duration: 0.6, opacity: 1, y: 0, ease: 'power2.out' }, '-=0.6');
+    if (progressRing) {
+      tl.to(progressRing, { duration: 1.5, strokeDashoffset: 0, ease: 'power2.inOut' }, '-=0.5');
+    }
+    tl.to(lockIcon, { duration: 0.4, y: -5, ease: 'power2.inOut', yoyo: true, repeat: 1 }, '-=0.8')
+      .to(lockIcons, { duration: 2, y: 'random(-50, 50)', x: 'random(-50, 50)', opacity: 0, ease: 'power2.inOut', stagger: 0.1 }, 0)
+      .to(container, { duration: 0.8, opacity: 0, scale: 1.05, ease: 'power2.in' });
 
     return () => {
       if (animationRef.current) {
@@ -123,13 +82,13 @@ const LoginLoadingAnimation = ({ isLoading, onComplete }) => {
       <img src="/Logo-Prevex-Africa.png" alt="Prevex Africa Logo" className="login-anim-logo" />
       <div className="login-loader-core">
         <svg className="login-progress-circle" viewBox="0 0 100 100">
-          ircle
+          <circle
             className="login-progress-bg"
             cx="50"
             cy="50"
             r="45"
           />
-          ircle
+          <circle
             className="login-progress-ring"
             cx="50"
             cy="50"
