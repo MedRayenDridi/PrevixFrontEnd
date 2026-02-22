@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useReportGeneration } from '../../context/ReportGenerationContext';
 import './AdminSidebar.css';
 
 
@@ -87,6 +88,9 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
   const location = useLocation();
   const [isHovered, setIsHovered] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
+  const reportGen = useReportGeneration();
+  const reportLoading = reportGen.isLoading;
+  const reportReady = reportGen.isSuccess;
 
 
   // ✅ UPDATED: Added Parameters menu item, AI Assistant, and Valuation IA Report
@@ -183,11 +187,17 @@ export const AdminSidebar = ({ isOpen, onClose, user, onLogout, sidebarExpanded,
                 e.stopPropagation();
                 handleNavigate(item.path);
               }}
-              title={!isExpanded ? item.text : ''}
+              title={!isExpanded ? item.text : (item.id === 'manus' && (reportLoading || reportReady) ? (reportLoading ? 'Rapport en cours…' : 'Rapport prêt') : item.text)}
             >
               <div className="item-icon-modern">{item.icon}</div>
               <span className={`item-text-modern ${isExpanded ? 'visible' : 'hidden'}`}>
                 {item.text}
+                {item.id === 'manus' && reportLoading && (
+                  <span className="sidebar-report-badge sidebar-report-badge-loading" title="Génération en cours">…</span>
+                )}
+                {item.id === 'manus' && reportReady && !reportLoading && (
+                  <span className="sidebar-report-badge sidebar-report-badge-ready" title="Rapport prêt">✓</span>
+                )}
               </span>
             </li>
           ))}

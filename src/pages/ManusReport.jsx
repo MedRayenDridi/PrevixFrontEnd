@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { manusService } from '../services/api';
+import { useReportGeneration } from '../context/ReportGenerationContext';
 import { PlanViewer3D } from '../components/PlanViewer3D';
 import './ManusReport.css';
 
@@ -38,17 +39,27 @@ const CheckIcon = () => (
 );
 
 export const ManusReport = () => {
+  const {
+    status,
+    result,
+    errorMessage,
+    isLoading,
+    isLoadingExcel,
+    isLoadingWord,
+    isSuccess,
+    isError,
+    startExcelReport,
+    startWordReport,
+    clearReport,
+  } = useReportGeneration();
+
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [isDescribingAutocad, setIsDescribingAutocad] = useState(false);
   const [autocadDescription, setAutocadDescription] = useState(null);
   const [autocadDescriptionError, setAutocadDescriptionError] = useState(null);
   const [autocadScene3d, setAutocadScene3d] = useState(null);
   const [projectName, setProjectName] = useState('');
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
@@ -162,110 +173,29 @@ export const ManusReport = () => {
     setAutocadScene3d(null);
   };
 
-  const handleGenerateExcel = async () => {
-    if (files.length === 0) {
-      setError('Veuillez sélectionner au moins un fichier');
-      return;
-    }
-
-    setIsProcessing(true);
-    setError(null);
-    setSuccess(false);
-
-    try {
-      // Generate Excel report
-      const blob = await manusService.generateReport(
-        files,
-        projectName || null,
-        null // projectId - can be added later if needed
-      );
-
-      // Create download link
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `rapport_valuation_ia_${new Date().toISOString().split('T')[0]}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      setSuccess(true);
-      setFiles([]);
-      setProjectName('');
-      
-      // Clear success message after 5 seconds
-      setTimeout(() => setSuccess(false), 5000);
-    } catch (err) {
-      console.error('Error generating Valuation IA report:', err);
-      
-      // Try to extract error message from response
-      let errorMessage = 'Une erreur est survenue lors de la génération du rapport.';
-      
-      if (err.response) {
-        // If response has data (JSON error)
-        if (err.response.data) {
-          if (typeof err.response.data === 'string') {
-            errorMessage = err.response.data;
-          } else if (err.response.data.detail) {
-            errorMessage = err.response.data.detail;
-          } else if (err.response.data.message) {
-            errorMessage = err.response.data.message;
-          }
-        }
-        // If response has status text
-        if (err.response.statusText && errorMessage === 'Une erreur est survenue lors de la génération du rapport.') {
-          errorMessage = `${err.response.status} ${err.response.statusText}`;
-        }
-      } else if (err.message) {
-        errorMessage = err.message;
-      }
-      
-      setError(errorMessage);
-    } finally {
-      setIsProcessing(false);
-    }
+  const handleGenerateExcel = () => {
+    if (files.length === 0) return;
+    startExcelReport(files, projectName || null);
   };
 
-  const handleGeneratePdf = async () => {
-    if (files.length === 0) {
-      setError('Veuillez sélectionner au moins un fichier');
-      return;
-    }
+  const handleGeneratePdf = () => {
+    if (files.length === 0) return;
+    startWordReport(files, projectName || null);
+  };
 
-    setIsGeneratingPdf(true);
-    setError(null);
-    setSuccess(false);
-
-    try {
-      const { blob, filename } = await manusService.generatePdfReport(
-        files,
-        projectName || null,
-        'IFRS',
-        null,
-        null,
-      );
-
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename || `rapport_valuation_ia_${new Date().toISOString().split('T')[0]}.docx`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-
-      setSuccess(true);
-      setFiles([]);
-      setProjectName('');
-
-      setTimeout(() => setSuccess(false), 5000);
-    } catch (err) {
-      console.error('Error generating Valuation IA PDF report:', err);
-      setError('Une erreur est survenue lors de la génération du rapport Word.');
-    } finally {
-      setIsGeneratingPdf(false);
-    }
+  const handleDownloadResult = () => {
+    if (!result?.blob) return;
+    const url = window.URL.createObjectURL(result.blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = result.filename || 'rapport_valuation_ia.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    clearReport();
+    setFiles([]);
+    setProjectName('');
   };
 
   useEffect(() => {
@@ -394,18 +324,36 @@ export const ManusReport = () => {
           />
         </div>
 
-        {/* Error/Success Messages */}
-        {error && (
-          <div className="manus-message manus-error">
-            <XIcon />
-            <span>{error}</span>
+        {/* Background loading notice */}
+        {isLoading && (
+          <div className="manus-message manus-info-bg">
+            <div className="manus-spinner" />
+            <span>
+              {isLoadingExcel ? 'Génération du rapport Excel en cours…' : 'Génération du rapport Word en cours…'}
+              Vous pouvez continuer à utiliser l'application ; une notification s'affichera à la fin.
+            </span>
           </div>
         )}
 
-        {success && (
+        {/* Error from context (report generation) */}
+        {isError && errorMessage && (
+          <div className="manus-message manus-error">
+            <XIcon />
+            <span>{errorMessage}</span>
+            <button type="button" className="manus-clear-error-btn" onClick={clearReport} aria-label="Fermer">Fermer</button>
+          </div>
+        )}
+
+        {/* Success: report ready to download */}
+        {isSuccess && result && (
           <div className="manus-message manus-success">
             <CheckIcon />
-            <span>Rapport généré avec succès ! Le téléchargement a commencé.</span>
+            <span>Rapport prêt ! Téléchargez-le ci-dessous.</span>
+            <button type="button" className="manus-download-result-btn" onClick={handleDownloadResult}>
+              <DownloadIcon />
+              Télécharger {result.type === 'excel' ? 'Excel' : 'Word'}
+            </button>
+            <button type="button" className="manus-clear-success-btn" onClick={clearReport} aria-label="Fermer">Fermer</button>
           </div>
         )}
 
@@ -414,12 +362,12 @@ export const ManusReport = () => {
           <button
             className="manus-generate-btn"
             onClick={handleGenerateExcel}
-            disabled={files.length === 0 || isProcessing || isGeneratingPdf}
+            disabled={files.length === 0 || isLoading}
           >
-            {isProcessing ? (
+            {isLoadingExcel ? (
               <>
                 <div className="manus-spinner"></div>
-                <span>Génération Excel...</span>
+                <span>Génération en arrière-plan…</span>
               </>
             ) : (
               <>
@@ -431,17 +379,17 @@ export const ManusReport = () => {
           <button
             className="manus-generate-btn manus-generate-btn-secondary"
             onClick={handleGeneratePdf}
-            disabled={files.length === 0 || isProcessing || isGeneratingPdf}
+            disabled={files.length === 0 || isLoading}
           >
-            {isGeneratingPdf ? (
+            {isLoadingWord ? (
               <>
                 <div className="manus-spinner"></div>
-                <span>Génération PDF...</span>
+                <span>Génération en arrière-plan…</span>
               </>
             ) : (
               <>
                 <DownloadIcon />
-                <span>Générer le rapport PDF</span>
+                <span>Générer le rapport Word</span>
               </>
             )}
           </button>
@@ -449,7 +397,7 @@ export const ManusReport = () => {
             type="button"
             className="manus-generate-btn manus-describe-autocad-btn"
             onClick={handleDescribeAutocad}
-            disabled={!hasAutocadFile || isDescribingAutocad || isProcessing || isGeneratingPdf}
+            disabled={!hasAutocadFile || isDescribingAutocad || isLoading}
             title={hasAutocadFile ? 'Décrire le fichier AutoCAD (extraction + IA)' : 'Ajoutez un fichier .dwg ou .dxf pour activer'}
           >
             {isDescribingAutocad ? (

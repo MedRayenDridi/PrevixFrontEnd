@@ -19,7 +19,8 @@ import Organizations from './pages/Organizations';
 import { Parameters } from './pages/Parameters';
 import { SettingsPage } from './pages/SettingsPage';
 import { AIAssistant } from './pages/AIAssistant';
-import { ManusReport } from './pages/ManusReport';  // ✅ ADD THIS IMPORT
+import { ManusReport } from './pages/ManusReport';
+import { ReportGenerationProvider } from './context/ReportGenerationContext';
 import './App.css';
 import { useEffect, useState } from 'react';
 
@@ -207,6 +208,7 @@ function App() {
             
             <AuthProvider>
                 <ToastProvider>
+                <ReportGenerationProvider>
                 <ProjectProvider>
                     <Routes>
                         <Route path="/" element={<HomePage />} />
@@ -363,6 +365,7 @@ function App() {
                         />
                     </Routes>
                 </ProjectProvider>
+                </ReportGenerationProvider>
                 </ToastProvider>
             </AuthProvider>
         </div>

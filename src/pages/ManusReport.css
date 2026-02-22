@@ -362,6 +362,42 @@
   background: rgba(16, 185, 129, 0.1);
   color: #059669;
   border: 1px solid rgba(16, 185, 129, 0.2);
+  flex-wrap: wrap;
+}
+
+.manus-info-bg {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.manus-message .manus-clear-error-btn,
+.manus-message .manus-clear-success-btn {
+  margin-left: auto;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+  background: transparent;
+  cursor: pointer;
+}
+
+.manus-message .manus-download-result-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  border: none;
+  background: #059669;
+  color: white;
+  cursor: pointer;
+}
+
+.manus-message .manus-download-result-btn:hover {
+  background: #047857;
 }
 
 .manus-actions {
