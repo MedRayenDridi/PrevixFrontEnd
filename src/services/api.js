@@ -4,6 +4,9 @@ import axios from 'axios';
 export const API_URL =
   import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
 
+// Timeout for long-running Manus report generation (large files). Default 30 min; override with VITE_MANUS_REPORT_TIMEOUT_MS.
+const MANUS_REPORT_TIMEOUT_MS = Number(import.meta.env?.VITE_MANUS_REPORT_TIMEOUT_MS) || 30 * 60 * 1000;
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -658,17 +661,19 @@ export const manusService = {
       }
       
       const response = await api.post('/manus/report-from-files', formData, {
-        // Override default JSON header so backend sees multipart/form-data
         headers: {
           'Content-Type': 'multipart/form-data',
         },
-        responseType: 'blob', // Important for file download
-        timeout: 300000, // 5 minutes timeout for large files
+        responseType: 'blob',
+        timeout: MANUS_REPORT_TIMEOUT_MS, // 30 min default for large files; set VITE_MANUS_REPORT_TIMEOUT_MS to override
       });
       
       return response.data;
     } catch (error) {
       console.error('Error generating Valuation IA report:', error);
+      if (error?.code === 'ECONNABORTED' && error?.message?.includes('timeout')) {
+        error.message = `La génération du rapport a dépassé le temps imparti (${MANUS_REPORT_TIMEOUT_MS / 60000} min). Fichiers très volumineux : essayez avec moins de fichiers ou des fichiers plus petits, ou augmentez VITE_MANUS_REPORT_TIMEOUT_MS.`;
+      }
       throw error;
     }
   },
@@ -710,7 +715,7 @@ export const manusService = {
       const response = await api.post('/manus/from-files-pdf', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         responseType: 'blob',
-        timeout: 300000,
+        timeout: MANUS_REPORT_TIMEOUT_MS,
       });
 
       let filename = null;
@@ -722,6 +727,9 @@ export const manusService = {
       return { blob: response.data, filename: filename || undefined };
     } catch (error) {
       console.error('Error generating Valuation IA Word report:', error);
+      if (error?.code === 'ECONNABORTED' && error?.message?.includes('timeout')) {
+        error.message = `La génération du rapport Word a dépassé le temps imparti (${MANUS_REPORT_TIMEOUT_MS / 60000} min). Réduisez la taille des fichiers ou augmentez VITE_MANUS_REPORT_TIMEOUT_MS.`;
+      }
       throw error;
     }
   },
