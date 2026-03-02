@@ -575,6 +575,15 @@ export const aiAssistantService = {
       return response.data;
     } catch (error) {
       console.error('Error sending message to AI Assistant:', error);
+      const status = error.response?.status;
+      if (status === 502 || status === 503 || status === 504) {
+        error.userMessage =
+          'Le service d\'assistant IA est temporairement indisponible (Bad Gateway). Vérifiez que RAGPrevix est démarré et que RAGPREVIX_URL est correct sur le backend, puis réessayez.';
+      } else if (status === 404) {
+        error.userMessage = 'Le service d\'assistant IA n\'est pas configuré sur ce serveur.';
+      } else if (error.message) {
+        error.userMessage = error.message;
+      }
       throw error;
     }
   },

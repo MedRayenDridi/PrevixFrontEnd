@@ -338,10 +338,16 @@ export const AIAssistant = () => {
       if (showHistorySidebar) loadConversations();
     } catch (error) {
       console.error('Error sending message:', error);
+      let content =
+        error.userMessage ||
+        (error.response?.status === 502 || error.response?.status === 503 || error.response?.status === 504
+          ? 'Le service d\'assistant IA est temporairement indisponible. Réessayez dans quelques instants ou vérifiez que le service RAGPrevix est bien démarré et joignable par le backend.'
+          : error.response?.data?.detail ?? error.message ?? 'Désolé, une erreur s\'est produite. Veuillez réessayer.');
+      if (typeof content !== 'string') content = Array.isArray(content) ? content.join(' ') : String(content);
       const errorMessage = {
         id: messages.length + 2,
         role: 'assistant',
-        content: 'Désolé, une erreur s\'est produite. Veuillez vérifier que le service Ollama est en cours d\'exécution et réessayer.',
+        content,
         timestamp: new Date()
       };
       setMessages(prev => [...prev, errorMessage]);
