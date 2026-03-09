@@ -878,9 +878,7 @@
     transform: translateX(-50%);
     bottom: 14px;
     justify-content: center;
-  }
-
-  .powered-logo {
+  }  .powered-logo {
     height: 60px;
   }
 }@media (max-width: 480px) {
