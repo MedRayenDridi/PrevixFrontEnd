@@ -1,8 +1,18 @@
 import axios from 'axios';
 
-// Use env var in production, fall back to local dev URL
+// Use env var in production, fall back to local dev URL.
+// If frontend is served over HTTPS, prevent mixed-content errors by upgrading
+// non-local HTTP API URLs (e.g. http://*.onrender.com) to HTTPS.
+const RAW_API_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
+const isBrowser = typeof window !== 'undefined';
+const isHttpsPage = isBrowser && window.location?.protocol === 'https:';
+const isLocalHttpApi =
+  RAW_API_URL.startsWith('http://localhost') || RAW_API_URL.startsWith('http://127.0.0.1');
+
 export const API_URL =
-  import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
+  isHttpsPage && RAW_API_URL.startsWith('http://') && !isLocalHttpApi
+    ? RAW_API_URL.replace(/^http:\/\//, 'https://')
+    : RAW_API_URL;
 
 // Default API timeout. Chat calls through Ollama tunnels can take >30s on first token.
 // Override with VITE_API_TIMEOUT_MS when needed.
