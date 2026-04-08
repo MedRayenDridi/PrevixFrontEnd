@@ -7,6 +7,10 @@ export const API_URL =
 // Default API timeout. Chat calls through Ollama tunnels can take >30s on first token.
 // Override with VITE_API_TIMEOUT_MS when needed.
 const API_TIMEOUT_MS = Number(import.meta.env?.VITE_API_TIMEOUT_MS) || 120000;
+// Timeout for AutoCAD describe endpoint. Extraction + AI interpretation can be slow.
+// Override with VITE_AUTOCAD_DESCRIBE_TIMEOUT_MS when needed.
+const AUTOCAD_DESCRIBE_TIMEOUT_MS =
+  Number(import.meta.env?.VITE_AUTOCAD_DESCRIBE_TIMEOUT_MS) || 300000;
 
 // Timeout for long-running Manus report generation (large files). Default 30 min; override with VITE_MANUS_REPORT_TIMEOUT_MS.
 const MANUS_REPORT_TIMEOUT_MS = Number(import.meta.env?.VITE_MANUS_REPORT_TIMEOUT_MS) || 30 * 60 * 1000;
@@ -771,7 +775,7 @@ export const manusService = {
     formData.append('file', file);
     const response = await api.post('/manus/autocad-describe', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 120000,
+      timeout: AUTOCAD_DESCRIBE_TIMEOUT_MS,
     });
     return response.data;
   },
