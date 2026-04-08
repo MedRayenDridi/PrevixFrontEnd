@@ -4,6 +4,10 @@ import axios from 'axios';
 export const API_URL =
   import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
 
+// Default API timeout. Chat calls through Ollama tunnels can take >30s on first token.
+// Override with VITE_API_TIMEOUT_MS when needed.
+const API_TIMEOUT_MS = Number(import.meta.env?.VITE_API_TIMEOUT_MS) || 120000;
+
 // Timeout for long-running Manus report generation (large files). Default 30 min; override with VITE_MANUS_REPORT_TIMEOUT_MS.
 const MANUS_REPORT_TIMEOUT_MS = Number(import.meta.env?.VITE_MANUS_REPORT_TIMEOUT_MS) || 30 * 60 * 1000;
 
@@ -12,7 +16,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000,
+  timeout: API_TIMEOUT_MS,
 });
 
 // Add token to requests if available
