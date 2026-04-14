@@ -74,21 +74,10 @@ const HomePage = () => {
                         <img src="/QuantoLogo.png" alt="Logo" className="company-logo" />
                     </div>
                     
-                    {/* Desktop Navigation */}
-                    <div className="nav-links">
-                        <a href="#pricing" className="nav-link">Tarifs</a>
-                        <a href="#features" className="nav-link">Fonctionnalités</a>
-                        <a href="#support" className="nav-link">Support</a>
-                        <a href="#blog" className="nav-link">Blog</a>
-                    </div>
-                    
                     {/* Desktop Buttons */}
                     <div className="nav-buttons">
                         <button className="nav-btn signin-btn" onClick={() => navigate('/login')}>
                             Se connecter
-                        </button>
-                        <button className="nav-btn signup-btn" onClick={() => navigate('/register')}>
-                            S'inscrire
                         </button>
                     </div>
 
@@ -112,24 +101,9 @@ const HomePage = () => {
 
                 {/* Mobile Dropdown Menu */}
                 <div className={`mobile-menu ${mobileMenuOpen ? 'open' : ''}`}>
-                    <a href="#pricing" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
-                        Tarifs
-                    </a>
-                    <a href="#features" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
-                        Fonctionnalités
-                    </a>
-                    <a href="#support" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
-                        Support
-                    </a>
-                    <a href="#blog" className="mobile-menu-link" onClick={() => setMobileMenuOpen(false)}>
-                        Blog
-                    </a>
                     <div className="mobile-menu-buttons">
                         <button className="nav-btn signin-btn" onClick={() => navigate('/login')}>
                             Se connecter
-                        </button>
-                        <button className="nav-btn signup-btn" onClick={() => navigate('/register')}>
-                            S'inscrire
                         </button>
                     </div>
                 </div>

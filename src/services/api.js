@@ -39,6 +39,16 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // Final safeguard: if a caller passes an absolute HTTP URL while app is on HTTPS,
+  // upgrade it to HTTPS to avoid browser mixed-content blocking.
+  if (
+    typeof window !== 'undefined' &&
+    window.location?.protocol === 'https:' &&
+    typeof config.url === 'string' &&
+    config.url.startsWith('http://')
+  ) {
+    config.url = config.url.replace(/^http:\/\//, 'https://');
+  }
   return config;
 });
 
