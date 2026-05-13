@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { manusService, projectService } from '../services/api';
 import { useReportGeneration } from '../context/ReportGenerationContext';
 import { PlanViewer3D } from '../components/PlanViewer3D';
@@ -434,6 +435,18 @@ export const ManusReport = () => {
     }
   }, [isSuccess, result?.type]);
 
+  const autocadModalOpen = autocadDescription !== null || autocadDescriptionError != null;
+
+  useEffect(() => {
+    const anyModal = workbookEditor.open || autocadModalOpen;
+    if (!anyModal) return undefined;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [workbookEditor.open, autocadModalOpen]);
+
   const wbSheet = workbookEditor.open ? workbookEditor.sheets[workbookEditor.activeSheetIdx] : null;
   const wbRows = wbSheet?.rows || [];
   const wbStart = workbookEditor.rowPage * WB_ROWS_PER_PAGE;
@@ -771,171 +784,186 @@ export const ManusReport = () => {
           </button>
         </div>
 
-        {/* Modal: workbook editor */}
-        {workbookEditor.open && (
-          <div className="manus-modal-overlay" onClick={closeWorkbookEditor} role="dialog" aria-modal="true">
-            <div className="manus-modal manus-wb-editor-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="manus-modal-header">
-                <h3>Modifier le classeur Excel</h3>
-                <button type="button" className="manus-modal-close" onClick={closeWorkbookEditor} aria-label="Fermer">
-                  <XIcon />
-                </button>
-              </div>
-              <div className="manus-modal-body manus-wb-editor-body">
-                {workbookEditor.loading && (
-                  <p className="manus-wb-loading">Chargement du classeur…</p>
-                )}
-                {!workbookEditor.loading && workbookEditor.error && workbookEditor.sheets.length === 0 && (
-                  <p className="manus-modal-error">{workbookEditor.error}</p>
-                )}
-                {!workbookEditor.loading && workbookEditor.sheets.length > 0 && (
-                  <>
-                    {workbookEditor.totalCells > 8000 && (
-                      <p className="manus-wb-editor-warning">
-                        {workbookEditor.totalCells} cellules — affichage par paquets de {WB_ROWS_PER_PAGE} lignes. L&apos;enregistrement
-                        conserve toutes les lignes ({wbRows.length} sur cette feuille).
-                      </p>
-                    )}
-                    <div className="manus-wb-toolbar">
-                      <div className="manus-wb-tabs">
-                        {workbookEditor.sheets.map((s, idx) => (
+        {/* Modal: workbook editor (portal = viewport; Layout main uses GSAP transform which breaks position:fixed) */}
+        {workbookEditor.open &&
+          createPortal(
+            <div
+              className="manus-modal-overlay manus-modal-overlay--portal manus-modal-overlay--wb"
+              onClick={closeWorkbookEditor}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="manus-wb-modal-title"
+            >
+              <div className="manus-modal manus-wb-editor-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="manus-modal-header">
+                  <h3 id="manus-wb-modal-title">Modifier le classeur Excel</h3>
+                  <button type="button" className="manus-modal-close" onClick={closeWorkbookEditor} aria-label="Fermer">
+                    <XIcon />
+                  </button>
+                </div>
+                <div className="manus-modal-body manus-wb-editor-body">
+                  {workbookEditor.loading && (
+                    <p className="manus-wb-loading">Chargement du classeur…</p>
+                  )}
+                  {!workbookEditor.loading && workbookEditor.error && workbookEditor.sheets.length === 0 && (
+                    <p className="manus-modal-error">{workbookEditor.error}</p>
+                  )}
+                  {!workbookEditor.loading && workbookEditor.sheets.length > 0 && (
+                    <>
+                      {workbookEditor.totalCells > 8000 && (
+                        <p className="manus-wb-editor-warning">
+                          {workbookEditor.totalCells} cellules — affichage par paquets de {WB_ROWS_PER_PAGE} lignes.
+                          L&apos;enregistrement conserve toutes les lignes ({wbRows.length} sur cette feuille).
+                        </p>
+                      )}
+                      <div className="manus-wb-toolbar">
+                        <div className="manus-wb-tabs">
+                          {workbookEditor.sheets.map((s, idx) => (
+                            <button
+                              key={`${s.name}-${idx}`}
+                              type="button"
+                              className={`manus-wb-tab ${idx === workbookEditor.activeSheetIdx ? 'active' : ''}`}
+                              onClick={() =>
+                                setWorkbookEditor((w) => ({ ...w, activeSheetIdx: idx, rowPage: 0 }))
+                              }
+                            >
+                              {s.name || `Feuille ${idx + 1}`}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="manus-wb-pager">
                           <button
-                            key={`${s.name}-${idx}`}
                             type="button"
-                            className={`manus-wb-tab ${idx === workbookEditor.activeSheetIdx ? 'active' : ''}`}
+                            className="manus-wb-pager-btn"
                             onClick={() =>
-                              setWorkbookEditor((w) => ({ ...w, activeSheetIdx: idx, rowPage: 0 }))
+                              setWorkbookEditor((w) => ({ ...w, rowPage: Math.max(0, w.rowPage - 1) }))
                             }
+                            disabled={workbookEditor.rowPage <= 0}
                           >
-                            {s.name || `Feuille ${idx + 1}`}
+                            Lignes précédentes
                           </button>
-                        ))}
+                          <span className="manus-wb-pager-info">
+                            {wbStart + 1}–{Math.min(wbStart + WB_ROWS_PER_PAGE, wbRows.length)} / {wbRows.length}
+                          </span>
+                          <button
+                            type="button"
+                            className="manus-wb-pager-btn"
+                            onClick={() =>
+                              setWorkbookEditor((w) => ({
+                                ...w,
+                                rowPage: Math.min(wbMaxPage, w.rowPage + 1),
+                              }))
+                            }
+                            disabled={workbookEditor.rowPage >= wbMaxPage}
+                          >
+                            Lignes suivantes
+                          </button>
+                        </div>
                       </div>
-                      <div className="manus-wb-pager">
+                      <div className="manus-wb-grid-wrap">
+                        <table className="manus-wb-grid">
+                          <thead>
+                            <tr>
+                              <th className="manus-wb-corner" />
+                              {Array.from({ length: Math.max(wbColCount, 1) }, (_, c) => (
+                                <th key={c} className="manus-wb-col-head">
+                                  {colExcelLabel(c)}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {wbSlice.map((row, i) => {
+                              const ri = wbStart + i;
+                              const cells = Array.isArray(row) ? row : [];
+                              return (
+                                <tr key={ri}>
+                                  <td className="manus-wb-row-head">{ri + 1}</td>
+                                  {Array.from({ length: Math.max(wbColCount, 1) }, (_, c) => (
+                                    <td key={c} className="manus-wb-cell">
+                                      <input
+                                        type="text"
+                                        value={cells[c] == null ? '' : String(cells[c])}
+                                        onChange={(e) =>
+                                          updateWorkbookCell(
+                                            workbookEditor.activeSheetIdx,
+                                            ri,
+                                            c,
+                                            e.target.value
+                                          )
+                                        }
+                                        aria-label={`${colExcelLabel(c)}${ri + 1}`}
+                                      />
+                                    </td>
+                                  ))}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      {workbookEditor.error && (
+                        <p className="manus-modal-error manus-wb-save-error">{workbookEditor.error}</p>
+                      )}
+                      <div className="manus-wb-footer">
+                        <button type="button" className="manus-wb-footer-secondary" onClick={closeWorkbookEditor}>
+                          Fermer
+                        </button>
                         <button
                           type="button"
-                          className="manus-wb-pager-btn"
-                          onClick={() =>
-                            setWorkbookEditor((w) => ({ ...w, rowPage: Math.max(0, w.rowPage - 1) }))
-                          }
-                          disabled={workbookEditor.rowPage <= 0}
+                          className="manus-wb-footer-primary"
+                          onClick={handleSaveWorkbook}
+                          disabled={workbookEditor.saving}
                         >
-                          Lignes précédentes
-                        </button>
-                        <span className="manus-wb-pager-info">
-                          {wbStart + 1}–{Math.min(wbStart + WB_ROWS_PER_PAGE, wbRows.length)} / {wbRows.length}
-                        </span>
-                        <button
-                          type="button"
-                          className="manus-wb-pager-btn"
-                          onClick={() =>
-                            setWorkbookEditor((w) => ({
-                              ...w,
-                              rowPage: Math.min(wbMaxPage, w.rowPage + 1),
-                            }))
-                          }
-                          disabled={workbookEditor.rowPage >= wbMaxPage}
-                        >
-                          Lignes suivantes
+                          {workbookEditor.saving ? 'Enregistrement…' : 'Enregistrer dans le fichier'}
                         </button>
                       </div>
-                    </div>
-                    <div className="manus-wb-grid-wrap">
-                      <table className="manus-wb-grid">
-                        <thead>
-                          <tr>
-                            <th className="manus-wb-corner" />
-                            {Array.from({ length: Math.max(wbColCount, 1) }, (_, c) => (
-                              <th key={c} className="manus-wb-col-head">
-                                {colExcelLabel(c)}
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {wbSlice.map((row, i) => {
-                            const ri = wbStart + i;
-                            const cells = Array.isArray(row) ? row : [];
-                            return (
-                              <tr key={ri}>
-                                <td className="manus-wb-row-head">{ri + 1}</td>
-                                {Array.from({ length: Math.max(wbColCount, 1) }, (_, c) => (
-                                  <td key={c} className="manus-wb-cell">
-                                    <input
-                                      type="text"
-                                      value={cells[c] == null ? '' : String(cells[c])}
-                                      onChange={(e) =>
-                                        updateWorkbookCell(
-                                          workbookEditor.activeSheetIdx,
-                                          ri,
-                                          c,
-                                          e.target.value
-                                        )
-                                      }
-                                      aria-label={`${colExcelLabel(c)}${ri + 1}`}
-                                    />
-                                  </td>
-                                ))}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                    {workbookEditor.error && (
-                      <p className="manus-modal-error manus-wb-save-error">{workbookEditor.error}</p>
-                    )}
-                    <div className="manus-wb-footer">
-                      <button type="button" className="manus-wb-footer-secondary" onClick={closeWorkbookEditor}>
-                        Fermer
-                      </button>
-                      <button
-                        type="button"
-                        className="manus-wb-footer-primary"
-                        onClick={handleSaveWorkbook}
-                        disabled={workbookEditor.saving}
-                      >
-                        {workbookEditor.saving ? 'Enregistrement…' : 'Enregistrer dans le fichier'}
-                      </button>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body
+          )}
 
         {/* Modal: AutoCAD description + 3D plan */}
-        {(autocadDescription !== null || autocadDescriptionError) && (
-          <div className="manus-modal-overlay" onClick={closeAutocadModal} role="dialog" aria-modal="true">
-            <div className="manus-modal manus-modal-with-3d" onClick={(e) => e.stopPropagation()}>
-              <div className="manus-modal-header">
-                <h3>Description et plan 3D – fichier AutoCAD</h3>
-                <button type="button" className="manus-modal-close" onClick={closeAutocadModal} aria-label="Fermer">
-                  <XIcon />
-                </button>
-              </div>
-              <div className="manus-modal-body">
-                {autocadDescriptionError ? (
-                  <p className="manus-modal-error">{autocadDescriptionError}</p>
-                ) : (
-                  <>
-                    <div className="manus-modal-section">
-                      <h4 className="manus-modal-section-title">Description</h4>
-                      <div className="manus-description-text">{autocadDescription}</div>
-                    </div>
-                    {autocadScene3d && (
+        {autocadModalOpen &&
+          createPortal(
+            <div
+              className="manus-modal-overlay manus-modal-overlay--portal"
+              onClick={closeAutocadModal}
+              role="dialog"
+              aria-modal="true"
+            >
+              <div className="manus-modal manus-modal-with-3d" onClick={(e) => e.stopPropagation()}>
+                <div className="manus-modal-header">
+                  <h3>Description et plan 3D – fichier AutoCAD</h3>
+                  <button type="button" className="manus-modal-close" onClick={closeAutocadModal} aria-label="Fermer">
+                    <XIcon />
+                  </button>
+                </div>
+                <div className="manus-modal-body">
+                  {autocadDescriptionError ? (
+                    <p className="manus-modal-error">{autocadDescriptionError}</p>
+                  ) : (
+                    <>
                       <div className="manus-modal-section">
-                        <h4 className="manus-modal-section-title">Vue 3D du plan</h4>
-                        <PlanViewer3D scene_3d={autocadScene3d} />
+                        <h4 className="manus-modal-section-title">Description</h4>
+                        <div className="manus-description-text">{autocadDescription}</div>
                       </div>
-                    )}
-                  </>
-                )}
+                      {autocadScene3d && (
+                        <div className="manus-modal-section">
+                          <h4 className="manus-modal-section-title">Vue 3D du plan</h4>
+                          <PlanViewer3D scene_3d={autocadScene3d} />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </div>,
+            document.body
+          )}
 
         {/* Info Section */}
         <div className="manus-info">

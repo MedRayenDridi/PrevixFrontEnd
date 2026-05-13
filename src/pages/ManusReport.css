@@ -652,6 +652,16 @@
   z-index: 1000;
   padding: 1rem;
 }
+
+/* Rendered via createPortal(document.body): above layout chrome + full viewport (Layout main uses GSAP transform). */
+.manus-modal-overlay--portal {
+  z-index: 15000;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
 .manus-modal {
   background: white;
   border-radius: 16px;
@@ -996,5 +1006,82 @@
 
   .manus-info-steps {
     grid-template-columns: 1fr;
+  }
+
+  .manus-modal-overlay--portal {
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0.5rem;
+    padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  .manus-modal-overlay--portal .manus-modal {
+    max-height: calc(100dvh - 1rem);
+    margin-bottom: auto;
+  }
+
+  .manus-modal-header {
+    padding: 1rem 1rem;
+  }
+
+  .manus-modal-header h3 {
+    font-size: 1.05rem;
+  }
+
+  .manus-wb-editor-modal {
+    max-width: 100%;
+    max-height: calc(100dvh - 1rem);
+  }
+
+  .manus-wb-editor-body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .manus-wb-grid-wrap {
+    max-height: min(42dvh, 320px);
+  }
+
+  .manus-wb-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manus-wb-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 0.25rem;
+    gap: 0.25rem;
+  }
+
+  .manus-wb-pager {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .manus-wb-footer {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+  }
+
+  .manus-wb-footer-secondary,
+  .manus-wb-footer-primary {
+    width: 100%;
+    text-align: center;
+  }
+
+  .manus-wb-cell input {
+    width: 100%;
+    min-width: 2.25rem;
+    font-size: 0.8125rem;
+  }
+
+  .manus-history-table-wrap {
+    max-width: 100%;
+  }
+
+  .manus-plan-viewer-3d {
+    height: 220px;
   }
 }
