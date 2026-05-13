@@ -19,7 +19,7 @@ const ProjectForm = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const isEdit = !!id;
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, loading: authLoading } = useAuth();
   const { 
     createProject, 
     updateProject, 
@@ -47,10 +47,12 @@ const ProjectForm = () => {
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [dataError, setDataError] = useState(null);
 
-  // Load organizations and users on mount
+  // Load organizations and users once auth is ready (user needed for /admin/users 403 fallback).
   useEffect(() => {
+    if (authLoading) return;
     loadOrganizationsAndUsers();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load on auth ready + when user id appears
+  }, [authLoading, user?.user_id]);
 
   // Load project if editing
   useEffect(() => {
@@ -62,24 +64,48 @@ const ProjectForm = () => {
   const loadOrganizationsAndUsers = async () => {
     setIsLoadingData(true);
     setDataError(null);
-    
-    try {
-      // Fetch organizations
-      const orgsResponse = await api.get('/organizations');
-      const orgsData = orgsResponse.data.data || orgsResponse.data;
-      setOrganizations(Array.isArray(orgsData) ? orgsData : []);
 
-      // Fetch users
+    try {
+      const orgsResponse = await api.get('/organizations/');
+      const orgsData = orgsResponse.data?.data ?? orgsResponse.data;
+      setOrganizations(Array.isArray(orgsData) ? orgsData : []);
+    } catch (err) {
+      console.error('Échec du chargement des organisations:', err);
+      setOrganizations([]);
+      const detail = err.response?.data?.detail;
+      setDataError(
+        typeof detail === 'string' ? detail : 'Impossible de charger les organisations.'
+      );
+      setAvailableUsers([]);
+      setIsLoadingData(false);
+      return;
+    }
+
+    try {
       const usersResponse = await api.get('/admin/users');
-      const usersData = usersResponse.data.data || usersResponse.data;
+      const raw = usersResponse.data;
+      const usersData = Array.isArray(raw) ? raw : raw?.data ?? raw;
       setAvailableUsers(Array.isArray(usersData) ? usersData : []);
     } catch (err) {
-      console.error('Échec du chargement des organisations et utilisateurs:', err);
-      setDataError('Impossible de charger les organisations et utilisateurs');
-      
-      // Fallback to empty arrays
-      setOrganizations([]);
-      setAvailableUsers([]);
+      console.error('Échec du chargement des utilisateurs:', err);
+      if (err.response?.status === 403 && user?.user_id) {
+        setAvailableUsers([
+          {
+            user_id: user.user_id,
+            email: user.email || '',
+            full_name: user.full_name || '',
+            status: user.status || 'active',
+          },
+        ]);
+      } else {
+        setAvailableUsers([]);
+        const detail = err.response?.data?.detail;
+        setDataError(
+          typeof detail === 'string'
+            ? detail
+            : 'Impossible de charger la liste des utilisateurs pour l’affectation.'
+        );
+      }
     } finally {
       setIsLoadingData(false);
     }
