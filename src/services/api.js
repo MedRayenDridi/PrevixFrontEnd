@@ -15,6 +15,15 @@ export function upgradeHttpToHttpsIfNeeded(url) {
   return trimmed.replace(/^http:\/\//i, 'https://');
 }
 
+function joinBaseAndPath(base, path) {
+  if (path == null || path === '') return base || '';
+  const p = String(path);
+  if (/^https?:\/\//i.test(p)) return p;
+  const b = String(base || '').replace(/\/+$/, '');
+  const rel = p.startsWith('/') ? p : `/${p}`;
+  return b ? `${b}${rel}` : rel;
+}
+
 const RAW_API_URL = (import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000').trim();
 export const API_URL = upgradeHttpToHttpsIfNeeded(RAW_API_URL);
 
@@ -40,27 +49,33 @@ const api = axios.create({
 // Keep baseURL aligned with page scheme (covers edge cases where defaults were set before window existed).
 api.defaults.baseURL = upgradeHttpToHttpsIfNeeded(api.defaults.baseURL);
 
-// Add token to requests if available
+// Force HTTPS on secure pages: merge baseURL + path into one absolute URL so the XHR never uses http://
+// (avoids mixed-content blocks that can still occur with baseURL + relative path in some environments).
 api.interceptors.request.use((config) => {
-  const base = config.baseURL ?? api.defaults.baseURL;
-  const safeBase = upgradeHttpToHttpsIfNeeded(base);
-  if (safeBase !== base) {
-    config.baseURL = safeBase;
-    api.defaults.baseURL = safeBase;
+  const rawBase = (config.baseURL ?? api.defaults.baseURL ?? '').toString().trim();
+  const rel = config.url;
+
+  if (typeof rel === 'string' && /^https?:\/\//i.test(rel)) {
+    config.url = upgradeHttpToHttpsIfNeeded(rel);
+    config.baseURL = '';
+  } else if (typeof rel === 'string' && rawBase && /^https?:\/\//i.test(rawBase)) {
+    const merged = upgradeHttpToHttpsIfNeeded(joinBaseAndPath(rawBase, rel));
+    if (/^https:\/\//i.test(merged)) {
+      config.baseURL = '';
+      config.url = merged;
+      api.defaults.baseURL = upgradeHttpToHttpsIfNeeded(rawBase);
+    }
+  } else {
+    const safeBase = upgradeHttpToHttpsIfNeeded(rawBase);
+    if (safeBase !== rawBase) {
+      config.baseURL = safeBase;
+      api.defaults.baseURL = safeBase;
+    }
   }
 
   const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
-  }
-  // If a caller passes an absolute HTTP URL while the app is on HTTPS, upgrade it.
-  if (
-    typeof window !== 'undefined' &&
-    window.location?.protocol === 'https:' &&
-    typeof config.url === 'string' &&
-    /^http:\/\//i.test(config.url)
-  ) {
-    config.url = config.url.replace(/^http:\/\//i, 'https://');
   }
   return config;
 });
