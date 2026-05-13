@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Build, Layers, Landscape, BarChart } from '@mui/icons-material';
+import { API_URL } from '../../services/api';
 import './MarketTicker.css';
-
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const MarketTicker = () => {
   const [constructionPrices, setConstructionPrices] = useState([]);
@@ -21,7 +20,7 @@ const MarketTicker = () => {
   const fetchMarketData = async () => {
     const token = localStorage.getItem('access_token');
     const config = { headers: { Authorization: `Bearer ${token}` } };
-    const base = `${API_BASE_URL}/market-data`;
+    const base = `${API_URL}/market-data`;
 
     try {
       const [constructionRes, materialRes, landRes] = await Promise.allSettled([

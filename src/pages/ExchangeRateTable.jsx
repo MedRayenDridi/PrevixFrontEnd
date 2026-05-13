@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_URL } from '../services/api';
 import './ExchangeRateTable.css';
 
 // Icons
@@ -41,15 +42,12 @@ const ExchangeRateTable = ({ baseCurrency = 'TND' }) => {
   const [metadata, setMetadata] = useState(null);
   const [selectedCurrencies] = useState(['EUR', 'USD', 'GBP', 'JPY', 'CAD', 'CHF']);
 
-  const API_BASE_URL =
-    import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
-
   const fetchRates = async () => {
     setLoading(true);
     setError(null);
     
     try {
-      const response = await axios.get(`${API_BASE_URL}/ex/rates/${baseCurrency}`);
+      const response = await axios.get(`${API_URL}/ex/rates/${baseCurrency}`);
       
       console.log('API Response:', response.data); // Debug log
       

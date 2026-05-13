@@ -9,6 +9,7 @@ services:
     buildCommand: npm ci && npm run build
     startCommand: npx serve -s dist -l $PORT
     envVars:
+      # Use https://<your-backend>.onrender.com — plain http:// is blocked by the browser when the site is HTTPS (mixed content).
       - key: VITE_API_BASE_URL
         sync: false
       - key: VITE_APP_RAGPREVIX_URL

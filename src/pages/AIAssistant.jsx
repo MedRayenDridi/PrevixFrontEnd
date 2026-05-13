@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { aiAssistantService, api } from '../services/api';
+import { aiAssistantService, api, upgradeHttpToHttpsIfNeeded } from '../services/api';
 import './AIAssistant.css';
 
 const SendIcon = () => (
@@ -385,7 +385,9 @@ export const AIAssistant = () => {
       setTimeout(() => window.URL.revokeObjectURL(url), 300);
     };
 
-    const ragPrevixUrl = import.meta.env?.VITE_APP_RAGPREVIX_URL || 'http://localhost:8100';
+    const ragPrevixUrl = upgradeHttpToHttpsIfNeeded(
+      (import.meta.env?.VITE_APP_RAGPREVIX_URL || 'http://localhost:8100').trim()
+    );
     const backendUrl = api.defaults?.baseURL || 'http://localhost:8000';
 
     const tryRagPrevix = async () => {

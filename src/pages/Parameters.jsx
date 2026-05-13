@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
+import { API_URL } from '../services/api';
 import './Parameters.css';
-
-const API_BASE_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
 
 // Icons
 const AddIcon = () => (
@@ -238,11 +237,11 @@ export const Parameters = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       if (activeTab === 'wear') {
-        const wearRes = await axios.get(`${API_BASE_URL}/parameters/wear-coefficients`, config);
+        const wearRes = await axios.get(`${API_URL}/parameters/wear-coefficients`, config);
         setAllWearCoefficients(wearRes.data);
         setWearCoefficients(wearRes.data);
       } else if (activeTab === 'construction') {
-        const costRes = await axios.get(`${API_BASE_URL}/parameters/construction-costs`, config);
+        const costRes = await axios.get(`${API_URL}/parameters/construction-costs`, config);
         setAllConstructionCosts(costRes.data);
         setConstructionCosts(costRes.data);
       }
@@ -288,18 +287,18 @@ export const Parameters = () => {
 
       if (activeTab === 'wear') {
         if (isAdding) {
-          await axios.post(`${API_BASE_URL}/parameters/wear-coefficients`, editForm, config);
+          await axios.post(`${API_URL}/parameters/wear-coefficients`, editForm, config);
           setSuccess('Coefficient d\'usure ajouté avec succès');
         } else {
-          await axios.put(`${API_BASE_URL}/parameters/wear-coefficients/${editingId}`, editForm, config);
+          await axios.put(`${API_URL}/parameters/wear-coefficients/${editingId}`, editForm, config);
           setSuccess('Coefficient d\'usure modifié avec succès');
         }
       } else if (activeTab === 'construction') {
         if (isAdding) {
-          await axios.post(`${API_BASE_URL}/parameters/construction-costs`, editForm, config);
+          await axios.post(`${API_URL}/parameters/construction-costs`, editForm, config);
           setSuccess('Coût de construction ajouté avec succès');
         } else {
-          await axios.put(`${API_BASE_URL}/parameters/construction-costs/${editingId}`, editForm, config);
+          await axios.put(`${API_URL}/parameters/construction-costs/${editingId}`, editForm, config);
           setSuccess('Coût de construction modifié avec succès');
         }
       }
@@ -327,10 +326,10 @@ export const Parameters = () => {
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
       if (activeTab === 'wear') {
-        await axios.delete(`${API_BASE_URL}/parameters/wear-coefficients/${id}`, config);
+        await axios.delete(`${API_URL}/parameters/wear-coefficients/${id}`, config);
         setSuccess('Coefficient d\'usure supprimé avec succès');
       } else if (activeTab === 'construction') {
-        await axios.delete(`${API_BASE_URL}/parameters/construction-costs/${id}`, config);
+        await axios.delete(`${API_URL}/parameters/construction-costs/${id}`, config);
         setSuccess('Coût de construction supprimé avec succès');
       }
       fetchData();

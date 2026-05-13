@@ -1,18 +1,22 @@
 import axios from 'axios';
 
-// Use env var in production, fall back to local dev URL.
-// If frontend is served over HTTPS, prevent mixed-content errors by upgrading
-// non-local HTTP API URLs (e.g. http://*.onrender.com) to HTTPS.
-const RAW_API_URL = import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000';
-const isBrowser = typeof window !== 'undefined';
-const isHttpsPage = isBrowser && window.location?.protocol === 'https:';
-const isLocalHttpApi =
-  RAW_API_URL.startsWith('http://localhost') || RAW_API_URL.startsWith('http://127.0.0.1');
+/**
+ * When the SPA is served over HTTPS, never call the API over plain HTTP (browsers block mixed content).
+ * Render / env often set VITE_API_BASE_URL with http:// — upgrade at runtime (and in the axios interceptor
+ * so every request is safe even if baseURL was wrong when the module first loaded).
+ */
+export function upgradeHttpToHttpsIfNeeded(url) {
+  if (typeof url !== 'string' || !url) return url;
+  const trimmed = url.trim();
+  if (typeof window === 'undefined' || window.location?.protocol !== 'https:') return trimmed;
+  if (!/^http:\/\//i.test(trimmed)) return trimmed;
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('http://localhost') || lower.startsWith('http://127.0.0.1')) return trimmed;
+  return trimmed.replace(/^http:\/\//i, 'https://');
+}
 
-export const API_URL =
-  isHttpsPage && RAW_API_URL.startsWith('http://') && !isLocalHttpApi
-    ? RAW_API_URL.replace(/^http:\/\//, 'https://')
-    : RAW_API_URL;
+const RAW_API_URL = (import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000').trim();
+export const API_URL = upgradeHttpToHttpsIfNeeded(RAW_API_URL);
 
 // Default API timeout. Chat calls through Ollama tunnels can take >30s on first token.
 // Override with VITE_API_TIMEOUT_MS when needed.
@@ -33,21 +37,30 @@ const api = axios.create({
   timeout: API_TIMEOUT_MS,
 });
 
+// Keep baseURL aligned with page scheme (covers edge cases where defaults were set before window existed).
+api.defaults.baseURL = upgradeHttpToHttpsIfNeeded(api.defaults.baseURL);
+
 // Add token to requests if available
 api.interceptors.request.use((config) => {
+  const base = config.baseURL ?? api.defaults.baseURL;
+  const safeBase = upgradeHttpToHttpsIfNeeded(base);
+  if (safeBase !== base) {
+    config.baseURL = safeBase;
+    api.defaults.baseURL = safeBase;
+  }
+
   const token = localStorage.getItem('access_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
-  // Final safeguard: if a caller passes an absolute HTTP URL while app is on HTTPS,
-  // upgrade it to HTTPS to avoid browser mixed-content blocking.
+  // If a caller passes an absolute HTTP URL while the app is on HTTPS, upgrade it.
   if (
     typeof window !== 'undefined' &&
     window.location?.protocol === 'https:' &&
     typeof config.url === 'string' &&
-    config.url.startsWith('http://')
+    /^http:\/\//i.test(config.url)
   ) {
-    config.url = config.url.replace(/^http:\/\//, 'https://');
+    config.url = config.url.replace(/^http:\/\//i, 'https://');
   }
   return config;
 });
