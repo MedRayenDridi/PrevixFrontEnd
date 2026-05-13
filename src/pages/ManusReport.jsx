@@ -97,6 +97,7 @@ export const ManusReport = () => {
   const [selectedProjectId, setSelectedProjectId] = useState('');
   const [assigningReportId, setAssigningReportId] = useState(null);
   const [workbookEditor, setWorkbookEditor] = useState(WB_EDITOR_INIT);
+  const [aiDiagnosticModal, setAiDiagnosticModal] = useState(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
@@ -280,6 +281,20 @@ export const ManusReport = () => {
     }
   };
 
+  const closeAiDiagnosticModal = () => setAiDiagnosticModal(null);
+
+  const openAiDiagnosticModal = (row) => {
+    setAiDiagnosticModal({
+      id: row.id,
+      label:
+        row.download_filename ||
+        row.project_label_resolved ||
+        row.project_label ||
+        row.project_name ||
+        row.id,
+    });
+  };
+
   const closeWorkbookEditor = () => {
     setWorkbookEditor(WB_EDITOR_INIT);
   };
@@ -438,14 +453,14 @@ export const ManusReport = () => {
   const autocadModalOpen = autocadDescription !== null || autocadDescriptionError != null;
 
   useEffect(() => {
-    const anyModal = workbookEditor.open || autocadModalOpen;
+    const anyModal = workbookEditor.open || autocadModalOpen || aiDiagnosticModal != null;
     if (!anyModal) return undefined;
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [workbookEditor.open, autocadModalOpen]);
+  }, [workbookEditor.open, autocadModalOpen, aiDiagnosticModal]);
 
   const wbSheet = workbookEditor.open ? workbookEditor.sheets[workbookEditor.activeSheetIdx] : null;
   const wbRows = wbSheet?.rows || [];
@@ -558,6 +573,15 @@ export const ManusReport = () => {
                             }
                           >
                             Modifier
+                          </button>
+                          <button
+                            type="button"
+                            className="manus-history-diagnostic-btn"
+                            onClick={() => openAiDiagnosticModal(row)}
+                            title="Analyse intelligente du classeur (bientôt disponible)"
+                          >
+                            <SparklesIcon />
+                            Diagnostic IA
                           </button>
                           <button
                             type="button"
@@ -959,6 +983,51 @@ export const ManusReport = () => {
                       )}
                     </>
                   )}
+                </div>
+              </div>
+            </div>,
+            document.body
+          )}
+
+        {aiDiagnosticModal &&
+          createPortal(
+            <div
+              className="manus-modal-overlay manus-modal-overlay--portal"
+              onClick={closeAiDiagnosticModal}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="manus-ai-diagnostic-title"
+            >
+              <div className="manus-modal manus-ai-diagnostic-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="manus-modal-header">
+                  <h3 id="manus-ai-diagnostic-title">Diagnostic IA du classeur</h3>
+                  <button type="button" className="manus-modal-close" onClick={closeAiDiagnosticModal} aria-label="Fermer">
+                    <XIcon />
+                  </button>
+                </div>
+                <div className="manus-modal-body">
+                  <p className="manus-ai-diagnostic-soon">Bientôt disponible</p>
+                  <p className="manus-ai-diagnostic-file">
+                    Fichier concerné : <strong>{aiDiagnosticModal.label}</strong>
+                  </p>
+                  <p className="manus-ai-diagnostic-intro">
+                    Cette fonctionnalité analysera votre rapport Excel de valorisation à l&apos;aide de l&apos;intelligence
+                    artificielle. Elle pourra notamment :
+                  </p>
+                  <ul className="manus-ai-diagnostic-list">
+                    <li>identifier les colonnes et blocs de données importants pour votre analyse IFRS 13 ;</li>
+                    <li>détecter les erreurs évidentes, les incohérences entre feuilles ou les formules problématiques ;</li>
+                    <li>signaler les valeurs qui semblent atypiques, peu documentées ou nécessitant une vérification humaine ;</li>
+                    <li>proposer une synthèse pour faciliter vos contrôles avant diffusion ou audit.</li>
+                  </ul>
+                  <p className="manus-ai-diagnostic-foot">
+                    L&apos;analyse sera lancée depuis cette page dès que le service sera activé côté serveur.
+                  </p>
+                  <div className="manus-ai-diagnostic-actions">
+                    <button type="button" className="manus-wb-footer-primary" onClick={closeAiDiagnosticModal}>
+                      Compris
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>,

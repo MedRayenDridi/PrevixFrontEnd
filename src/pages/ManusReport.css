@@ -811,6 +811,86 @@
   cursor: wait;
 }
 
+.manus-history-diagnostic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(91, 33, 182, 0.4);
+  background: linear-gradient(180deg, #faf5ff 0%, #ffffff 100%);
+  color: #5b21b6;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.manus-history-diagnostic-btn svg {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.manus-history-diagnostic-btn:hover {
+  background: #f3e8ff;
+  border-color: rgba(91, 33, 182, 0.55);
+}
+
+.manus-ai-diagnostic-modal {
+  max-width: 520px;
+  width: 100%;
+}
+
+.manus-ai-diagnostic-soon {
+  display: inline-block;
+  margin: 0 0 1rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%);
+  color: #5b21b6;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.manus-ai-diagnostic-file {
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.5;
+}
+
+.manus-ai-diagnostic-intro {
+  margin: 0 0 0.65rem;
+  font-size: 0.9375rem;
+  color: #374151;
+  line-height: 1.55;
+}
+
+.manus-ai-diagnostic-list {
+  margin: 0 0 1rem 1.1rem;
+  padding: 0;
+  font-size: 0.875rem;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.manus-ai-diagnostic-list li {
+  margin-bottom: 0.4rem;
+}
+
+.manus-ai-diagnostic-foot {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.manus-ai-diagnostic-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .manus-wb-editor-modal {
   max-width: min(96vw, 1200px);
   width: 100%;
