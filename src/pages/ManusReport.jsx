@@ -53,6 +53,11 @@ export const ManusReport = () => {
     clearReport,
   } = useReportGeneration();
 
+  const [reportHistory, setReportHistory] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [historyError, setHistoryError] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
+
   const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isDescribingAutocad, setIsDescribingAutocad] = useState(false);
@@ -135,8 +140,58 @@ export const ManusReport = () => {
       );
       return uniqueFiles;
     });
-    setError(null);
-    setSuccess(false);
+  };
+
+  const loadReportHistory = async () => {
+    setHistoryLoading(true);
+    setHistoryError(null);
+    try {
+      const data = await manusService.listReportHistory();
+      setReportHistory(Array.isArray(data?.reports) ? data.reports : []);
+    } catch (err) {
+      console.error('Report history load error:', err);
+      const msg = err.response?.data?.detail || err.message || 'Impossible de charger l’historique.';
+      setHistoryError(typeof msg === 'string' ? msg : JSON.stringify(msg));
+      setReportHistory([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
+  const handleDownloadHistory = async (reportId) => {
+    if (!reportId) return;
+    setDownloadingId(reportId);
+    try {
+      const { blob, filename } = await manusService.downloadHistoryReport(reportId);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename || `rapport_${reportId}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('History download error:', err);
+      const msg = err.response?.data?.detail || err.message || 'Téléchargement impossible.';
+      alert(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  const formatHistoryDate = (iso) => {
+    if (!iso) return '—';
+    try {
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return iso;
+      return d.toLocaleString('fr-FR', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      });
+    } catch {
+      return iso;
+    }
   };
 
   const removeFile = (index) => {
@@ -214,6 +269,16 @@ export const ManusReport = () => {
     };
   }, []);
 
+  useEffect(() => {
+    loadReportHistory();
+  }, []);
+
+  useEffect(() => {
+    if (isSuccess && result?.type === 'excel') {
+      loadReportHistory();
+    }
+  }, [isSuccess, result?.type]);
+
   return (
     <div className="manus-report-container">
       {/* Header */}
@@ -233,6 +298,75 @@ export const ManusReport = () => {
 
       {/* Main Content */}
       <div className="manus-content">
+        {/* Report history */}
+        <div className="manus-history-section">
+          <div className="manus-history-header">
+            <h2 className="manus-history-title">Historique des rapports Excel</h2>
+            <button
+              type="button"
+              className="manus-history-refresh"
+              onClick={loadReportHistory}
+              disabled={historyLoading}
+            >
+              {historyLoading ? 'Chargement…' : 'Actualiser'}
+            </button>
+          </div>
+          <p className="manus-history-hint">
+            Les rapports générés avec succès sont enregistrés sur le serveur ; vous pouvez les télécharger à nouveau ici.
+          </p>
+          {historyError && (
+            <div className="manus-message manus-error manus-history-error">
+              <XIcon />
+              <span>{historyError}</span>
+            </div>
+          )}
+          {!historyError && reportHistory.length === 0 && !historyLoading && (
+            <p className="manus-history-empty">Aucun rapport enregistré pour le moment.</p>
+          )}
+          {reportHistory.length > 0 && (
+            <div className="manus-history-table-wrap">
+              <table className="manus-history-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Projet</th>
+                    <th>Fichiers sources</th>
+                    <th>Taille</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportHistory.map((row) => (
+                    <tr key={row.id}>
+                      <td>{formatHistoryDate(row.created_at)}</td>
+                      <td>{row.project_name || '—'}</td>
+                      <td className="manus-history-sources" title={(row.source_files || []).join(', ')}>
+                        {(row.source_files || []).length
+                          ? `${(row.source_files || []).slice(0, 2).join(', ')}${
+                              (row.source_files || []).length > 2 ? ` (+${(row.source_files || []).length - 2})` : ''
+                            }`
+                          : '—'}
+                      </td>
+                      <td>{formatFileSize(row.size_bytes || 0)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="manus-history-download-btn"
+                          onClick={() => handleDownloadHistory(row.id)}
+                          disabled={downloadingId === row.id}
+                        >
+                          <DownloadIcon />
+                          {downloadingId === row.id ? '…' : 'Télécharger'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
         {/* Project Name Input */}
         <div className="manus-project-input">
           <label htmlFor="project-name" className="manus-label">
@@ -468,7 +602,7 @@ export const ManusReport = () => {
               <div className="manus-step-number">3</div>
               <div className="manus-step-content">
                 <h4>Rapport Excel généré</h4>
-                <p>Recevez un rapport Excel complet avec tous les calculs IFRS 13, sans sauvegarder en base de données</p>
+                <p>Recevez un rapport Excel complet avec tous les calculs IFRS 13 ; une copie est conservée dans l&apos;historique ci-dessus pour re-téléchargement</p>
               </div>
             </div>
           </div>

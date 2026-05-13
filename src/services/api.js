@@ -716,6 +716,41 @@ export const manusService = {
   },
 
   /**
+   * List past Valuation IA Excel reports stored on the backend (newest first).
+   * @returns {Promise<{ reports: Array }>}
+   */
+  listReportHistory: async () => {
+    const response = await api.get('/manus/report-history');
+    return response.data;
+  },
+
+  /**
+   * Download a previously generated Excel by report id from server history.
+   * @returns {Promise<{ blob: Blob, filename: string }>}
+   */
+  downloadHistoryReport: async (reportId) => {
+    const response = await api.get(
+      `/manus/report-history/${encodeURIComponent(reportId)}/download`,
+      { responseType: 'blob' }
+    );
+    let filename = `rapport_valuation_${reportId}.xlsx`;
+    const cd = response.headers['content-disposition'];
+    if (cd && typeof cd === 'string') {
+      const starMatch = cd.match(/filename\*=UTF-8''([^;\n]+)/i);
+      const plainMatch = cd.match(/filename="?([^";\n]+)"?/);
+      const raw = starMatch ? starMatch[1] : plainMatch ? plainMatch[1] : null;
+      if (raw) {
+        try {
+          filename = decodeURIComponent(raw.trim());
+        } catch {
+          filename = raw.trim();
+        }
+      }
+    }
+    return { blob: response.data, filename };
+  },
+
+  /**
    * Generate Valuation IA PDF report from uploaded files
    * @param {File[]} files
    * @param {string} projectName
