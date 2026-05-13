@@ -25,13 +25,17 @@ export function ReportGenerationProvider({ children }) {
     setErrorMessage(null);
   }, []);
 
-  const startExcelReport = useCallback(async (files, projectName) => {
+  const startExcelReport = useCallback(async (files, projectName, projectId = null) => {
     if (!files?.length) return;
     setStatus(STATUS.LOADING_EXCEL);
     setResult(null);
     setErrorMessage(null);
     try {
-      const blob = await manusService.generateReport(files, projectName || null, null);
+      const blob = await manusService.generateReport(
+        files,
+        projectName || null,
+        projectId != null && projectId !== '' ? Number(projectId) : null
+      );
       const filename = `rapport_valuation_ia_${new Date().toISOString().split('T')[0]}.xlsx`;
       setResult({ type: 'excel', blob, filename });
       setStatus(STATUS.SUCCESS_EXCEL);

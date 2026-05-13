@@ -742,6 +742,235 @@
   font-size: 0.875rem;
 }
 
+.manus-select {
+  cursor: pointer;
+}
+
+.manus-db-project-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: #6b7280;
+  line-height: 1.45;
+}
+
+.manus-history-project-cell {
+  min-width: 200px;
+  vertical-align: top;
+}
+
+.manus-history-project-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 0.35rem;
+}
+
+.manus-history-project-select {
+  width: 100%;
+  max-width: 280px;
+  font-size: 0.8125rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+}
+
+.manus-history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.manus-history-edit-btn {
+  padding: 0.4rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid rgba(7, 49, 92, 0.35);
+  background: #fff;
+  color: #07315c;
+  font-size: 0.8125rem;
+  cursor: pointer;
+}
+
+.manus-history-edit-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.manus-history-edit-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.manus-wb-editor-modal {
+  max-width: min(96vw, 1200px);
+  width: 100%;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.manus-wb-editor-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.manus-wb-loading {
+  margin: 0;
+  color: #6b7280;
+}
+
+.manus-wb-editor-warning {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: #92400e;
+  background: #fffbeb;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid #fcd34d;
+  line-height: 1.45;
+}
+
+.manus-wb-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.manus-wb-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.manus-wb-tab {
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  color: #374151;
+}
+
+.manus-wb-tab.active {
+  border-color: #07315c;
+  background: #07315c;
+  color: #fff;
+}
+
+.manus-wb-pager {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.manus-wb-pager-btn {
+  padding: 0.35rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.8125rem;
+}
+
+.manus-wb-pager-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.manus-wb-pager-info {
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.manus-wb-grid-wrap {
+  overflow: auto;
+  max-height: min(60vh, 520px);
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.manus-wb-grid {
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  width: max-content;
+}
+
+.manus-wb-corner,
+.manus-wb-row-head,
+.manus-wb-col-head {
+  background: #f3f4f6;
+  color: #4b5563;
+  font-weight: 600;
+  border: 1px solid #e5e7eb;
+  padding: 0.2rem 0.35rem;
+  text-align: center;
+  min-width: 2rem;
+}
+
+.manus-wb-cell {
+  border: 1px solid #e5e7eb;
+  padding: 0;
+  vertical-align: middle;
+  background: #fff;
+}
+
+.manus-wb-cell input {
+  width: 7.5rem;
+  min-width: 4rem;
+  border: none;
+  padding: 0.25rem 0.35rem;
+  font: inherit;
+  background: transparent;
+}
+
+.manus-wb-cell input:focus {
+  outline: 2px solid rgba(28, 145, 175, 0.4);
+  outline-offset: -2px;
+}
+
+.manus-wb-save-error {
+  margin: 0.75rem 0 0;
+}
+
+.manus-wb-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.manus-wb-footer-secondary {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.manus-wb-footer-primary {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #07315c 0%, #1c91af 100%);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.manus-wb-footer-primary:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .manus-report-container {

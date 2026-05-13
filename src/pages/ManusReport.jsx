@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { manusService } from '../services/api';
+import { manusService, projectService } from '../services/api';
 import { useReportGeneration } from '../context/ReportGenerationContext';
 import { PlanViewer3D } from '../components/PlanViewer3D';
 import './ManusReport.css';
@@ -38,6 +38,33 @@ const CheckIcon = () => (
   </svg>
 );
 
+const WB_ROWS_PER_PAGE = 100;
+
+const colExcelLabel = (index) => {
+  let s = '';
+  let n = index;
+  while (n >= 0) {
+    s = String.fromCharCode(65 + (n % 26)) + s;
+    n = Math.floor(n / 26) - 1;
+  }
+  return s;
+};
+
+const projectRowId = (p) => p?.project_id ?? p?.id;
+const projectRowLabel = (p) => p?.name || p?.title || `Projet ${projectRowId(p)}`;
+
+const WB_EDITOR_INIT = {
+  open: false,
+  reportId: null,
+  loading: false,
+  saving: false,
+  error: null,
+  sheets: [],
+  activeSheetIdx: 0,
+  rowPage: 0,
+  totalCells: 0,
+};
+
 export const ManusReport = () => {
   const {
     status,
@@ -65,6 +92,10 @@ export const ManusReport = () => {
   const [autocadDescriptionError, setAutocadDescriptionError] = useState(null);
   const [autocadScene3d, setAutocadScene3d] = useState(null);
   const [projectName, setProjectName] = useState('');
+  const [projects, setProjects] = useState([]);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [assigningReportId, setAssigningReportId] = useState(null);
+  const [workbookEditor, setWorkbookEditor] = useState(WB_EDITOR_INIT);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
@@ -230,7 +261,115 @@ export const ManusReport = () => {
 
   const handleGenerateExcel = () => {
     if (files.length === 0) return;
-    startExcelReport(files, projectName || null);
+    startExcelReport(files, projectName || null, selectedProjectId || null);
+  };
+
+  const handleAssignHistoryProject = async (reportId, rawVal) => {
+    setAssigningReportId(reportId);
+    try {
+      const pid = rawVal === '' || rawVal == null ? null : Number(rawVal);
+      await manusService.patchReportProject(reportId, Number.isNaN(pid) ? null : pid);
+      await loadReportHistory();
+    } catch (err) {
+      console.error('Assign project to report:', err);
+      const msg = err.response?.data?.detail || err.message || 'Impossible de mettre à jour le projet.';
+      alert(typeof msg === 'string' ? msg : JSON.stringify(msg));
+    } finally {
+      setAssigningReportId(null);
+    }
+  };
+
+  const closeWorkbookEditor = () => {
+    setWorkbookEditor(WB_EDITOR_INIT);
+  };
+
+  const openWorkbookEditor = async (reportId) => {
+    setWorkbookEditor({
+      ...WB_EDITOR_INIT,
+      open: true,
+      reportId,
+      loading: true,
+    });
+    try {
+      const data = await manusService.getReportWorkbook(reportId);
+      const raw = data.sheets || [];
+      const sheets = JSON.parse(
+        JSON.stringify(
+          raw.map((s) => ({
+            name: s.name || 'Feuille',
+            rows: Array.isArray(s.rows) ? s.rows : [],
+          }))
+        )
+      );
+      setWorkbookEditor((w) => ({
+        ...w,
+        loading: false,
+        sheets,
+        totalCells: typeof data.total_cells === 'number' ? data.total_cells : 0,
+        activeSheetIdx: 0,
+        rowPage: 0,
+        error: null,
+      }));
+    } catch (err) {
+      console.error('Workbook load:', err);
+      const detail = err.response?.data?.detail;
+      const msg =
+        err.response?.status === 413
+          ? typeof detail === 'string'
+            ? detail
+            : 'Classeur trop volumineux pour l’éditeur web. Modifiez-le dans Excel puis importez à nouveau, ou téléchargez la version actuelle.'
+          : detail || err.message || 'Impossible de charger le classeur.';
+      setWorkbookEditor((w) => ({
+        ...w,
+        loading: false,
+        error: typeof msg === 'string' ? msg : JSON.stringify(msg),
+        sheets: [],
+      }));
+    }
+  };
+
+  const updateWorkbookCell = (sheetIdx, rowIdx, colIdx, value) => {
+    setWorkbookEditor((w) => {
+      if (!w.open || sheetIdx < 0 || sheetIdx >= w.sheets.length) return w;
+      const sheets = w.sheets.map((s, si) => {
+        if (si !== sheetIdx) return s;
+        const rows = s.rows.map((r, ri) => {
+          if (ri !== rowIdx) return r;
+          const nr = [...(Array.isArray(r) ? r : [])];
+          while (nr.length <= colIdx) nr.push('');
+          nr[colIdx] = value;
+          return nr;
+        });
+        return { ...s, rows };
+      });
+      return { ...w, sheets };
+    });
+  };
+
+  const handleSaveWorkbook = async () => {
+    const { reportId, sheets } = workbookEditor;
+    if (!reportId || !sheets.length) return;
+    setWorkbookEditor((w) => ({ ...w, saving: true, error: null }));
+    try {
+      const payload = {
+        sheets: sheets.map((s) => ({
+          name: s.name,
+          rows: (s.rows || []).map((row) => (Array.isArray(row) ? row : [])),
+        })),
+      };
+      await manusService.saveReportWorkbook(reportId, payload);
+      await loadReportHistory();
+      alert('Modifications enregistrées. Le prochain téléchargement contiendra ce classeur.');
+      closeWorkbookEditor();
+    } catch (err) {
+      console.error('Workbook save:', err);
+      const msg = err.response?.data?.detail || err.message || 'Enregistrement impossible.';
+      setWorkbookEditor((w) => ({
+        ...w,
+        saving: false,
+        error: typeof msg === 'string' ? msg : JSON.stringify(msg),
+      }));
+    }
   };
 
   const handleGeneratePdf = () => {
@@ -274,10 +413,33 @@ export const ManusReport = () => {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const list = await projectService.getProjects();
+        if (!cancelled) setProjects(Array.isArray(list) ? list : []);
+      } catch (e) {
+        console.error('Projects load for Valuation IA:', e);
+        if (!cancelled) setProjects([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (isSuccess && result?.type === 'excel') {
       loadReportHistory();
     }
   }, [isSuccess, result?.type]);
+
+  const wbSheet = workbookEditor.open ? workbookEditor.sheets[workbookEditor.activeSheetIdx] : null;
+  const wbRows = wbSheet?.rows || [];
+  const wbStart = workbookEditor.rowPage * WB_ROWS_PER_PAGE;
+  const wbSlice = wbRows.slice(wbStart, wbStart + WB_ROWS_PER_PAGE);
+  const wbColCount = wbRows.reduce((m, r) => Math.max(m, Array.isArray(r) ? r.length : 0), 0);
+  const wbMaxPage = Math.max(0, Math.ceil(wbRows.length / WB_ROWS_PER_PAGE) - 1);
 
   return (
     <div className="manus-report-container">
@@ -312,7 +474,8 @@ export const ManusReport = () => {
             </button>
           </div>
           <p className="manus-history-hint">
-            Les rapports générés avec succès sont enregistrés sur le serveur ; vous pouvez les télécharger à nouveau ici.
+            Les rapports sont enregistrés sur le serveur. Liez un rapport à un projet de la base, modifiez le classeur dans
+            l’application, puis téléchargez la version à jour.
           </p>
           {historyError && (
             <div className="manus-message manus-error manus-history-error">
@@ -332,14 +495,35 @@ export const ManusReport = () => {
                     <th>Projet</th>
                     <th>Fichiers sources</th>
                     <th>Taille</th>
-                    <th />
+                    <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {reportHistory.map((row) => (
                     <tr key={row.id}>
                       <td>{formatHistoryDate(row.created_at)}</td>
-                      <td>{row.project_name || '—'}</td>
+                      <td className="manus-history-project-cell">
+                        <div className="manus-history-project-label">
+                          {row.project_label_resolved || row.project_label || row.project_name || '—'}
+                        </div>
+                        <select
+                          className="manus-history-project-select"
+                          value={row.project_id != null ? String(row.project_id) : ''}
+                          onChange={(e) => handleAssignHistoryProject(row.id, e.target.value)}
+                          disabled={assigningReportId === row.id}
+                          aria-label="Lier à un projet"
+                        >
+                          <option value="">Aucun projet</option>
+                          {projects.map((p) => {
+                            const pid = projectRowId(p);
+                            return (
+                              <option key={String(pid)} value={String(pid)}>
+                                {projectRowLabel(p)}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </td>
                       <td className="manus-history-sources" title={(row.source_files || []).join(', ')}>
                         {(row.source_files || []).length
                           ? `${(row.source_files || []).slice(0, 2).join(', ')}${
@@ -349,15 +533,29 @@ export const ManusReport = () => {
                       </td>
                       <td>{formatFileSize(row.size_bytes || 0)}</td>
                       <td>
-                        <button
-                          type="button"
-                          className="manus-history-download-btn"
-                          onClick={() => handleDownloadHistory(row.id)}
-                          disabled={downloadingId === row.id}
-                        >
-                          <DownloadIcon />
-                          {downloadingId === row.id ? '…' : 'Télécharger'}
-                        </button>
+                        <div className="manus-history-actions">
+                          <button
+                            type="button"
+                            className="manus-history-edit-btn"
+                            onClick={() => openWorkbookEditor(row.id)}
+                            disabled={
+                              workbookEditor.loading &&
+                              workbookEditor.open &&
+                              workbookEditor.reportId === row.id
+                            }
+                          >
+                            Modifier
+                          </button>
+                          <button
+                            type="button"
+                            className="manus-history-download-btn"
+                            onClick={() => handleDownloadHistory(row.id)}
+                            disabled={downloadingId === row.id}
+                          >
+                            <DownloadIcon />
+                            {downloadingId === row.id ? '…' : 'Télécharger'}
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -380,6 +578,31 @@ export const ManusReport = () => {
             value={projectName}
             onChange={(e) => setProjectName(e.target.value)}
           />
+        </div>
+
+        <div className="manus-project-input">
+          <label htmlFor="manus-db-project" className="manus-label">
+            Projet en base de données (optionnel)
+          </label>
+          <select
+            id="manus-db-project"
+            className="manus-input manus-select"
+            value={selectedProjectId}
+            onChange={(e) => setSelectedProjectId(e.target.value)}
+          >
+            <option value="">Aucun</option>
+            {projects.map((p) => {
+              const pid = projectRowId(p);
+              return (
+                <option key={String(pid)} value={String(pid)}>
+                  {projectRowLabel(p)}
+                </option>
+              );
+            })}
+          </select>
+          <p className="manus-db-project-hint">
+            Sera associé au fichier dans l&apos;historique (en plus du nom libre ci-dessus).
+          </p>
         </div>
 
         {/* File Upload Zone */}
@@ -547,6 +770,140 @@ export const ManusReport = () => {
             )}
           </button>
         </div>
+
+        {/* Modal: workbook editor */}
+        {workbookEditor.open && (
+          <div className="manus-modal-overlay" onClick={closeWorkbookEditor} role="dialog" aria-modal="true">
+            <div className="manus-modal manus-wb-editor-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="manus-modal-header">
+                <h3>Modifier le classeur Excel</h3>
+                <button type="button" className="manus-modal-close" onClick={closeWorkbookEditor} aria-label="Fermer">
+                  <XIcon />
+                </button>
+              </div>
+              <div className="manus-modal-body manus-wb-editor-body">
+                {workbookEditor.loading && (
+                  <p className="manus-wb-loading">Chargement du classeur…</p>
+                )}
+                {!workbookEditor.loading && workbookEditor.error && workbookEditor.sheets.length === 0 && (
+                  <p className="manus-modal-error">{workbookEditor.error}</p>
+                )}
+                {!workbookEditor.loading && workbookEditor.sheets.length > 0 && (
+                  <>
+                    {workbookEditor.totalCells > 8000 && (
+                      <p className="manus-wb-editor-warning">
+                        {workbookEditor.totalCells} cellules — affichage par paquets de {WB_ROWS_PER_PAGE} lignes. L&apos;enregistrement
+                        conserve toutes les lignes ({wbRows.length} sur cette feuille).
+                      </p>
+                    )}
+                    <div className="manus-wb-toolbar">
+                      <div className="manus-wb-tabs">
+                        {workbookEditor.sheets.map((s, idx) => (
+                          <button
+                            key={`${s.name}-${idx}`}
+                            type="button"
+                            className={`manus-wb-tab ${idx === workbookEditor.activeSheetIdx ? 'active' : ''}`}
+                            onClick={() =>
+                              setWorkbookEditor((w) => ({ ...w, activeSheetIdx: idx, rowPage: 0 }))
+                            }
+                          >
+                            {s.name || `Feuille ${idx + 1}`}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="manus-wb-pager">
+                        <button
+                          type="button"
+                          className="manus-wb-pager-btn"
+                          onClick={() =>
+                            setWorkbookEditor((w) => ({ ...w, rowPage: Math.max(0, w.rowPage - 1) }))
+                          }
+                          disabled={workbookEditor.rowPage <= 0}
+                        >
+                          Lignes précédentes
+                        </button>
+                        <span className="manus-wb-pager-info">
+                          {wbStart + 1}–{Math.min(wbStart + WB_ROWS_PER_PAGE, wbRows.length)} / {wbRows.length}
+                        </span>
+                        <button
+                          type="button"
+                          className="manus-wb-pager-btn"
+                          onClick={() =>
+                            setWorkbookEditor((w) => ({
+                              ...w,
+                              rowPage: Math.min(wbMaxPage, w.rowPage + 1),
+                            }))
+                          }
+                          disabled={workbookEditor.rowPage >= wbMaxPage}
+                        >
+                          Lignes suivantes
+                        </button>
+                      </div>
+                    </div>
+                    <div className="manus-wb-grid-wrap">
+                      <table className="manus-wb-grid">
+                        <thead>
+                          <tr>
+                            <th className="manus-wb-corner" />
+                            {Array.from({ length: Math.max(wbColCount, 1) }, (_, c) => (
+                              <th key={c} className="manus-wb-col-head">
+                                {colExcelLabel(c)}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {wbSlice.map((row, i) => {
+                            const ri = wbStart + i;
+                            const cells = Array.isArray(row) ? row : [];
+                            return (
+                              <tr key={ri}>
+                                <td className="manus-wb-row-head">{ri + 1}</td>
+                                {Array.from({ length: Math.max(wbColCount, 1) }, (_, c) => (
+                                  <td key={c} className="manus-wb-cell">
+                                    <input
+                                      type="text"
+                                      value={cells[c] == null ? '' : String(cells[c])}
+                                      onChange={(e) =>
+                                        updateWorkbookCell(
+                                          workbookEditor.activeSheetIdx,
+                                          ri,
+                                          c,
+                                          e.target.value
+                                        )
+                                      }
+                                      aria-label={`${colExcelLabel(c)}${ri + 1}`}
+                                    />
+                                  </td>
+                                ))}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    {workbookEditor.error && (
+                      <p className="manus-modal-error manus-wb-save-error">{workbookEditor.error}</p>
+                    )}
+                    <div className="manus-wb-footer">
+                      <button type="button" className="manus-wb-footer-secondary" onClick={closeWorkbookEditor}>
+                        Fermer
+                      </button>
+                      <button
+                        type="button"
+                        className="manus-wb-footer-primary"
+                        onClick={handleSaveWorkbook}
+                        disabled={workbookEditor.saving}
+                      >
+                        {workbookEditor.saving ? 'Enregistrement…' : 'Enregistrer dans le fichier'}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal: AutoCAD description + 3D plan */}
         {(autocadDescription !== null || autocadDescriptionError) && (

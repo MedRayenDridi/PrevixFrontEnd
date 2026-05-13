@@ -750,6 +750,32 @@ export const manusService = {
     return { blob: response.data, filename };
   },
 
+  /** Link a history Excel report to a DB project (or clear with null). */
+  patchReportProject: async (reportId, projectId) => {
+    const response = await api.patch(
+      `/manus/report-history/${encodeURIComponent(reportId)}/project`,
+      { project_id: projectId }
+    );
+    return response.data;
+  },
+
+  /** Load workbook as JSON grids for the in-app editor. */
+  getReportWorkbook: async (reportId) => {
+    const response = await api.get(
+      `/manus/report-history/${encodeURIComponent(reportId)}/workbook`
+    );
+    return response.data;
+  },
+
+  /** Save edited grids back to the stored .xlsx. */
+  saveReportWorkbook: async (reportId, payload) => {
+    const response = await api.put(
+      `/manus/report-history/${encodeURIComponent(reportId)}/workbook`,
+      payload
+    );
+    return response.data;
+  },
+
   /**
    * Generate Valuation IA PDF report from uploaded files
    * @param {File[]} files
