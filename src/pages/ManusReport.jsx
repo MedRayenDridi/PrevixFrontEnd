@@ -486,122 +486,21 @@ export const ManusReport = () => {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="manus-content">
-        {/* Report history */}
-        <div className="manus-history-section">
-          <div className="manus-history-header">
-            <h2 className="manus-history-title">Historique des rapports Excel</h2>
-            <button
-              type="button"
-              className="manus-history-refresh"
-              onClick={loadReportHistory}
-              disabled={historyLoading}
-            >
-              {historyLoading ? 'Chargement…' : 'Actualiser'}
-            </button>
-          </div>
-          <p className="manus-history-hint">
-            Les rapports sont enregistrés sur le serveur. Liez un rapport à un projet de la base, modifiez le classeur dans
-            l’application, puis téléchargez la version à jour.
-          </p>
-          {historyError && (
-            <div className="manus-message manus-error manus-history-error">
-              <XIcon />
-              <span>{historyError}</span>
-            </div>
-          )}
-          {!historyError && reportHistory.length === 0 && !historyLoading && (
-            <p className="manus-history-empty">Aucun rapport enregistré pour le moment.</p>
-          )}
-          {reportHistory.length > 0 && (
-            <div className="manus-history-table-wrap">
-              <table className="manus-history-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Projet</th>
-                    <th>Fichiers sources</th>
-                    <th>Taille</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reportHistory.map((row) => (
-                    <tr key={row.id}>
-                      <td>{formatHistoryDate(row.created_at)}</td>
-                      <td className="manus-history-project-cell">
-                        <div className="manus-history-project-label">
-                          {row.project_label_resolved || row.project_label || row.project_name || '—'}
-                        </div>
-                        <select
-                          className="manus-history-project-select"
-                          value={row.project_id != null ? String(row.project_id) : ''}
-                          onChange={(e) => handleAssignHistoryProject(row.id, e.target.value)}
-                          disabled={assigningReportId === row.id}
-                          aria-label="Lier à un projet"
-                        >
-                          <option value="">Aucun projet</option>
-                          {projects.map((p) => {
-                            const pid = projectRowId(p);
-                            return (
-                              <option key={String(pid)} value={String(pid)}>
-                                {projectRowLabel(p)}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </td>
-                      <td className="manus-history-sources" title={(row.source_files || []).join(', ')}>
-                        {(row.source_files || []).length
-                          ? `${(row.source_files || []).slice(0, 2).join(', ')}${
-                              (row.source_files || []).length > 2 ? ` (+${(row.source_files || []).length - 2})` : ''
-                            }`
-                          : '—'}
-                      </td>
-                      <td>{formatFileSize(row.size_bytes || 0)}</td>
-                      <td>
-                        <div className="manus-history-actions">
-                          <button
-                            type="button"
-                            className="manus-history-edit-btn"
-                            onClick={() => openWorkbookEditor(row.id)}
-                            disabled={
-                              workbookEditor.loading &&
-                              workbookEditor.open &&
-                              workbookEditor.reportId === row.id
-                            }
-                          >
-                            Modifier
-                          </button>
-                          <button
-                            type="button"
-                            className="manus-history-diagnostic-btn"
-                            onClick={() => openAiDiagnosticModal(row)}
-                            title="Analyse intelligente du classeur (bientôt disponible)"
-                          >
-                            <SparklesIcon />
-                            Diagnostic IA
-                          </button>
-                          <button
-                            type="button"
-                            className="manus-history-download-btn"
-                            onClick={() => handleDownloadHistory(row.id)}
-                            disabled={downloadingId === row.id}
-                          >
-                            <DownloadIcon />
-                            {downloadingId === row.id ? '…' : 'Télécharger'}
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+        <div className="manus-content-layout">
+          <div className="manus-primary-column">
+            <section className="manus-card manus-card--workflow" aria-labelledby="manus-workflow-heading">
+              <header className="manus-card-head">
+                <span className="manus-eyebrow">Nouvelle génération</span>
+                <h2 id="manus-workflow-heading" className="manus-card-title">
+                  Fichiers et options du rapport
+                </h2>
+                <p className="manus-card-subtitle">
+                  Téléchargez vos pièces jointes, associez éventuellement un projet, puis lancez la génération Excel ou Word.
+                </p>
+              </header>
 
+              <div className="manus-field-grid">
         {/* Project Name Input */}
         <div className="manus-project-input">
           <label htmlFor="project-name" className="manus-label">
@@ -641,6 +540,7 @@ export const ManusReport = () => {
             Sera associé au fichier dans l&apos;historique (en plus du nom libre ci-dessus).
           </p>
         </div>
+              </div>
 
         {/* File Upload Zone */}
         <div 
@@ -806,6 +706,124 @@ export const ManusReport = () => {
               </>
             )}
           </button>
+        </div>
+            </section>
+          </div>
+
+          <aside className="manus-aside-column" aria-labelledby="manus-history-heading">
+            <section className="manus-history-section manus-card manus-card--history">
+          <div className="manus-history-header">
+            <h2 id="manus-history-heading" className="manus-history-title">Historique des rapports Excel</h2>
+            <button
+              type="button"
+              className="manus-history-refresh"
+              onClick={loadReportHistory}
+              disabled={historyLoading}
+            >
+              {historyLoading ? 'Chargement…' : 'Actualiser'}
+            </button>
+          </div>
+          <p className="manus-history-hint">
+            Les rapports sont enregistrés sur le serveur. Liez un rapport à un projet de la base, modifiez le classeur dans
+            l’application, puis téléchargez la version à jour.
+          </p>
+          {historyError && (
+            <div className="manus-message manus-error manus-history-error">
+              <XIcon />
+              <span>{historyError}</span>
+            </div>
+          )}
+          {!historyError && reportHistory.length === 0 && !historyLoading && (
+            <p className="manus-history-empty">Aucun rapport enregistré pour le moment.</p>
+          )}
+          {reportHistory.length > 0 && (
+            <div className="manus-history-table-wrap">
+              <table className="manus-history-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Projet</th>
+                    <th>Fichiers sources</th>
+                    <th>Taille</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportHistory.map((row) => (
+                    <tr key={row.id}>
+                      <td>{formatHistoryDate(row.created_at)}</td>
+                      <td className="manus-history-project-cell">
+                        <div className="manus-history-project-label">
+                          {row.project_label_resolved || row.project_label || row.project_name || '—'}
+                        </div>
+                        <select
+                          className="manus-history-project-select"
+                          value={row.project_id != null ? String(row.project_id) : ''}
+                          onChange={(e) => handleAssignHistoryProject(row.id, e.target.value)}
+                          disabled={assigningReportId === row.id}
+                          aria-label="Lier à un projet"
+                        >
+                          <option value="">Aucun projet</option>
+                          {projects.map((p) => {
+                            const pid = projectRowId(p);
+                            return (
+                              <option key={String(pid)} value={String(pid)}>
+                                {projectRowLabel(p)}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </td>
+                      <td className="manus-history-sources" title={(row.source_files || []).join(', ')}>
+                        {(row.source_files || []).length
+                          ? `${(row.source_files || []).slice(0, 2).join(', ')}${
+                              (row.source_files || []).length > 2 ? ` (+${(row.source_files || []).length - 2})` : ''
+                            }`
+                          : '—'}
+                      </td>
+                      <td>{formatFileSize(row.size_bytes || 0)}</td>
+                      <td>
+                        <div className="manus-history-actions">
+                          <button
+                            type="button"
+                            className="manus-history-edit-btn"
+                            onClick={() => openWorkbookEditor(row.id)}
+                            disabled={
+                              workbookEditor.loading &&
+                              workbookEditor.open &&
+                              workbookEditor.reportId === row.id
+                            }
+                          >
+                            Modifier
+                          </button>
+                          <button
+                            type="button"
+                            className="manus-history-diagnostic-btn"
+                            onClick={() => openAiDiagnosticModal(row)}
+                            title="Analyse intelligente du classeur (bientôt disponible)"
+                          >
+                            <SparklesIcon />
+                            Diagnostic IA
+                          </button>
+                          <button
+                            type="button"
+                            className="manus-history-download-btn"
+                            onClick={() => handleDownloadHistory(row.id)}
+                            disabled={downloadingId === row.id}
+                          >
+                            <DownloadIcon />
+                            {downloadingId === row.id ? '…' : 'Télécharger'}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+            </section>
+          </aside>
         </div>
 
         {/* Modal: workbook editor (portal = viewport; Layout main uses GSAP transform which breaks position:fixed) */}
@@ -1056,7 +1074,7 @@ export const ManusReport = () => {
               <div className="manus-step-number">3</div>
               <div className="manus-step-content">
                 <h4>Rapport Excel généré</h4>
-                <p>Recevez un rapport Excel complet avec tous les calculs IFRS 13 ; une copie est conservée dans l&apos;historique ci-dessus pour re-téléchargement</p>
+                <p>Recevez un rapport Excel complet avec tous les calculs IFRS 13 ; une copie est conservée dans l&apos;historique pour re-téléchargement</p>
               </div>
             </div>
           </div>
